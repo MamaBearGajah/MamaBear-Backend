@@ -92,23 +92,25 @@ model Address {
 }
 
 model Product {
-  id          String         @id @default(uuid())
-  categoryId  String?
-  name        String
-  slug        String         @unique
-  description String?
-  price       Decimal
-  weight      Int
-  sku         String         @unique
-  stock       Int            @default(0)
-  status      ProductStatus  @default(draft)
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
-  category    Category?      @relation(fields: [categoryId], references: [id])
-  images      ProductImage[]
-  variants    ProductVariant[]
-  cartItems   CartItem[]
-  orderItems  OrderItem[]
+  id            String         @id @default(uuid())
+  categoryId    String?
+  name          String
+  slug          String         @unique
+  description   String?
+  basePrice     Decimal
+  discountPrice Decimal?
+  weight        Int
+  sku           String         @unique
+  stock         Int            @default(0)
+  mainImage     String?
+  status        ProductStatus  @default(draft)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  category      Category?      @relation(fields: [categoryId], references: [id])
+  images        ProductImage[]
+  variants      ProductVariant[]
+  cartItems     CartItem[]
+  orderItems    OrderItem[]
 }
 
 model ProductImage {
@@ -126,8 +128,9 @@ model ProductImage {
 model ProductVariant {
   id              String   @id @default(uuid())
   productId       String
-  name            String
+  name            String   // isi: "Cokelat", "Matcha", dll
   value           String
+  imageUrl        String?
   priceAdjustment Decimal  @default(0)
   stock           Int      @default(0)
   sku             String?
