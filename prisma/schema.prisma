@@ -97,12 +97,12 @@ model Product {
   name          String
   slug          String         @unique
   description   String?
-  price         Decimal
+  basePrice     Decimal
   discountPrice Decimal?
-  mainImage     String?
   weight        Int
   sku           String         @unique
   stock         Int            @default(0)
+  mainImage     String?
   status        ProductStatus  @default(draft)
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt

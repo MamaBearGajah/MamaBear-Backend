@@ -144,7 +144,7 @@ Keunggulan Mamabear AlmonMix:
 - Efektif meningkatkan produksi dan nutrisi ASI.
 - Efektif membantu ASI cepat keluar.
 - Meningkatkan mood untuk membantu mengurangi risiko baby blues.`,
-        price: 80000,
+        basePrice: 80000,
         discountPrice: 40000,
         weight: 200,
         stock: 100,
@@ -195,7 +195,7 @@ Keunggulan Mamabear ZoyaMix:
 - Sumber Zat Besi.
 
 *Catatan: mengandung produk turunan sapi.`,
-        price: 80000,
+        basePrice: 80000,
         discountPrice: 38000,
         weight: 250,
         stock: 100,
@@ -242,7 +242,7 @@ Keunggulan Mamabear Teh Pelancar ASI:
 - Mempercepat pemulihan & meningkatkan daya tahan tubuh (Habbatussauda).
 
 *Catatan: tidak untuk ibu hamil.`,
-        price: 65000,
+        basePrice: 65000,
         discountPrice: 40000,
         weight: 100,
         stock: 100,
@@ -298,7 +298,7 @@ Memberi segala kebaikan untuk Mama selama masa menyusui dengan:
 
 *Varian Cookies and Cream & Coklat Chip mengandung produk turunan susu sapi.
 *Varian Choconut BEBAS produk turunan susu sapi & TANPA TELUR`,
-        price: 80000,
+        basePrice: 80000,
         discountPrice: 40000,
         weight: 150,
         stock: 100,
@@ -366,7 +366,7 @@ ANJURAN PEMAKAIAN:
 - 1 kapsul setelah makan
 
 Catatan: Tidak untuk Ibu hamil`,
-        price: 100000,
+        basePrice: 100000,
         discountPrice: 61900,
         weight: 100,
         stock: 100,
