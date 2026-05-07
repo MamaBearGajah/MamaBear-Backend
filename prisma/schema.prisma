@@ -128,7 +128,7 @@ model ProductImage {
 model ProductVariant {
   id              String   @id @default(uuid())
   productId       String
-  name            String
+  name            String   // isi: "Cokelat", "Matcha", dll
   value           String
   imageUrl        String?
   priceAdjustment Decimal  @default(0)
