@@ -19,6 +19,9 @@ import { ChatbotModule } from './chatbot/chatbot.module';
 import { MembershipModule } from './membership/membership.module';
 import { MediaModule } from './media/media.module';
 import { HealthModule } from './health/health.module';
+import { APP_GUARD } from '@nestjs/core';
+import { RolesGuard } from './auth/guards/roles.guard';
+import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 
 @Module({
   imports: [
@@ -30,6 +33,10 @@ import { HealthModule } from './health/health.module';
     PaymentsModule, AdminModule, FaqModule, BlogModule,
     ConsultationsModule, ChatbotModule, MembershipModule,
     MediaModule, HealthModule,
+  ],
+  providers: [
+    { provide: APP_GUARD, useClass: JwtAuthGuard },
+    { provide: APP_GUARD, useClass: RolesGuard },
   ],
 })
 export class AppModule {}
