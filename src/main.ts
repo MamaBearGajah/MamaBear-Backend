@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { AllExceptionFilter } from './common/filters/all-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -22,6 +23,9 @@ async function bootstrap() {
     transform: true,
   }));
 
+    // Global Exception Filter
+  app.useGlobalFilters(new AllExceptionFilter());
+
   // Swagger
   const config = new DocumentBuilder()
     .setTitle('Mamabear API')
@@ -32,6 +36,13 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
 
-  await app.listen(process.env.PORT || 3000);
+  const port = process.env.PORT || 3000;
+  await app.listen(port);
+
+  console.log(`=======================================================`);
+  console.log(`🚀 Backend running on: http://localhost:${port}`);
+  console.log(`📘 Swagger Docs: http://localhost:${port}/api/docs`);
+  console.log(`🌐 Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:3001'}`);
+  console.log(`=======================================================`);
 }
 bootstrap();
