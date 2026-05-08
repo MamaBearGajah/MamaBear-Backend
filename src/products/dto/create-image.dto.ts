@@ -1,20 +1,25 @@
-import { Transform } from "class-transformer";
-import { IsBoolean, IsNumber, IsOptional, IsString } from "class-validator";
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
+import { IsBoolean, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateImageDto {
-    @IsString()
-    imageUrl!: string
+  @ApiProperty({ example: 'https://example.com/image.jpg' })
+  @IsString()
+  imageUrl!: string;
 
-    @IsString()
-    @IsOptional()
-    altText?: string
+  @ApiPropertyOptional({ example: 'Foto produk tampak depan' })
+  @IsString()
+  @IsOptional()
+  altText?: string;
 
-    @Transform(({ value }) => parseInt(value))
-    @IsNumber()
-    @IsOptional()
-    sortOrder?: number
-    
-    @IsBoolean()
-    @IsOptional()
-    isFeatured?: boolean
+  @ApiPropertyOptional({ example: 1, description: 'Urutan tampil gambar' })
+  @Transform(({ value }) => parseInt(value))
+  @IsNumber()
+  @IsOptional()
+  sortOrder?: number;
+
+  @ApiPropertyOptional({ example: true })
+  @IsBoolean()
+  @IsOptional()
+  isFeatured?: boolean;
 }

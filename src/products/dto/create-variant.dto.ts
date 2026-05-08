@@ -1,29 +1,37 @@
-import { IsBoolean, IsNumber, IsOptional, IsString, Min } from "class-validator";
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsBoolean, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
 export class CreateVariantDto {
-    @IsString()
-    name: string
+  @ApiProperty({ example: 'Warna' })
+  @IsString()
+  name!: string;
 
-    @IsString()
-    value: string
+  @ApiProperty({ example: 'Merah' })
+  @IsString()
+  value!: string;
 
-    @IsString()
-    @IsOptional()
-    imageUrl?: string
-    
-    @IsNumber()
-    @IsOptional()
-    priceAdjustment?: number
-    
-    @IsNumber()
-    @Min(0)
-    stock: number
+  @ApiPropertyOptional({ example: 'https://example.com/red.jpg' })
+  @IsString()
+  @IsOptional()
+  imageUrl?: string;
 
-    @IsString()
-    @IsOptional()
-    sku?: string
+  @ApiPropertyOptional({ example: 5000, description: 'Selisih harga dari base price' })
+  @IsNumber()
+  @IsOptional()
+  priceAdjustment?: number;
 
-    @IsBoolean()
-    @IsOptional()
-    isActive?: boolean
+  @ApiProperty({ example: 10, minimum: 0 })
+  @IsNumber()
+  @Min(0)
+  stock!: number;
+
+  @ApiPropertyOptional({ example: 'SKU-001-RED' })
+  @IsString()
+  @IsOptional()
+  sku?: string;
+
+  @ApiPropertyOptional({ example: true })
+  @IsBoolean()
+  @IsOptional()
+  isActive?: boolean;
 }
