@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
-import { PrismaModule } from './prisma/prisma.module';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
-import { UsersModule } from './users/users.module';
 import { ProductsModule } from './products/products.module';
 import { CategoriesModule } from './categories/categories.module';
 import { SearchModule } from './search/search.module';
@@ -27,14 +27,26 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 60 }]),
-    PrismaModule,
-    AuthModule, UsersModule, ProductsModule, CategoriesModule,
-    SearchModule, CartModule, ShippingModule, OrdersModule,
-    PaymentsModule, AdminModule, FaqModule, BlogModule,
-    ConsultationsModule, ChatbotModule, MembershipModule,
-    MediaModule, HealthModule,
+    AuthModule,
+    ProductsModule,
+    CategoriesModule,
+    SearchModule,
+    CartModule,
+    ShippingModule,
+    OrdersModule,
+    PaymentsModule,
+    AdminModule,
+    FaqModule,
+    BlogModule,
+    ConsultationsModule,
+    ChatbotModule,
+    MembershipModule,
+    MediaModule,
+    HealthModule,
   ],
+  controllers: [AppController],
   providers: [
+    AppService,
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
   ],
