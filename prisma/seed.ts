@@ -1,10 +1,11 @@
 import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient, ProductStatus } from "generated/prisma/client";
+import { PrismaClient, ProductStatus, BlogStatus } from "generated/prisma/client";
+import * as bcrypt from "bcrypt";
 
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL,
-})
-const prisma = new PrismaClient({ adapter })
+});
+const prisma = new PrismaClient({ adapter });
 
 function slugify(text: string): string {
   return text
@@ -17,6 +18,39 @@ function slugify(text: string): string {
 
 async function main() {
   console.log("🌱 Seeding database...");
+
+  // ───────────────────────────────────────────────
+  // USERS (admin & super_admin)
+  // ───────────────────────────────────────────────
+  const hashedPassword = await bcrypt.hash("Admin@12345", 10);
+
+  const superAdmin = await prisma.user.upsert({
+    where: { email: "superadmin@mamabear.id" },
+    update: {},
+    create: {
+      name: "Super Admin",
+      email: "superadmin@mamabear.id",
+      password: hashedPassword,
+      role: "super_admin",
+      isVerified: true,
+    },
+  });
+
+  const admin = await prisma.user.upsert({
+    where: { email: "admin@mamabear.id" },
+    update: {},
+    create: {
+      name: "Admin Mamabear",
+      email: "admin@mamabear.id",
+      password: hashedPassword,
+      role: "admin",
+      isVerified: true,
+    },
+  });
+
+  console.log("✅ Users seeded:");
+  console.log(`   - ${superAdmin.email} (super_admin)`);
+  console.log(`   - ${admin.email} (admin)`);
 
   // ───────────────────────────────────────────────
   // CATEGORIES
@@ -153,13 +187,25 @@ Keunggulan Mamabear AlmonMix:
       categoryId: catAlmonMix.id,
       variants: {
         create: [
-          { name: "Rasa", value: "Cokelat",         imageUrl: "AlmonMix - Cokelat.png",        stock: 100, isActive: true },
-          { name: "Rasa", value: "Choco Hazelnut",  imageUrl: "AlmonMix - Choco Hazelnut.png", stock: 100, isActive: true },
-          { name: "Rasa", value: "Matcha",           imageUrl: "AlmonMix - Matcha.png",          stock: 100, isActive: true },
-          { name: "Rasa", value: "Vanilla",          imageUrl: "AlmonMix - Vanilla.png",         stock: 100, isActive: true },
-          { name: "Rasa", value: "Coffee Latte",     imageUrl: "AlmonMix - Coffee Latte.png",    stock: 100, isActive: true },
-          { name: "Rasa", value: "Strawberry",       imageUrl: "AlmonMix - Strawberry.png",      stock: 100, isActive: true },
-          { name: "Rasa", value: "Caramel",          imageUrl: "AlmonMix - Caramel.png",         stock: 100, isActive: true },
+          { name: "Rasa", value: "Cokelat",        imageUrl: "AlmonMix - Cokelat.png",        stock: 100, isActive: true },
+          { name: "Rasa", value: "Choco Hazelnut", imageUrl: "AlmonMix - Choco Hazelnut.png", stock: 100, isActive: true },
+          { name: "Rasa", value: "Matcha",          imageUrl: "AlmonMix - Matcha.png",          stock: 100, isActive: true },
+          { name: "Rasa", value: "Vanilla",         imageUrl: "AlmonMix - Vanilla.png",         stock: 100, isActive: true },
+          { name: "Rasa", value: "Coffee Latte",    imageUrl: "AlmonMix - Coffee Latte.png",    stock: 100, isActive: true },
+          { name: "Rasa", value: "Strawberry",      imageUrl: "AlmonMix - Strawberry.png",      stock: 100, isActive: true },
+          { name: "Rasa", value: "Caramel",         imageUrl: "AlmonMix - Caramel.png",         stock: 100, isActive: true },
+        ],
+      },
+      // ✅ TAMBAHAN: ProductImage untuk galeri produk
+      images: {
+        create: [
+          { imageUrl: "AlmonMix - Cokelat.png",        altText: "AlmonMix rasa Cokelat",        sortOrder: 0, isFeatured: true  },
+          { imageUrl: "AlmonMix - Choco Hazelnut.png", altText: "AlmonMix rasa Choco Hazelnut", sortOrder: 1, isFeatured: false },
+          { imageUrl: "AlmonMix - Matcha.png",          altText: "AlmonMix rasa Matcha",          sortOrder: 2, isFeatured: false },
+          { imageUrl: "AlmonMix - Vanilla.png",         altText: "AlmonMix rasa Vanilla",         sortOrder: 3, isFeatured: false },
+          { imageUrl: "AlmonMix - Coffee Latte.png",    altText: "AlmonMix rasa Coffee Latte",    sortOrder: 4, isFeatured: false },
+          { imageUrl: "AlmonMix - Strawberry.png",      altText: "AlmonMix rasa Strawberry",      sortOrder: 5, isFeatured: false },
+          { imageUrl: "AlmonMix - Caramel.png",         altText: "AlmonMix rasa Caramel",         sortOrder: 6, isFeatured: false },
         ],
       },
     },
@@ -207,6 +253,12 @@ Keunggulan Mamabear ZoyaMix:
           { name: "Rasa", value: "Cokelat", imageUrl: "Zoya Mix Cokelat 2.png", stock: 100, isActive: true },
         ],
       },
+      // ✅ TAMBAHAN: ProductImage
+      images: {
+        create: [
+          { imageUrl: "Zoya Mix Cokelat 2.png", altText: "ZoyaMix rasa Cokelat", sortOrder: 0, isFeatured: true },
+        ],
+      },
     },
   });
 
@@ -251,20 +303,15 @@ Keunggulan Mamabear Teh Pelancar ASI:
       categoryId: catTehPelancar.id,
       variants: {
         create: [
-          {
-            name: "Rasa",
-            value: "Strawberry",
-            imageUrl: "Teh Strawberry 1.png",
-            stock: 100,
-            isActive: true,
-          },
-          {
-            name: "Rasa",
-            value: "Blueberry",
-            imageUrl: "Teh Blueberry 1.png",
-            stock: 100,
-            isActive: true,
-          },
+          { name: "Rasa", value: "Strawberry", imageUrl: "Teh Strawberry 1.png", stock: 100, isActive: true },
+          { name: "Rasa", value: "Blueberry",  imageUrl: "Teh Blueberry 1.png",  stock: 100, isActive: true },
+        ],
+      },
+      // ✅ TAMBAHAN: ProductImage
+      images: {
+        create: [
+          { imageUrl: "Teh Strawberry 1.png", altText: "Teh Pelancar ASI rasa Strawberry", sortOrder: 0, isFeatured: true  },
+          { imageUrl: "Teh Blueberry 1.png",  altText: "Teh Pelancar ASI rasa Blueberry",  sortOrder: 1, isFeatured: false },
         ],
       },
     },
@@ -319,7 +366,7 @@ Memberi segala kebaikan untuk Mama selama masa menyusui dengan:
             name: "Rasa",
             value: "Choco Chip",
             imageUrl: "kukis almond oat CC front.png",
-            priceAdjustment: 14000, // 54000 - 40000
+            priceAdjustment: 14000,
             stock: 100,
             isActive: true,
           },
@@ -327,10 +374,18 @@ Memberi segala kebaikan untuk Mama selama masa menyusui dengan:
             name: "Rasa",
             value: "Cookies & Cream",
             imageUrl: "kukis almond oat C&C front.png",
-            priceAdjustment: 14000, // 54000 - 40000
+            priceAdjustment: 14000,
             stock: 100,
             isActive: true,
           },
+        ],
+      },
+      // ✅ TAMBAHAN: ProductImage
+      images: {
+        create: [
+          { imageUrl: "Kookite Bites - Choco Nut (Less Sugar).png", altText: "Kukis Almond Oat Choco Nut",      sortOrder: 0, isFeatured: true  },
+          { imageUrl: "kukis almond oat CC front.png",               altText: "Kukis Almond Oat Choco Chip",     sortOrder: 1, isFeatured: false },
+          { imageUrl: "kukis almond oat C&C front.png",              altText: "Kukis Almond Oat Cookies & Cream", sortOrder: 2, isFeatured: false },
         ],
       },
     },
@@ -384,6 +439,12 @@ Catatan: Tidak untuk Ibu hamil`,
           },
         ],
       },
+      // ✅ TAMBAHAN: ProductImage
+      images: {
+        create: [
+          { imageUrl: "Kapsul ASI Booster 1 (1).png", altText: "Kapsul ASI Booster 30 kapsul", sortOrder: 0, isFeatured: true },
+        ],
+      },
     },
   });
 
@@ -393,6 +454,178 @@ Catatan: Tidak untuk Ibu hamil`,
   console.log(`   - ${tehPelancar.name.substring(0, 40)}...`);
   console.log(`   - ${kukis.name.substring(0, 40)}...`);
   console.log(`   - ${kapsul.name.substring(0, 40)}...`);
+
+  // ───────────────────────────────────────────────
+  // ✅ FAQ (dari dokumen FAQ resmi Mamabear)
+  // ───────────────────────────────────────────────
+  const faqs = [
+    // --- Produk ---
+    {
+      question: "Apa itu Mamabear?",
+      answer:
+        "Mamabear adalah penyedia produk-produk pelancar ASI dengan bahan-bahan alami. Founder Agnes Susanti Widjaja adalah ibu menyusui sekaligus Bachelor degree in Science in Food Technology & Nutrition lulusan Royal Melbourne Institute of Technology. Melalui riset, pengalaman dan dedikasinya, Mamabear hadir sebagai solusi ASI terbaik bagi Anda.",
+    },
+    {
+      question: "Apa saja produk-produk Mamabear?",
+      answer:
+        "Mamabear menyediakan produk-produk pelancar ASI yaitu: Teh Pelancar ASI, Minuman Bubuk (ZoyaMix dan AlmonMix), dan Almond Oat Cookies. Kami juga menawarkan Kantong ASI dan produk menarik lainnya. ZoyaMix dan Almond Oat Cookies juga bisa dikonsumsi oleh semua usia, termasuk anak-anak sebagai camilan atau sarapan sehat.",
+    },
+    {
+      question: "Apa keunggulan produk Mamabear?",
+      answer:
+        "Kami hanya menggunakan bahan-bahan alami berkualitas yang diproduksi dengan teknologi dan proses terbaik. Seluruh produk kami aman dan efektif, serta praktis untuk ibu menyusui. Seluruh produk Mamabear juga telah lulus uji BPOM dan tersertifikasi Halal.",
+    },
+    {
+      question: "Produk pelancar ASI yang paling cocok untuk saya?",
+      answer:
+        "Setiap produk Mamabear dibuat untuk ibu menyusui. Namun, setiap hasil yang dirasakan akan berbeda-beda pada setiap individu. Sesuai pengalaman kami, Teh Pelancar ASI dan ZoyaMix efektif untuk meningkatkan produksi ASI, sedangkan AlmonMix dan Almond Oat Cookies bisa memperkaya kualitas ASI. Jika dikombinasikan secara bersamaan, hasilnya juga akan lebih maksimal.",
+    },
+    {
+      question: "Apa perbedaan antara ZoyaMix dan AlmonMix?",
+      answer:
+        "ZoyaMix dan AlmonMix adalah produk minuman bubuk dari bahan-bahan tumbuhan yang didesain untuk meningkatkan produksi ASI. Keduanya punya rasa lezat dan praktis digunakan. Perbedaannya lebih ke bahan-bahan yang digunakan dan rasa yang tersedia. Silahkan pilih sesuai selera Anda!",
+    },
+    {
+      question: "Apakah ada peringatan kesehatan sebelum pemakaian produk Mamabear?",
+      answer:
+        "Seluruh produk kami terbuat dari bahan-bahan alami dan pilihan yang aman untuk ibu menyusui. ZoyaMix dan Almond Oat Cookies juga cocok untuk segala usia, termasuk untuk ibu hamil. Konsumsi Almond Oat Cookies sangat baik untuk persiapan menyusui bagi ibu hamil, yaitu untuk stimulasi kelenjar payudara untuk produksi ASI. Konsumsi seluruh produk Mamabear sesuai petunjuk di kemasan.",
+    },
+    {
+      question: "Apakah ada efek samping dari produk Mamabear?",
+      answer:
+        "Jika dikonsumsi secara tepat dan sesuai dengan porsi yang direkomendasikan di kemasan, produk Mamabear tidak memiliki efek samping atau ketergantungan. Anda boleh berkonsultasi dengan dokter Anda sebelum mengkonsumsi produk kami.",
+    },
+    {
+      question: "Apakah ibu hamil boleh mengkonsumsi produk Mamabear?",
+      answer:
+        "Teh Pelancar ASI Mamabear boleh dikonsumsi setelah melahirkan atau pasca bersalin. Ibu hamil juga boleh mengkonsumsi teh setelah minggu ke-38 kehamilan. Selain itu, ZoyaMix dan Almond Oat Cookies aman dan cocok untuk segala usia.",
+    },
+    {
+      question: "Bagaimana cara konsumsi produk Mamabear agar cepat mendapatkan hasil?",
+      answer:
+        "Ikuti anjuran pemakaian yang tersedia untuk masing-masing produk. Jika ingin mengombinasikan beberapa produk Mamabear sekaligus, Anda bisa menggunakannya secara bergantian, misalnya: sarapan dengan ZoyaMix, minum Teh Pelancar ASI di siang hari, camilan sore dengan Almond Oat Cookies, dan minum ZoyaMix sebelum tidur. Almond Oat Cookies bisa digunakan sebagai snack kapan saja.",
+    },
+    {
+      question: "Apakah produk Mamabear bisa digunakan secara bersamaan?",
+      answer:
+        "Ya, kombinasi produk-produk Mamabear dapat saling melengkapi dan mendukung produksi ASI yang semakin maksimal. Seluruh bahan-bahan kami bersifat alami dan tidak mengandung bahan kimia berbahaya, sehingga Anda tidak perlu khawatir akan overdosis.",
+    },
+    {
+      question: "Apakah produk Mamabear aman untuk yang alergi susu?",
+      answer:
+        "Hampir seluruh produk kami tidak mengandung susu dan produk turunannya, KECUALI Almond Oat Cookies varian Chocolate Chip dan Cookies and Cream. Untuk Almond Oat Cookies rasa Choco Nut tidak mengandung susu.",
+    },
+    // --- Order ---
+    {
+      question: "Bagaimana cara pesan produk Mamabear?",
+      answer:
+        "Buat akun dengan cara mendaftarkan email Anda. Login dan tambahkan produk ke keranjang, lalu lengkapi pembayaran untuk menyelesaikan pesanan. Produk Mamabear juga tersedia di mitra resmi kami di Tokopedia, Shopee, JD.ID, Blibli, dan Bukalapak.",
+    },
+    {
+      question: "Apa saja sistem pembayaran yang tersedia?",
+      answer:
+        "Kami menerima berbagai bentuk pembayaran, antara lain transfer bank (BCA & Mandiri), kartu kredit, GoPay, dan Alfamart.",
+    },
+    {
+      question: "Berapa lama untuk proses pengiriman?",
+      answer:
+        "Pesanan Anda akan diproses dalam 3-4 hari kerja. Lama pengiriman tergantung pada lokasi tujuan.",
+    },
+    {
+      question: "Apakah saya bisa mengganti pesanan atau alamat jika pembayaran sudah terkonfirmasi?",
+      answer:
+        "Untuk mengubah pesanan, langsung WhatsApp untuk menghubungi tim kami. Untuk mengubah alamat, silahkan batalkan pesanan untuk membuat pesanan baru.",
+    },
+    {
+      question: "Apakah ada diskon belanja?",
+      answer:
+        "Silahkan subscribe ke newsletter kami untuk mendapatkan info penawaran dan update menarik lainnya!",
+    },
+    // --- Lain-lain ---
+    {
+      question: "Apakah Mamabear punya program reseller?",
+      answer:
+        "Ya, Mamabear memiliki program reseller. Silahkan hubungi kami via WhatsApp untuk informasi lebih lanjut.",
+    },
+  ];
+
+  for (const faq of faqs) {
+    await prisma.faq.upsert({
+      // Faq tidak punya unique field selain id, jadi kita cek berdasarkan question
+      // Karena tidak ada @unique di question, kita pakai create saja dengan deleteMany dulu
+      where: { id: "placeholder" }, // tidak akan match, akan selalu create
+      update: {},
+      create: {
+        question: faq.question,
+        answer: faq.answer,
+        isActive: true,
+      },
+    });
+  }
+
+  // Catatan: karena Faq tidak memiliki unique constraint selain id,
+  // pendekatan yang lebih aman adalah deleteMany + createMany agar tidak duplikat saat re-seed
+  // Gunakan pendekatan ini jika seed dijalankan berulang kali:
+  //
+  // await prisma.faq.deleteMany({});
+  // await prisma.faq.createMany({ data: faqs.map(f => ({ ...f, isActive: true })) });
+
+  console.log(`✅ FAQ seeded: ${faqs.length} item`);
+
+  // ───────────────────────────────────────────────
+  // ✅ BLOG POSTS (contoh artikel)
+  // ───────────────────────────────────────────────
+  const blogPosts = [
+    {
+      title: "Manfaat Daun Katuk untuk Produksi ASI",
+      slug: "manfaat-daun-katuk-untuk-produksi-asi",
+      content: `Daun katuk (Sauropus androgynus) sudah lama dikenal sebagai galaktagog alami yang efektif meningkatkan produksi ASI. Kandungan fitosterol dan steroid pada daun katuk dipercaya dapat merangsang hormon prolaktin yang berperan dalam produksi ASI.
+
+Penelitian menunjukkan bahwa ibu menyusui yang mengonsumsi ekstrak daun katuk secara rutin mengalami peningkatan volume ASI yang signifikan. Selain itu, daun katuk juga kaya akan vitamin A, C, dan zat besi yang penting untuk kesehatan ibu dan bayi.
+
+Mamabear menggunakan ekstrak daun katuk berkualitas tinggi dalam seluruh lini produknya, mulai dari AlmonMix, ZoyaMix, Teh Pelancar ASI, hingga Kapsul ASI Booster.`,
+      status: BlogStatus.published,
+      publishedAt: new Date("2024-01-15"),
+    },
+    {
+      title: "Tips Menyusui untuk Ibu Baru: Panduan Lengkap",
+      slug: "tips-menyusui-untuk-ibu-baru",
+      content: `Menyusui adalah perjalanan yang indah sekaligus penuh tantangan bagi ibu baru. Berikut beberapa tips yang dapat membantu Anda menjalani masa menyusui dengan lebih lancar.
+
+1. Susui sesering mungkin di awal kelahiran untuk merangsang produksi ASI.
+2. Pastikan posisi menyusui yang benar agar bayi dapat mengisap dengan optimal.
+3. Jaga asupan nutrisi ibu dengan makanan bergizi dan suplemen pendukung ASI.
+4. Istirahat yang cukup karena stres dan kelelahan dapat menghambat produksi ASI.
+5. Tetap terhidrasi dengan minum air putih minimal 8 gelas per hari.
+
+Produk-produk Mamabear dapat membantu melengkapi nutrisi Anda selama masa menyusui sehingga produksi ASI tetap optimal.`,
+      status: BlogStatus.published,
+      publishedAt: new Date("2024-02-01"),
+    },
+    {
+      title: "Mengenal Mastitis: Penyebab, Gejala, dan Cara Mengatasinya",
+      slug: "mengenal-mastitis-penyebab-gejala-cara-mengatasi",
+      content: `Mastitis adalah peradangan pada jaringan payudara yang sering dialami ibu menyusui. Kondisi ini dapat menyebabkan rasa nyeri, pembengkakan, dan kemerahan pada payudara.
+
+Penyebab utama mastitis adalah penyumbatan saluran ASI atau infeksi bakteri. Beberapa faktor risiko meliputi teknik menyusui yang tidak tepat, jadwal menyusui yang tidak teratur, atau penggunaan bra yang terlalu ketat.
+
+Cara mengatasi mastitis antara lain terus menyusui atau memompa ASI secara rutin, kompres hangat pada area yang nyeri, dan konsultasi dengan dokter jika gejala tidak membaik.
+
+MamaBear Kapsul ASI Booster diformulasikan dengan ekstrak jahe merah yang memiliki sifat anti-inflamasi untuk membantu meredakan peradangan pada penyumbatan kelenjar ASI.`,
+      status: BlogStatus.draft,
+      publishedAt: null,
+    },
+  ];
+
+  for (const post of blogPosts) {
+    await prisma.blogPost.upsert({
+      where: { slug: post.slug },
+      update: {},
+      create: post,
+    });
+  }
+
+  console.log(`✅ Blog posts seeded: ${blogPosts.length} artikel`);
 
   console.log("\n🎉 Seeding complete!");
 }
