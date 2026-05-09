@@ -3,6 +3,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { CategoryQueryDto } from './dto/category-query.dto';
+import { ProductQueryDto } from 'src/products/dto/product-query.dto';
 
 @Injectable()
 export class CategoriesService {
@@ -95,4 +96,24 @@ export class CategoriesService {
 
     return this.prisma.category.delete({ where: { id } });
   }
+
+  async findProducts(id: string) {
+  await this.findOne(id); // validasi kategori ada
+
+  return this.prisma.product.findMany({
+    where: { categoryId: id },
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      basePrice: true,
+      discountPrice: true,
+      mainImage: true,
+      stock: true,
+      status: true,
+    },
+  });
+}
+
+  
 }

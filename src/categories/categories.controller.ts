@@ -8,6 +8,7 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from 'src/auth/decorators';
 import { Role } from 'generated/prisma/enums';
+import { ProductQueryDto } from 'src/products/dto/product-query.dto';
 
 @ApiTags('Categories')
 @Controller('categories')
@@ -70,4 +71,14 @@ export class CategoriesController {
   remove(@Param('id') id: string) {
     return this.categoriesService.remove(id);
   }
+
+ @ApiOperation({ summary: 'Get semua produk dalam kategori' })
+@ApiParam({ name: 'id', description: 'Category ID' })
+@ApiResponse({ status: 200, description: 'List produk berhasil diambil' })
+@ApiResponse({ status: 404, description: 'Kategori tidak ditemukan' })
+@Get(':id/products')
+findProducts(@Param('id') id: string) {
+  return this.categoriesService.findProducts(id);
+}
+
 }
