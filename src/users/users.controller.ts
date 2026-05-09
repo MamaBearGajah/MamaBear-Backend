@@ -1,7 +1,6 @@
 import {
   Controller,
   Get,
-  Put,
   Post,
   Delete,
   Patch,
@@ -29,15 +28,15 @@ export class UsersController {
   // ─────────────────────────────────────────────
   // PROFILE
   // GET  /users/me
-  // PUT  /users/me
-  // PUT  /users/me/change-password
+  // PATCH  /users/me
+  // PATCH  /users/me/change-password
   // ─────────────────────────────────────────────
   @Get('me')
   getProfile(@GetUser('sub') userId: string) {
     return this.usersService.getProfile(userId);
   }
 
-  @Put('me')
+  @Patch('me')
   updateProfile(
     @GetUser('sub') userId: string,
     @Body() dto: UpdateProfileDto,
@@ -45,7 +44,7 @@ export class UsersController {
     return this.usersService.updateProfile(userId, dto);
   }
 
-  @Put('me/change-password')
+  @Patch('me/change-password')
   changePassword(
     @GetUser('sub') userId: string,
     @Body() dto: ChangePasswordDto,
@@ -58,8 +57,8 @@ export class UsersController {
   // GET    /users/me/addresses
   // GET    /users/me/addresses/:id
   // POST   /users/me/addresses
-  // PUT    /users/me/addresses/:id
   // PATCH  /users/me/addresses/:id/default
+  // PATCH  /users/me/addresses/:id
   // DELETE /users/me/addresses/:id
   // ─────────────────────────────────────────────
   @Get('me/addresses')
@@ -84,21 +83,21 @@ export class UsersController {
     return this.usersService.createAddress(userId, dto);
   }
 
-  @Put('me/addresses/:id')
-  updateAddress(
-    @GetUser('sub') userId: string,
-    @Param('id') addressId: string,
-    @Body() dto: UpdateAddressDto,
-  ) {
-    return this.usersService.updateAddress(userId, addressId, dto);
-  }
-
   @Patch('me/addresses/:id/default')
   setDefaultAddress(
     @GetUser('sub') userId: string,
     @Param('id') addressId: string,
   ) {
     return this.usersService.setDefaultAddress(userId, addressId);
+  }
+
+  @Patch('me/addresses/:id')
+  updateAddress(
+    @GetUser('sub') userId: string,
+    @Param('id') addressId: string,
+    @Body() dto: UpdateAddressDto,
+  ) {
+    return this.usersService.updateAddress(userId, addressId, dto);
   }
 
   @Delete('me/addresses/:id')
