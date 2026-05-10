@@ -8,12 +8,12 @@ export class MailService {
 
   constructor(private config: ConfigService) {
     this.transporter = nodemailer.createTransport({
-      host: config.getOrThrow('MAIL_HOST'),
-      port: config.get<number>('MAIL_PORT', 587),
+      host: config.getOrThrow('SMTP_HOST'),
+      port: config.get<number>('SMTP_PORT', 587),
       secure: false,
       auth: {
-        user: config.getOrThrow('MAIL_USER'),
-        pass: config.getOrThrow('MAIL_PASS'),
+        user: config.getOrThrow('SMTP_USER'),
+        pass: config.getOrThrow('SMTP_PASS'),
       },
     });
   }
@@ -22,7 +22,7 @@ export class MailService {
     const url = `${this.config.getOrThrow('APP_URL')}/auth/verify-email?token=${token}`;
 
     await this.transporter.sendMail({
-      from: `"${this.config.get('MAIL_FROM_NAME', 'App')}" <${this.config.get('MAIL_USER')}>`,
+      from: `"${this.config.get('SMTP_FROM_NAME', 'App')}" <${this.config.get('SMTP_USER')}>`,
       to: email,
       subject: 'Verifikasi Email Kamu',
       html: `
@@ -46,7 +46,7 @@ export class MailService {
     const url = `${this.config.getOrThrow('APP_URL')}/reset-password?token=${token}`;
 
     await this.transporter.sendMail({
-      from: `"${this.config.get('MAIL_FROM_NAME', 'App')}" <${this.config.get('MAIL_USER')}>`,
+      from: `"${this.config.get('SMTP_FROM_NAME', 'App')}" <${this.config.get('SMTP_USER')}>`,
       to: email,
       subject: 'Reset Password',
       html: `
