@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, Query, Put } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Query, Patch } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -66,7 +66,7 @@ export class ProductsController {
   @ApiResponse({ status: 404, description: 'Produk tidak ditemukan' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiBearerAuth()
-  @Put(':id')
+  @Patch(':id')
   update(@Param('id') id: string, @Body() dto: UpdateProductDto) {
     return this.productsService.update(id, dto);
   }
@@ -117,7 +117,7 @@ export class ProductsController {
   @ApiResponse({ status: 404, description: 'Varian tidak ditemukan' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiBearerAuth()
-  @Put(':id/variants/:variantId')
+  @Patch(':id/variants/:variantId')
   updateVariant(
     @Param('id') id: string,
     @Param('variantId') variantId: string,
@@ -163,7 +163,7 @@ export class ProductsController {
   @ApiResponse({ status: 404, description: 'Gambar tidak ditemukan' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiBearerAuth()
-  @Put(':id/images/:imageId')
+  @Patch(':id/images/:imageId')
   updateImage(
     @Param('id') id: string,
     @Param('imageId') imageId: string,
