@@ -77,8 +77,8 @@ export class CategoriesController {
 @ApiResponse({ status: 200, description: 'List produk berhasil diambil' })
 @ApiResponse({ status: 404, description: 'Kategori tidak ditemukan' })
 @Get(':id/products')
-findProducts(@Param('id') id: string) {
-  return this.categoriesService.findProducts(id);
+findProducts(@Param('id') id: string, @Query() query: ProductQueryDto) {
+  return this.categoriesService.findProducts(id, query);
 }
 
 }

@@ -97,22 +97,49 @@ export class CategoriesService {
     return this.prisma.category.delete({ where: { id } });
   }
 
-  async findProducts(id: string) {
-  await this.findOne(id); // validasi kategori ada
+  async findProducts(id: string, query: ProductQueryDto) {
+  await this.findOne(id);
 
-  return this.prisma.product.findMany({
-    where: { categoryId: id },
-    select: {
-      id: true,
-      name: true,
-      slug: true,
-      basePrice: true,
-      discountPrice: true,
-      mainImage: true,
-      stock: true,
-      status: true,
+  const { page = 1, limit = 20 } = query;
+  const skip = (page - 1) * limit;
+
+  const where = {
+    categoryId: id,
+    ...(query.q && { name: { contains: query.q, mode: 'insensitive' as const } }),
+    ...(query.minPrice !== undefined && { basePrice: { gte: query.minPrice } }),
+    ...(query.maxPrice !== undefined && { basePrice: { lte: query.maxPrice } }),
+    ...(query.inStock && { stock: { gt: 0 } }),
+  };
+
+  const [data, total] = await this.prisma.$transaction([
+    this.prisma.product.findMany({
+      where,
+      skip,
+      take: limit,
+      orderBy: { [query.sortBy ?? 'createdAt']: query.sortOrder ?? 'desc' },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        basePrice: true,
+        discountPrice: true,
+        mainImage: true,
+        stock: true,
+        status: true,
+      },
+    }),
+    this.prisma.product.count({ where }),
+  ]);
+
+  return {
+    data,
+    meta: {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
     },
-  });
+  };
 }
 
   
