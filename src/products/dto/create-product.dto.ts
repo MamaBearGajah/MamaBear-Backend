@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsArray, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, Min, MinLength, ValidateNested } from 'class-validator';
+import { IsArray, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, MaxLength, Min, MinLength, ValidateNested } from 'class-validator';
 import { CreateVariantDto } from './create-variant.dto';
 import { CreateImageDto } from './create-image.dto';
 
@@ -25,6 +25,7 @@ export class CreateProductDto {
   @ApiPropertyOptional({ example: 'Baju bayi bahan katun lembut' })
   @IsString()
   @IsOptional()
+  @MaxLength(5000)
   description?: string;
 
   @ApiProperty({ example: 50000, minimum: 0 })
@@ -36,6 +37,7 @@ export class CreateProductDto {
   @ApiPropertyOptional({ example: 45000 })
   @IsNumber()
   @IsOptional()
+  @Min(0)
   discountPrice?: number;
 
   @ApiProperty({ example: 200, description: 'Berat dalam gram' })
@@ -45,10 +47,13 @@ export class CreateProductDto {
 
   @ApiProperty({ example: 'SKU-001' })
   @IsString()
+  @MinLength(3)
+  @MaxLength(50)
   sku!: string;
 
   @ApiProperty({ example: 100 })
   @IsNumber()
+  @Min(0)
   stock!: number;
 
   @ApiProperty({ example: 'https://example.com/image.jpg' })
