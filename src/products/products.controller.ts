@@ -16,10 +16,6 @@ import { Role } from 'generated/prisma/enums';
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
-  // =================
-  // PRODUCT ENDPOINTS
-  // =================
-
   @Public()
   @ApiOperation({ summary: 'Get semua produk dengan filter & pagination' })
   @ApiResponse({ status: 200, description: 'List produk berhasil diambil' })
@@ -83,10 +79,6 @@ export class ProductsController {
     return this.productsService.remove(id);
   }
 
-  // =================
-  // VARIANT ENDPOINTS
-  // =================
-
   @Public()
   @ApiOperation({ summary: 'Get semua varian produk' })
   @ApiParam({ name: 'id', description: 'Product ID' })
@@ -138,10 +130,6 @@ export class ProductsController {
   removeVariant(@Param('id') id: string, @Param('variantId') variantId: string) {
     return this.productsService.removeVariant(variantId);
   }
-
-  // =================
-  // IMAGES ENDPOINTS
-  // =================
 
   @Roles(Role.admin, Role.super_admin)
   @ApiOperation({ summary: 'Tambah gambar ke produk (admin)' })

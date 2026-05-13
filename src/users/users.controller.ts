@@ -38,8 +38,6 @@ import {
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  // PROFILE
-
   @Get('me')
   @ApiOperation({ summary: 'Ambil profil user saat ini' })
   @ApiResponse({ status: 200, description: 'Profil berhasil diambil' })
@@ -66,8 +64,6 @@ export class UsersController {
   ) {
     return this.usersService.changePassword(userId, dto);
   }
-
-  // ADDRESSES
 
   @Get('me/addresses')
   @ApiOperation({ summary: 'Ambil semua alamat user' })
@@ -132,8 +128,6 @@ export class UsersController {
   ) {
     return this.usersService.deleteAddress(userId, addressId);
   }
-
-  // ORDERS
 
   @Get('me/orders')
   @ApiOperation({ summary: 'Ambil semua order user' })
