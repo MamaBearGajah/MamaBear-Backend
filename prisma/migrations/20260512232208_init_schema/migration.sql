@@ -30,6 +30,11 @@ CREATE TABLE "User" (
     "isVerified" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "refreshToken" TEXT,
+    "verifyToken" TEXT,
+    "verifyTokenExp" TIMESTAMP(3),
+    "resetToken" TEXT,
+    "resetTokenExp" TIMESTAMP(3),
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
@@ -59,10 +64,12 @@ CREATE TABLE "Product" (
     "name" TEXT NOT NULL,
     "slug" TEXT NOT NULL,
     "description" TEXT,
-    "price" DECIMAL(65,30) NOT NULL,
+    "basePrice" DECIMAL(65,30) NOT NULL,
+    "discountPrice" DECIMAL(65,30),
     "weight" INTEGER NOT NULL,
     "sku" TEXT NOT NULL,
     "stock" INTEGER NOT NULL DEFAULT 0,
+    "mainImage" TEXT,
     "status" "ProductStatus" NOT NULL DEFAULT 'draft',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -90,6 +97,7 @@ CREATE TABLE "ProductVariant" (
     "productId" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "value" TEXT NOT NULL,
+    "imageUrl" TEXT,
     "priceAdjustment" DECIMAL(65,30) NOT NULL DEFAULT 0,
     "stock" INTEGER NOT NULL DEFAULT 0,
     "sku" TEXT,
