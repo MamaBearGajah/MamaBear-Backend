@@ -4,7 +4,6 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { ProductQueryDto } from './dto/product-query.dto';
-import { dot } from 'node:test/reporters';
 import { CreateVariantDto } from './dto/create-variant.dto';
 import { UpdateVariantDto } from './dto/update-variant.dto';
 import { CreateImageDto } from './dto/create-image.dto';
@@ -28,20 +27,28 @@ export class ProductsService {
     const { page = 1, limit = 20, q, categoryId, minPrice, maxPrice, inStock, sortBy = 'createdAt', sortOrder = 'desc' } = query
   
     const where: any = { status: 'active' }
-    if (q) where.OR = [
-      { name: { contains: q, mode: 'insensitive' } },
-      { description: { contains: q, mode: 'insensitive' } },
-      { sku: { contains: q, mode: 'insensitive' } },
-    ]
+
+    if (q) {
+      where.OR = [
+        { name: { contains: q, mode: 'insensitive' } },
+        { description: { contains: q, mode: 'insensitive' } },
+        { sku: { contains: q, mode: 'insensitive' } },
+      ]
+    }
+
     if (categoryId) where.categoryId = categoryId
+
+    // Filter by Price
     if (minPrice !== undefined || maxPrice !== undefined) {
       where.basePrice = {
         ...(minPrice !== undefined && { gte: minPrice }),
         ...(maxPrice !== undefined && { lte: maxPrice }),
       }
     }
-    if (inStock) where.stock = { gt: 0 }
-  
+
+    // Filter by Stock
+    if (inStock === true) where.stock = { gt: 0 }
+
     const [data, total] = await Promise.all([
       this.prisma.product.findMany({
         where,
@@ -51,6 +58,7 @@ export class ProductsService {
         include: { 
           images: { where: { isFeatured: true }, take: 1 }, 
           category: true,
+          _count: { select: { reviews: true } },
         },
       }),
       this.prisma.product.count({ where }),
@@ -90,11 +98,27 @@ export class ProductsService {
   async findOne(id: string) {
     const product = await this.prisma.product.findUnique({
       where: { id },
-      include: { images: true, variants: true, category: true },
+      include: { 
+        images: { orderBy: [{ imageType: 'asc', sortOrder: 'asc' }] }, 
+        variants: { orderBy: { price: 'asc' } }, 
+        category: true,
+        _count: { select: { reviews: true } },
+      },
     })
     
     if (!product) throw new NotFoundException('Product not found!')
-    return product
+    return {
+      ...product,
+      ratingCount: 0,
+      avgRating: 0,
+      ratingBreakdown: [
+        { rating: 5, count: 0 },
+        { rating: 4, count: 0 },
+        { rating: 3, count: 0 },
+        { rating: 2, count: 0 },
+        { rating: 1, count: 0 },
+      ]
+    }
   }
 
   // Find Product by Slug

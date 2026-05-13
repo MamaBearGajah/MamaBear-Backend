@@ -46,6 +46,7 @@ export class ProductQueryDto {
   @ApiPropertyOptional({ example: 'createdAt', default: 'createdAt' })
   @IsString()
   @IsOptional()
+  @IsIn(['createdAt', 'basePrice', 'name', 'avgRating'])
   sortBy?: string = 'createdAt';
 
   @ApiPropertyOptional({ enum: ['asc', 'desc'], default: 'desc' })
