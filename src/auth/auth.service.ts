@@ -37,8 +37,11 @@ export class AuthService {
       data: { name: dto.name, email: dto.email, password: hash },
     });
 
-    await this.sendVerificationEmail(user.id, user.email);
-
+    try {
+      await this.sendVerificationEmail(user.id, user.email);
+    } catch (error) {
+      console.error('Gagal mengirim email verifikasi:', error);
+    }
     return {
       message: 'Registrasi berhasil. Cek email untuk verifikasi akun.',
       userId: user.id,

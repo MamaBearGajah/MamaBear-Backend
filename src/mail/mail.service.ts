@@ -19,7 +19,7 @@ export class MailService {
   }
 
   async sendVerificationEmail(email: string, token: string) {
-    const url = `${this.config.getOrThrow('APP_URL')}/auth/verify-email?token=${token}`;
+    const url = `${this.config.getOrThrow('APP_URL')}/api/auth/verify-email?token=${token}`;
 
     await this.transporter.sendMail({
       from: `"${this.config.get('SMTP_FROM_NAME', 'App')}" <${this.config.get('SMTP_USER')}>`,
@@ -43,7 +43,7 @@ export class MailService {
   }
 
   async sendResetPasswordEmail(email: string, name: string, token: string) {
-    const url = `${this.config.getOrThrow('APP_URL')}/reset-password?token=${token}`;
+    const url = `${this.config.getOrThrow('FRONTEND_URL')}/reset-password?token=${token}`;
 
     await this.transporter.sendMail({
       from: `"${this.config.get('SMTP_FROM_NAME', 'App')}" <${this.config.get('SMTP_USER')}>`,

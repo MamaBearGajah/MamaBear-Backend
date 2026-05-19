@@ -12,13 +12,14 @@ import {
   ResendVerificationDto, ResetPasswordDto,
 } from './dto';
 import { JwtAuthGuard, JwtRefreshGuard } from './guards/jwt-auth.guard';
-import { GetUser } from './decorators';
+import { GetUser, Public } from './decorators';
 
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @Public()
   @ApiOperation({ summary: 'Register akun baru' })
   @ApiResponse({ status: 201, description: 'Registrasi berhasil' })
   @ApiResponse({ status: 400, description: 'Validasi gagal' })
@@ -29,6 +30,7 @@ export class AuthController {
     return this.authService.register(dto);
   }
 
+  @Public()
   @ApiOperation({ summary: 'Verifikasi email via token' })
   @ApiQuery({ name: 'token', required: true, description: 'Token verifikasi dari email' })
   @ApiResponse({ status: 200, description: 'Email berhasil diverifikasi' })
@@ -38,6 +40,7 @@ export class AuthController {
     return this.authService.verifyEmail(token);
   }
 
+  @Public()
   @ApiOperation({ summary: 'Kirim ulang email verifikasi' })
   @ApiResponse({ status: 200, description: 'Email verifikasi berhasil dikirim' })
   @ApiResponse({ status: 400, description: 'Validasi gagal' })
@@ -46,7 +49,8 @@ export class AuthController {
   resendVerification(@Body() dto: ResendVerificationDto) {
     return this.authService.resendVerification(dto.email);
   }
-
+  
+  @Public()
   @ApiOperation({ summary: 'Login dan dapatkan access token' })
   @ApiResponse({ status: 200, description: 'Login berhasil, token dikembalikan' })
   @ApiResponse({ status: 401, description: 'Email atau password salah' })
@@ -81,6 +85,7 @@ export class AuthController {
     return this.authService.logout(userId);
   }
 
+  @Public()
   @ApiOperation({ summary: 'Request reset password via email' })
   @ApiResponse({ status: 200, description: 'Email reset password berhasil dikirim' })
   @ApiResponse({ status: 404, description: 'Email tidak ditemukan' })
@@ -89,6 +94,7 @@ export class AuthController {
     return this.authService.forgotPassword(dto);
   }
 
+  @Public()
   @ApiOperation({ summary: 'Reset password menggunakan token' })
   @ApiResponse({ status: 200, description: 'Password berhasil direset' })
   @ApiResponse({ status: 400, description: 'Token tidak valid atau expired' })
