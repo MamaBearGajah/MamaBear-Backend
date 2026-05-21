@@ -1,14 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
-
-export enum ImageType {
-  main = 'main',
-  nutrition = 'nutrition',
-  ingredients = 'ingredients',
-  usage = 'usage',
-  other = 'other',
-}
+import { ImageType } from 'generated/prisma/enums';
 
 export class CreateImageDto {
   @ApiProperty({ example: 'https://example.com/image.jpg' })
