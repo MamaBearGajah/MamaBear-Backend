@@ -48,12 +48,22 @@ export class CategoriesService {
         parent: true,
         products: {
           where: { status: 'active' },
-          select: { id: true, name: true, slug: true, basePrice: true, mainImage: true },
+          select: { 
+            id: true, 
+            name: true, 
+            slug: true, 
+            basePrice: true, 
+            images: {
+              where: { imageType: 'main' },
+              take: 1,
+              select: { imageUrl: true, altText: true },
+            }
+          },
         },
       },
     });
 
-    if (!category) throw new NotFoundException(`Kategori dengan id ${id} tidak ditemukan`);
+    if (!category) throw new NotFoundException(`Kategori dengan id ${id} tidak ditemukan`)
     return category;
   }
 
@@ -98,49 +108,51 @@ export class CategoriesService {
   }
 
   async findProducts(id: string, query: ProductQueryDto) {
-  await this.findOne(id);
+    await this.findOne(id);
 
-  const { page = 1, limit = 20 } = query;
-  const skip = (page - 1) * limit;
+    const { page = 1, limit = 20 } = query;
+    const skip = (page - 1) * limit;
 
-  const where = {
-    categoryId: id,
-    ...(query.q && { name: { contains: query.q, mode: 'insensitive' as const } }),
-    ...(query.minPrice !== undefined && { basePrice: { gte: query.minPrice } }),
-    ...(query.maxPrice !== undefined && { basePrice: { lte: query.maxPrice } }),
-    ...(query.inStock && { stock: { gt: 0 } }),
-  };
+    const where = {
+      categoryId: id,
+      ...(query.q && { name: { contains: query.q, mode: 'insensitive' as const } }),
+      ...(query.minPrice !== undefined && { basePrice: { gte: query.minPrice } }),
+      ...(query.maxPrice !== undefined && { basePrice: { lte: query.maxPrice } }),
+      ...(query.inStock && { stock: { gt: 0 } }),
+    };
 
-  const [data, total] = await this.prisma.$transaction([
-    this.prisma.product.findMany({
-      where,
-      skip,
-      take: limit,
-      orderBy: { [query.sortBy ?? 'createdAt']: query.sortOrder ?? 'desc' },
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        basePrice: true,
-        discountPrice: true,
-        mainImage: true,
-        stock: true,
-        status: true,
+    const [data, total] = await this.prisma.$transaction([
+      this.prisma.product.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { [query.sortBy ?? 'createdAt']: query.sortOrder ?? 'desc' },
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          basePrice: true,
+          discountPrice: true,
+          stock: true,
+          status: true,
+          images: {
+            where: { imageType: 'main' },
+            take: 1,
+            select: { imageUrl: true, altText: true },
+          },
+        },
+      }),
+      this.prisma.product.count({ where }),
+    ]);
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
       },
-    }),
-    this.prisma.product.count({ where }),
-  ]);
-
-  return {
-    data,
-    meta: {
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    },
-  };
-}
-
-  
+    };
+  }
 }

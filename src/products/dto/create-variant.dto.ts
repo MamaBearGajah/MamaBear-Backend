@@ -10,6 +10,11 @@ export class CreateVariantDto {
   @IsString()
   value!: string;
 
+  @ApiProperty({ example: 40000, description: 'Harga dasar variant' })
+  @IsNumber()
+  @Min(0)
+  basePrice!: number;
+
   @ApiPropertyOptional({ example: 'https://example.com/red.jpg' })
   @IsString()
   @IsOptional()

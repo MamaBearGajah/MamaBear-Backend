@@ -1,13 +1,8 @@
-import { Product } from './../../generated/prisma/browser';
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { ProductQueryDto } from './dto/product-query.dto';
-import { CreateVariantDto } from './dto/create-variant.dto';
-import { UpdateVariantDto } from './dto/update-variant.dto';
-import { CreateImageDto } from './dto/create-image.dto';
-import { UpdateImageDto } from './dto/update-image.dto';
 
 @Injectable()
 export class ProductsService {
@@ -100,13 +95,31 @@ export class ProductsService {
       where: { id },
       include: { 
         images: { orderBy: [{ imageType: 'asc', sortOrder: 'asc' }] }, 
-        variants: { orderBy: { price: 'asc' } }, 
+        variants: { orderBy: { basePrice: 'asc' } }, 
         category: true,
         _count: { select: { reviews: true } },
       },
     })
     
     if (!product) throw new NotFoundException('Product not found!')
+
+    const aggregate = await this.prisma.productReview.aggregate({
+      where: { productId: id },
+      _avg: { rating: true },
+      _count: { rating: true },
+    })
+
+    const breakdown = await this.prisma.productReview.groupBy({
+      by: ['rating'],
+      where: { productId: id },
+      _count: { rating: true },
+    })
+
+    const ratingBreakdown = { '1': 0, '2': 0, '3':0, '4':0, '5':0 }
+    breakdown.forEach(b => {
+      ratingBreakdown[String(b.rating)] = b._count.rating;
+    })
+
     return {
       ...product,
       ratingCount: 0,
@@ -150,56 +163,5 @@ export class ProductsService {
   async remove(id:string) {
     await this.findOne(id)
     return this.prisma.product.delete({ where: { id } })
-  }
-
-  // Get All Variants
-  async findVariants(productId: string) {
-    return this.prisma.productVariant.findMany({
-      where: { productId },
-    })
-  }
-
-  // Add Product Variant
-  async addVariant(productId: string, dto: CreateVariantDto) {
-    return this.prisma.productVariant.create({
-      data: { ...dto, productId }
-    })
-  }
-
-  // Update Variant
-  async updateVariant(id: string, dto: UpdateVariantDto) {
-    return this.prisma.productVariant.update({
-      where: { id },
-      data: dto,
-    })
-  }
-
-  // Delete Variant
-  async removeVariant(id: string) {
-    return this.prisma.productVariant.delete({
-      where: { id },
-    })
-  }
-
-  // Add Product Image
-  async addImage(productId: string, dto: CreateImageDto) {
-    return this.prisma.productImage.create({
-      data: { ... dto, productId }
-    })
-  }
-
-  // Update Product Image
-  async updateImage(id: string, dto: UpdateImageDto) {
-    return this.prisma.productImage.update({
-      where: { id },
-      data: dto,
-    })
-  }
-
-  // Delete Product Image
-  async removeImage(id: string) {
-    return this.prisma.productImage.delete({
-      where: { id },
-    })
   }
 }
