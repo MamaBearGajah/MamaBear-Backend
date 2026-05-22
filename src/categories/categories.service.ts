@@ -110,18 +110,18 @@ export class CategoriesService {
   }
 
   async findProducts(id: string, query: ProductQueryDto) {
-  await this.findOne(id);
+    await this.findOne(id);
 
-  const { page = 1, limit = 20 } = query;
-  const skip = (page - 1) * limit;
+    const { page = 1, limit = 20 } = query;
+    const skip = (page - 1) * limit;
 
-  const where = {
-    categoryId: id,
-    ...(query.q && { name: { contains: query.q, mode: 'insensitive' as const } }),
-    ...(query.minPrice !== undefined && { basePrice: { gte: query.minPrice } }),
-    ...(query.maxPrice !== undefined && { basePrice: { lte: query.maxPrice } }),
-    ...(query.inStock && { stock: { gt: 0 } }),
-  };
+    const where = {
+      categoryId: id,
+      ...(query.q && { name: { contains: query.q, mode: 'insensitive' as const } }),
+      ...(query.minPrice !== undefined && { basePrice: { gte: query.minPrice } }),
+      ...(query.maxPrice !== undefined && { basePrice: { lte: query.maxPrice } }),
+      ...(query.inStock && { stock: { gt: 0 } }),
+    };
 
   const [data, total] = await this.prisma.$transaction([
     this.prisma.product.findMany({
@@ -156,7 +156,5 @@ export class CategoriesService {
       totalPages: Math.ceil(total / limit),
     },
   };
-}
-
-  
+}  
 }
