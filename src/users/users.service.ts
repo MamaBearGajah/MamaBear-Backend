@@ -158,7 +158,17 @@ export class UsersService {
         items: {
           include: {
             product: {
-              select: { id: true, name: true, mainImage: true, slug: true },
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+                images: {
+                  where: { imageType: 'main' },
+                  select: { imageUrl: true, altText: true },
+                  orderBy: { sortOrder: 'asc' },
+                  take: 1,
+                },
+              },
             },
           },
         },
@@ -175,7 +185,17 @@ export class UsersService {
         items: {
           include: {
             product: {
-              select: { id: true, name: true, mainImage: true, slug: true },
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+                images: {
+                  where: { imageType: 'main' },
+                  select: { imageUrl: true, altText: true },
+                  orderBy: { sortOrder: 'asc' },
+                  take: 1,
+                },
+              },
             },
           },
         },

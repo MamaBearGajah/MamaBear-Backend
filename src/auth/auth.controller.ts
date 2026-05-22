@@ -1,11 +1,12 @@
 import {
   Controller, Post, Body, Get,
-  Query, HttpCode, HttpStatus, UseGuards,
+  Query, HttpCode, HttpStatus, UseGuards, Res,
 } from '@nestjs/common';
 import {
   ApiTags, ApiOperation, ApiResponse,
   ApiBearerAuth, ApiQuery,
 } from '@nestjs/swagger';
+import type { Response } from 'express';
 import { AuthService } from './auth.service';
 import {
   ForgotPasswordDto, LoginDto, RegisterDto,
@@ -13,11 +14,15 @@ import {
 } from './dto';
 import { JwtAuthGuard, JwtRefreshGuard } from './guards/jwt-auth.guard';
 import { GetUser, Public } from './decorators';
+import { ConfigService } from '@nestjs/config';
 
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly config: ConfigService,
+  ) {}
 
   @Public()
   @ApiOperation({ summary: 'Register akun baru' })
@@ -31,13 +36,22 @@ export class AuthController {
   }
 
   @Public()
-  @ApiOperation({ summary: 'Verifikasi email via token' })
+  @ApiOperation({ summary: 'Verifikasi email via token — redirect ke frontend' })
   @ApiQuery({ name: 'token', required: true, description: 'Token verifikasi dari email' })
-  @ApiResponse({ status: 200, description: 'Email berhasil diverifikasi' })
-  @ApiResponse({ status: 400, description: 'Token tidak valid atau expired' })
+  @ApiResponse({ status: 302, description: 'Redirect ke halaman hasil verifikasi' })
   @Get('verify-email')
-  verifyEmail(@Query('token') token: string) {
-    return this.authService.verifyEmail(token);
+  async verifyEmail(
+    @Query('token') token: string,
+    // FIX 3: verifyEmail pakai @Res() tanpa passthrough karena manual redirect
+    @Res() res: Response,
+  ) {
+    const frontendUrl = this.config.get('FRONTEND_URL') || 'http://localhost:3001';
+    try {
+      await this.authService.verifyEmail(token);
+      return res.redirect(`${frontendUrl}/email-verified?status=success`);
+    } catch {
+      return res.redirect(`${frontendUrl}/email-verified?status=failed`);
+    }
   }
 
   @Public()
@@ -49,46 +63,76 @@ export class AuthController {
   resendVerification(@Body() dto: ResendVerificationDto) {
     return this.authService.resendVerification(dto.email);
   }
-  
+
   @Public()
-  @ApiOperation({ summary: 'Login dan dapatkan access token' })
-  @ApiResponse({ status: 200, description: 'Login berhasil, token dikembalikan' })
+  @ApiOperation({ summary: 'Login — accessToken di body, refreshToken di HTTP-only cookie' })
+  @ApiResponse({ status: 200, description: 'Login berhasil' })
   @ApiResponse({ status: 401, description: 'Email atau password salah' })
   @ApiResponse({ status: 403, description: 'Email belum diverifikasi' })
   @Post('login')
-  login(@Body() dto: LoginDto) {
-    return this.authService.login(dto);
+  @HttpCode(HttpStatus.OK)
+  async login(
+    @Body() dto: LoginDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const result = await this.authService.login(dto);
+
+    res.cookie('refreshToken', result.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 hari
+      path: '/api/auth',
+    });
+
+    const { refreshToken: _, ...response } = result;
+    return response;
   }
 
-  @ApiOperation({ summary: 'Refresh access token menggunakan refresh token' })
+  @ApiOperation({ summary: 'Refresh access token menggunakan refresh token dari cookie' })
   @ApiResponse({ status: 200, description: 'Token baru berhasil dibuat' })
   @ApiResponse({ status: 401, description: 'Refresh token tidak valid' })
   @ApiBearerAuth()
   @UseGuards(JwtRefreshGuard)
   @Post('refresh')
-  refreshToken(
+  async refreshToken(
     @GetUser('sub') userId: string,
     @GetUser('email') email: string,
     @GetUser('role') role: string,
     @GetUser('refreshToken') refreshToken: string,
+    @Res({ passthrough: true }) res: Response,
   ) {
-    return this.authService.refreshToken(userId, email, role, refreshToken);
+    const result = await this.authService.refreshToken(userId, email, role, refreshToken);
+
+    res.cookie('refreshToken', result.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/api/auth',
+    });
+
+    const { refreshToken: _, ...response } = result;
+    return response;
   }
 
-  @ApiOperation({ summary: 'Logout dan hapus refresh token' })
+  @ApiOperation({ summary: 'Logout — hapus refresh token dan clear cookie' })
   @ApiResponse({ status: 200, description: 'Logout berhasil' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post('logout')
-  logout(@GetUser('sub') userId: string) {
+  async logout(
+    @GetUser('sub') userId: string,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    res.clearCookie('refreshToken', { path: '/api/auth' });
     return this.authService.logout(userId);
   }
 
   @Public()
   @ApiOperation({ summary: 'Request reset password via email' })
   @ApiResponse({ status: 200, description: 'Email reset password berhasil dikirim' })
-  @ApiResponse({ status: 404, description: 'Email tidak ditemukan' })
   @Post('forgot-password')
   forgotPassword(@Body() dto: ForgotPasswordDto) {
     return this.authService.forgotPassword(dto);

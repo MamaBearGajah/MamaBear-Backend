@@ -1,26 +1,28 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CreateHealthDto } from './dto/create-health.dto';
 import { UpdateHealthDto } from './dto/update-health.dto';
+import { PrismaService } from '../prisma/prisma.service';
+import { timestamp } from 'rxjs';
 
 @Injectable()
 export class HealthService {
-  create(createHealthDto: CreateHealthDto) {
-    return 'This action adds a new health';
-  }
+  constructor(private readonly prisma: PrismaService) {}
 
-  findAll() {
-    return `This action returns all health`;
-  }
+  async checkHealth() {
+    try {
+      await this.prisma.$queryRaw`SELECT 1`
 
-  findOne(id: number) {
-    return `This action returns a #${id} health`;
-  }
-
-  update(id: number, updateHealthDto: UpdateHealthDto) {
-    return `This action updates a #${id} health`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} health`;
+      return {
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+      }
+    }
+    catch (error) {
+      throw new InternalServerErrorException({
+        status: 'error',
+        database: 'disconnected',
+        timestamp: new Date().toISOString(),
+      })
+    }
   }
 }

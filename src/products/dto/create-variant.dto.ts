@@ -1,36 +1,57 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+  IsBoolean,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Min,
+} from 'class-validator';
 
 export class CreateVariantDto {
-  @ApiProperty({ example: 'Warna' })
+  @ApiProperty({ example: 'Ukuran', description: 'Nama atribut varian, misal: Ukuran, Warna' })
   @IsString()
+  @IsNotEmpty()
   name!: string;
 
-  @ApiProperty({ example: 'Merah' })
+  @ApiProperty({ example: 'L', description: 'Nilai varian, misal: L, Merah, 500ml' })
   @IsString()
+  @IsNotEmpty()
   value!: string;
+
+  @ApiProperty({ example: 50000, minimum: 0 })
+  @IsNumber()
+  @Min(0)
+  basePrice!: number;
+
+  @ApiPropertyOptional({ example: 45000 })
+  @IsNumber()
+  @IsOptional()
+  discountPrice?: number;
+
+  @ApiPropertyOptional({ example: 0 })
+  @IsNumber()
+  @IsOptional()
+  priceAdjustment?: number;
+
+  @ApiProperty({ example: 50, description: 'Jumlah stok varian ini' })
+  @Type(() => Number)
+  @IsNumber()
+  @IsNotEmpty()
+  stock!: number;
 
   @ApiPropertyOptional({ example: 'https://example.com/red.jpg' })
   @IsString()
   @IsOptional()
   imageUrl?: string;
 
-  @ApiPropertyOptional({ example: 5000, description: 'Selisih harga dari base price' })
-  @IsNumber()
-  @IsOptional()
-  priceAdjustment?: number;
-
-  @ApiProperty({ example: 10, minimum: 0 })
-  @IsNumber()
-  @Min(0)
-  stock!: number;
-
   @ApiPropertyOptional({ example: 'SKU-001-RED' })
   @IsString()
   @IsOptional()
   sku?: string;
 
-  @ApiPropertyOptional({ example: true })
+  @ApiPropertyOptional({ example: true, default: true })
   @IsBoolean()
   @IsOptional()
   isActive?: boolean;
