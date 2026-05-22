@@ -5,36 +5,35 @@ import { AppModule } from './app.module';
 import { AllExceptionFilter } from './common/filters/all-exception.filter';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
+import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Global prefix
   app.setGlobalPrefix('api');
 
-  // CORS
+  // Cookie Parser — diperlukan untuk membaca HTTP-only cookie
+  app.use(cookieParser());
+
+  // CORS — credentials: true wajib untuk cookie lintas origin
   app.enableCors({
     origin: process.env.FRONTEND_URL || 'http://localhost:3001',
     credentials: true,
   });
 
-  // Global ValidationPipe
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true,
     forbidNonWhitelisted: true,
     transform: true,
   }));
 
-    // Global Exception Filter
   app.useGlobalFilters(new AllExceptionFilter());
 
-  // Global Interceptors
   app.useGlobalInterceptors(
     new LoggingInterceptor(),
     new TransformInterceptor(),
   );
 
-  // Swagger
   const config = new DocumentBuilder()
     .setTitle('Mamabear API')
     .setDescription('Mamabear E-Commerce REST API')

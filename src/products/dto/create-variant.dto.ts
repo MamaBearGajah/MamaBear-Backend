@@ -1,13 +1,23 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+  IsBoolean,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Min,
+} from 'class-validator';
 
 export class CreateVariantDto {
-  @ApiProperty({ example: 'Warna' })
+  @ApiProperty({ example: 'Ukuran', description: 'Nama atribut varian, misal: Ukuran, Warna' })
   @IsString()
+  @IsNotEmpty()
   name!: string;
 
-  @ApiProperty({ example: 'Merah' })
+  @ApiProperty({ example: 'L', description: 'Nilai varian, misal: L, Merah, 500ml' })
   @IsString()
+  @IsNotEmpty()
   value!: string;
 
   @ApiPropertyOptional({ example: 'https://example.com/red.jpg' })
@@ -20,9 +30,10 @@ export class CreateVariantDto {
   @IsOptional()
   priceAdjustment?: number;
 
-  @ApiProperty({ example: 10, minimum: 0 })
+  @ApiProperty({ example: 50, description: 'Jumlah stok varian ini' })
+  @Type(() => Number)
   @IsNumber()
-  @Min(0)
+  @IsNotEmpty()
   stock!: number;
 
   @ApiPropertyOptional({ example: 'SKU-001-RED' })
@@ -30,7 +41,7 @@ export class CreateVariantDto {
   @IsOptional()
   sku?: string;
 
-  @ApiPropertyOptional({ example: true })
+  @ApiPropertyOptional({ example: true, default: true })
   @IsBoolean()
   @IsOptional()
   isActive?: boolean;

@@ -1,26 +1,59 @@
-import { Injectable } from '@nestjs/common';
-import { CreateMediaDto } from './dto/create-media.dto';
-import { UpdateMediaDto } from './dto/update-media.dto';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { v2 as cloudinary } from 'cloudinary';
+import { SignUploadDto } from './dto/sign-upload.dto';
 
 @Injectable()
 export class MediaService {
-  create(createMediaDto: CreateMediaDto) {
-    return 'This action adds a new media';
+  constructor(private readonly config: ConfigService) {
+    cloudinary.config({
+      cloud_name: this.config.getOrThrow('CLOUDINARY_CLOUD_NAME'),
+      api_key: this.config.getOrThrow('CLOUDINARY_API_KEY'),
+      api_secret: this.config.getOrThrow('CLOUDINARY_API_SECRET'),
+    });
   }
 
-  findAll() {
-    return `This action returns all media`;
+  async generateSignedUrl(dto: SignUploadDto) {
+    const timestamp = Math.round(Date.now() / 1000);
+
+    const signature = cloudinary.utils.api_sign_request(
+      { timestamp, folder: dto.folder },
+      this.config.getOrThrow('CLOUDINARY_API_SECRET'),
+    );
+
+    return {
+      uploadUrl: `https://api.cloudinary.com/v1_1/${this.config.getOrThrow('CLOUDINARY_CLOUD_NAME')}/image/upload`,
+      signature,
+      timestamp,
+      apiKey: this.config.getOrThrow('CLOUDINARY_API_KEY'),
+      folder: dto.folder,
+    };
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} media`;
-  }
+  async uploadFile(file: Express.Multer.File, folder: string) {
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
 
-  update(id: number, updateMediaDto: UpdateMediaDto) {
-    return `This action updates a #${id} media`;
-  }
+    if (!allowedTypes.includes(file.mimetype)) {
+      throw new BadRequestException('File type not allowed. Only jpeg, png, webp are accepted.');
+    }
 
-  remove(id: number) {
-    return `This action removes a #${id} media`;
+    if (file.size > 5 * 1024 * 1024) {
+      throw new BadRequestException('File too large. Maximum size is 5MB.');
+    }
+
+    return new Promise<{ imageUrl: string; publicId: string }>((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        { folder },
+        (err, result) => {
+          if (err) return reject(err);
+          resolve({
+            imageUrl: result?.secure_url ?? '',
+            publicId: result?.public_id ?? '',
+          });
+        },
+      );
+
+      stream.end(file.buffer);
+    });
   }
 }
