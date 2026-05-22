@@ -42,7 +42,7 @@ export class VariantsService {
 
     if (!variant) throw new NotFoundException('Varian tidak ditemukan di produk ini');
 
-    return variant;  // ✅ tidak ada reservedStock, jadi tidak hitung availableStock
+    return variant;
   }
 
   // ─── ADD VARIANT ─────────────────────────────────────────────────────────────

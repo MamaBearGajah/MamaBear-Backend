@@ -13,7 +13,7 @@ import { Public, Roles } from '../../auth/decorators';
 import { Role } from 'generated/prisma/enums';
 
 @ApiTags('Variants')
-@Controller('products/:productId/variants')  // ✅ prefix sudah handle productId
+@Controller('products/:productId/variants')
 export class VariantsController {
   constructor(private readonly variantsService: VariantsService) {}
 
@@ -24,7 +24,7 @@ export class VariantsController {
   @ApiParam({ name: 'productId', description: 'Product ID' })
   @ApiResponse({ status: 200, description: 'List varian berhasil diambil' })
   @ApiResponse({ status: 404, description: 'Produk tidak ditemukan' })
-  @Get()  // ✅ bukan ':id/variants' lagi
+  @Get()
   findVariants(@Param('productId') productId: string) {
     return this.variantsService.findVariants(productId);
   }
@@ -37,7 +37,7 @@ export class VariantsController {
   @ApiParam({ name: 'variantId', description: 'Variant ID' })
   @ApiResponse({ status: 200, description: 'Detail varian berhasil diambil' })
   @ApiResponse({ status: 404, description: 'Varian tidak ditemukan' })
-  @Get(':variantId')  // ✅ untuk pre-fill form edit di admin dashboard
+  @Get(':variantId')  // untuk pre-fill form edit di admin dashboard
   findOneVariant(
     @Param('productId') productId: string,
     @Param('variantId') variantId: string,
@@ -53,7 +53,7 @@ export class VariantsController {
   @ApiParam({ name: 'productId', description: 'Product ID' })
   @ApiResponse({ status: 201, description: 'Varian berhasil ditambahkan' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @Post()  // ✅ bukan ':id/variants' lagi
+  @Post()
   addVariant(
     @Param('productId') productId: string,
     @Body() dto: CreateVariantDto,
@@ -71,7 +71,7 @@ export class VariantsController {
   @ApiResponse({ status: 200, description: 'Varian berhasil diupdate' })
   @ApiResponse({ status: 404, description: 'Varian tidak ditemukan' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @Patch(':variantId')  // ✅ bukan ':id/variants/:variantId' lagi
+  @Patch(':variantId')
   updateVariant(
     @Param('productId') productId: string,
     @Param('variantId') variantId: string,
@@ -90,7 +90,7 @@ export class VariantsController {
   @ApiResponse({ status: 200, description: 'Varian berhasil dihapus' })
   @ApiResponse({ status: 404, description: 'Varian tidak ditemukan' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @Delete(':variantId')  // ✅ bukan ':id/variants/:variantId' lagi
+  @Delete(':variantId')
   removeVariant(
     @Param('productId') productId: string,
     @Param('variantId') variantId: string,
@@ -100,7 +100,7 @@ export class VariantsController {
 
   // ─── SET VARIANT IMAGE ───────────────────────────────────────────────────────
 
-  @Roles(Role.admin, Role.super_admin)  // ✅ guard ditambahkan
+  @Roles(Role.admin, Role.super_admin)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Set gambar varian (admin)' })
   @ApiParam({ name: 'productId', description: 'Product ID' })
@@ -116,7 +116,7 @@ export class VariantsController {
 
   // ─── DELETE VARIANT IMAGE ────────────────────────────────────────────────────
 
-  @Roles(Role.admin, Role.super_admin)  // ✅ guard ditambahkan
+  @Roles(Role.admin, Role.super_admin)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Hapus gambar varian (admin)' })
   @ApiParam({ name: 'productId', description: 'Product ID' })
@@ -132,7 +132,7 @@ export class VariantsController {
 
   // ─── BATCH UPDATE VARIANT IMAGES ─────────────────────────────────────────────
 
-  @Roles(Role.admin, Role.super_admin)  // ✅ guard ditambahkan
+  @Roles(Role.admin, Role.super_admin)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Batch update gambar banyak varian (admin)' })
   @ApiParam({ name: 'productId', description: 'Product ID' })
