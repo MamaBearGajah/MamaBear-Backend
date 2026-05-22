@@ -1,86 +1,146 @@
-import { UpdateVariantDto } from './../dto/update-variant.dto';
-import { CreateVariantDto } from './../dto/create-variant.dto';
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus, HttpCode } from '@nestjs/common';
+import {
+  Controller, Get, Post, Patch, Delete,
+  Body, Param, HttpCode, HttpStatus,
+} from '@nestjs/common';
+import {
+  ApiBearerAuth, ApiOperation, ApiParam, ApiResponse, ApiTags,
+} from '@nestjs/swagger';
 import { VariantsService } from './variants.service';
-import { Public, Roles } from '../../auth/decorators';
-import { ApiBearerAuth, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
-import { Role } from '../../../generated/prisma/browser';
+import { CreateVariantDto } from '../dto/create-variant.dto';
+import { UpdateVariantDto } from '../dto/update-variant.dto';
 import { UpdateVariantImagesBatchDto } from '../dto/update-batch-variant-images.dto';
+import { Public, Roles } from '../../auth/decorators';
+import { Role } from 'generated/prisma/enums';
 
+@ApiTags('Variants')
 @Controller('products/:productId/variants')
 export class VariantsController {
-    constructor(private readonly variantsService: VariantsService) {}
+  constructor(private readonly variantsService: VariantsService) {}
 
-    // =================
-    // VARIANT ENDPOINTS
-    // =================
+  // ─── GET ALL VARIANTS ────────────────────────────────────────────────────────
 
-    @Public()
-    @ApiOperation({ summary: 'Get semua varian produk' })
-    @ApiParam({ name: 'id', description: 'Product ID' })
-    @ApiResponse({ status: 200, description: 'List varian berhasil diambil' })
-    @ApiResponse({ status: 404, description: 'Produk tidak ditemukan' })
-    @Get(':id/variants')
-    findVariants(@Param('id') id: string) {
-      return this.variantsService.findVariants(id);
-    }
+  @Public()
+  @ApiOperation({ summary: 'Get semua varian produk (public)' })
+  @ApiParam({ name: 'productId', description: 'Product ID' })
+  @ApiResponse({ status: 200, description: 'List varian berhasil diambil' })
+  @ApiResponse({ status: 404, description: 'Produk tidak ditemukan' })
+  @Get()
+  findVariants(@Param('productId') productId: string) {
+    return this.variantsService.findVariants(productId);
+  }
 
-    @Roles(Role.admin, Role.super_admin)
-    @ApiOperation({ summary: 'Tambah varian ke produk (admin)' })
-    @ApiParam({ name: 'id', description: 'Product ID' })
-    @ApiResponse({ status: 201, description: 'Varian berhasil ditambahkan' })
-    @ApiResponse({ status: 404, description: 'Produk tidak ditemukan' })
-    @ApiResponse({ status: 401, description: 'Unauthorized' })
-    @ApiBearerAuth()
-    @Post(':id/variants')
-    addVariant(@Param('id') id: string, @Body() dto: CreateVariantDto) {
-      return this.variantsService.addVariant(id, dto);
-    }
+  // ─── GET ONE VARIANT ─────────────────────────────────────────────────────────
 
-    @Roles(Role.admin, Role.super_admin)
-    @ApiOperation({ summary: 'Update varian produk (admin)' })
-    @ApiParam({ name: 'id', description: 'Product ID' })
-    @ApiParam({ name: 'variantId', description: 'Variant ID' })
-    @ApiResponse({ status: 200, description: 'Varian berhasil diupdate' })
-    @ApiResponse({ status: 404, description: 'Varian tidak ditemukan' })
-    @ApiResponse({ status: 401, description: 'Unauthorized' })
-    @ApiBearerAuth()
-    @Patch(':id/variants/:variantId')
-    updateVariant(
-      @Param('id') id: string,
-      @Param('variantId') variantId: string,
-      @Body() dto: UpdateVariantDto,
-    ) {
-      return this.variantsService.updateVariant(variantId, dto);
-    }
+  @Public()
+  @ApiOperation({ summary: 'Get detail satu varian (public)' })
+  @ApiParam({ name: 'productId', description: 'Product ID' })
+  @ApiParam({ name: 'variantId', description: 'Variant ID' })
+  @ApiResponse({ status: 200, description: 'Detail varian berhasil diambil' })
+  @ApiResponse({ status: 404, description: 'Varian tidak ditemukan' })
+  @Get(':variantId')
+  findOneVariant(
+    @Param('productId') productId: string,
+    @Param('variantId') variantId: string,
+  ) {
+    return this.variantsService.findOneVariant(productId, variantId);
+  }
 
-    @Roles(Role.admin, Role.super_admin)
-    @ApiOperation({ summary: 'Hapus varian produk (admin)' })
-    @ApiParam({ name: 'id', description: 'Product ID' })
-    @ApiParam({ name: 'variantId', description: 'Variant ID' })
-    @ApiResponse({ status: 200, description: 'Varian berhasil dihapus' })
-    @ApiResponse({ status: 404, description: 'Varian tidak ditemukan' })
-    @ApiResponse({ status: 401, description: 'Unauthorized' })
-    @ApiBearerAuth()
-    @Delete(':id/variants/:variantId')
-    removeVariant(@Param('id') id: string, @Param('variantId') variantId: string) {
-      return this.variantsService.removeVariant(variantId);
-    }
+  // ─── ADD VARIANT ─────────────────────────────────────────────────────────────
 
-    @Post(':variantId/image')
-    setVariantImage(@Param('productId') productId: string, @Param('variantId') variantId: string, @Body('imageUrl') imageUrl: string) {
-      return this.variantsService.setVariantImage(productId, variantId, imageUrl)
-    }
+  @Roles(Role.admin, Role.super_admin)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Tambah varian ke produk (admin)' })
+  @ApiParam({ name: 'productId', description: 'Product ID' })
+  @ApiResponse({ status: 201, description: 'Varian berhasil ditambahkan' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @Post()
+  addVariant(
+    @Param('productId') productId: string,
+    @Body() dto: CreateVariantDto,
+  ) {
+    return this.variantsService.addVariant(productId, dto);
+  }
 
-    @HttpCode(HttpStatus.NO_CONTENT)
-    @Delete(':variantId/image')
-    deleteVariantImage(@Param('productId') productId: string, @Param('variantId') variantId: string) {
-      return this.variantsService.deleteVariantImage(productId, variantId)
-    }
+  // ─── UPDATE VARIANT ──────────────────────────────────────────────────────────
 
-    @Post('images/batch')
-    batchUpdateVariantImages(@Param('productId') productId: string, @Body() dto: UpdateVariantImagesBatchDto) {
-      return this.variantsService.batchUpdateVariantImages(productId, dto)
-    }
-    
+  @Roles(Role.admin, Role.super_admin)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update varian produk (admin)' })
+  @ApiParam({ name: 'productId', description: 'Product ID' })
+  @ApiParam({ name: 'variantId', description: 'Variant ID' })
+  @ApiResponse({ status: 200, description: 'Varian berhasil diupdate' })
+  @ApiResponse({ status: 404, description: 'Varian tidak ditemukan' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @Patch(':variantId')
+  updateVariant(
+    @Param('productId') productId: string,
+    @Param('variantId') variantId: string,
+    @Body() dto: UpdateVariantDto,
+  ) {
+    return this.variantsService.updateVariant(productId, variantId, dto);
+  }
+
+  // ─── DELETE VARIANT ──────────────────────────────────────────────────────────
+
+  @Roles(Role.admin, Role.super_admin)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Hapus varian produk (admin)' })
+  @ApiParam({ name: 'productId', description: 'Product ID' })
+  @ApiParam({ name: 'variantId', description: 'Variant ID' })
+  @ApiResponse({ status: 200, description: 'Varian berhasil dihapus' })
+  @ApiResponse({ status: 404, description: 'Varian tidak ditemukan' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @Delete(':variantId')
+  removeVariant(
+    @Param('productId') productId: string,
+    @Param('variantId') variantId: string,
+  ) {
+    return this.variantsService.removeVariant(productId, variantId);
+  }
+
+  // ─── SET VARIANT IMAGE ───────────────────────────────────────────────────────
+
+  @Roles(Role.admin, Role.super_admin)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Set gambar varian (admin)' })
+  @ApiParam({ name: 'productId', description: 'Product ID' })
+  @ApiParam({ name: 'variantId', description: 'Variant ID' })
+  @Post(':variantId/image')
+  setVariantImage(
+    @Param('productId') productId: string,
+    @Param('variantId') variantId: string,
+    @Body('imageUrl') imageUrl: string,
+  ) {
+    return this.variantsService.setVariantImage(productId, variantId, imageUrl);
+  }
+
+  // ─── DELETE VARIANT IMAGE ────────────────────────────────────────────────────
+
+  @Roles(Role.admin, Role.super_admin)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Hapus gambar varian (admin)' })
+  @ApiParam({ name: 'productId', description: 'Product ID' })
+  @ApiParam({ name: 'variantId', description: 'Variant ID' })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Delete(':variantId/image')
+  deleteVariantImage(
+    @Param('productId') productId: string,
+    @Param('variantId') variantId: string,
+  ) {
+    return this.variantsService.deleteVariantImage(productId, variantId);
+  }
+
+  // ─── BATCH UPDATE VARIANT IMAGES ─────────────────────────────────────────────
+
+  @Roles(Role.admin, Role.super_admin)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Batch update gambar banyak varian (admin)' })
+  @ApiParam({ name: 'productId', description: 'Product ID' })
+  @Post('images/batch')
+  batchUpdateVariantImages(
+    @Param('productId') productId: string,
+    @Body() dto: UpdateVariantImagesBatchDto,
+  ) {
+    return this.variantsService.batchUpdateVariantImages(productId, dto);
+  }
 }

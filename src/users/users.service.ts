@@ -158,15 +158,16 @@ export class UsersService {
         items: {
           include: {
             product: {
-              select: { 
-                id: true, 
-                name: true, 
+              select: {
+                id: true,
+                name: true,
                 slug: true,
                 images: {
                   where: { imageType: 'main' },
+                  select: { imageUrl: true, altText: true },
+                  orderBy: { sortOrder: 'asc' },
                   take: 1,
-                  select: { imageUrl: true },
-                }
+                },
               },
             },
           },
@@ -184,15 +185,16 @@ export class UsersService {
         items: {
           include: {
             product: {
-              select: { 
-                id: true, 
-                name: true, 
+              select: {
+                id: true,
+                name: true,
                 slug: true,
                 images: {
                   where: { imageType: 'main' },
+                  select: { imageUrl: true, altText: true },
+                  orderBy: { sortOrder: 'asc' },
                   take: 1,
-                  select: { imageUrl: true },
-                }
+                },
               },
             },
           },
