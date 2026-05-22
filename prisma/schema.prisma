@@ -1,11 +1,6 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider     = "prisma-client"
+  output       = "../generated/prisma"
   moduleFormat = "cjs"
 }
 
@@ -13,50 +8,62 @@ datasource db {
   provider = "postgresql"
 }
 
-enum Role { 
-  customer 
-  admin 
-  super_admin 
+// ─── Enums ───────────────────────────────────────────────────────────────────
+
+enum Role {
+  customer
+  admin
+  super_admin
 }
 
-enum OrderStatus { 
-  pending 
-  paid 
-  processing 
-  shipped 
-  delivered 
-  cancelled 
+enum OrderStatus {
+  pending
+  paid
+  processing
+  shipped
+  delivered
+  cancelled
 }
 
-enum PaymentStatus { 
-  pending 
-  paid 
-  failed 
-  expired 
-  refunded 
+enum PaymentStatus {
+  pending
+  paid
+  failed
+  expired
+  refunded
 }
 
-enum ProductStatus { 
-  active 
-  inactive 
-  draft 
+enum ProductStatus {
+  active
+  inactive
+  draft
 }
 
-enum ConsultationStatus { 
-  new 
-  in_progress 
-  closed 
+enum ConsultationStatus {
+  new
+  in_progress
+  closed
 }
 
-enum BlogStatus { 
-  draft 
-  published 
+enum BlogStatus {
+  draft
+  published
 }
 
-enum PaymentProvider { 
-  xendit 
-  midtrans 
+enum PaymentProvider {
+  xendit
+  midtrans
 }
+
+enum ImageType {
+  main
+  nutrition
+  ingredients
+  usage
+  other
+}
+
+// ─── User & Address ──────────────────────────────────────────────────────────
 
 model User {
   id           String    @id @default(uuid())
@@ -69,83 +76,39 @@ model User {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
-  refreshToken    String?
-  verifyToken     String?
-  verifyTokenExp  DateTime?
-  resetToken      String?
-  resetTokenExp   DateTime?
+  refreshToken   String?
+  verifyToken    String?
+  verifyTokenExp DateTime?
+  resetToken     String?
+  resetTokenExp  DateTime?
 
-  addresses    Address[]
-  orders       Order[]
-  cart         Cart?
-  membership   Membership?
+  addresses      Address[]
+  orders         Order[]
+  cart           Cart?
+  membership     Membership?
+  reviews        ProductReview[]
+  reviewHelpfuls ProductReviewHelpful[]
 }
 
 model Address {
-  id            String   @id @default(uuid())
-  userId        String
-  label         String?
-  receiverName  String
-  phone         String
-  address       String
-  cityId        String
-  provinceId    String
-  postalCode    String
-  isDefault     Boolean  @default(false)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  user          User     @relation(fields: [userId], references: [id])
-  orders        Order[]
+  id           String   @id @default(uuid())
+  userId       String
+  label        String?
+  receiverName String
+  phone        String
+  address      String
+  cityId       String
+  provinceId   String
+  postalCode   String
+  isDefault    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user   User    @relation(fields: [userId], references: [id])
+  orders Order[]
 }
 
-model Product {
-  id            String         @id @default(uuid())
-  categoryId    String?
-  name          String
-  slug          String         @unique
-  description   String?
-  basePrice     Decimal
-  discountPrice Decimal?
-  weight        Int
-  sku           String         @unique
-  stock         Int            @default(0)
-  mainImage     String?
-  status        ProductStatus  @default(draft)
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  category      Category?      @relation(fields: [categoryId], references: [id])
-  images        ProductImage[]
-  variants      ProductVariant[]
-  cartItems     CartItem[]
-  orderItems    OrderItem[]
-}
-
-model ProductImage {
-  id         String   @id @default(uuid())
-  productId  String
-  imageUrl   String
-  altText    String?
-  sortOrder  Int      @default(0)
-  isFeatured Boolean  @default(false)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-}
-
-model ProductVariant {
-  id              String   @id @default(uuid())
-  productId       String
-  name            String   // isi: "Cokelat", "Matcha", dll
-  value           String
-  imageUrl        String?
-  priceAdjustment Decimal  @default(0)
-  stock           Int      @default(0)
-  sku             String?
-  isActive        Boolean  @default(true)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  product         Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-}
+// ─── Category ────────────────────────────────────────────────────────────────
 
 model Category {
   id          String     @id @default(uuid())
@@ -158,18 +121,118 @@ model Category {
   isActive    Boolean    @default(true)
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
-  parent      Category?  @relation("CategoryChildren", fields: [parentId], references: [id])
-  children    Category[] @relation("CategoryChildren")
-  products    Product[]
+
+  parent   Category?  @relation("CategoryChildren", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryChildren")
+  products Product[]
 }
+
+// ─── Product ─────────────────────────────────────────────────────────────────
+
+model Product {
+  id            String        @id @default(uuid())
+  categoryId    String?
+  name          String
+  slug          String        @unique
+  description   String?
+  basePrice     Decimal
+  discountPrice Decimal?
+  weight        Int
+  sku           String        @unique
+  stock         Int           @default(0)
+  soldCount     Int           @default(0)  // ← TAMBAH
+  status        ProductStatus @default(draft)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  category   Category?        @relation(fields: [categoryId], references: [id])
+  images     ProductImage[]
+  variants   ProductVariant[]
+  cartItems  CartItem[]
+  orderItems OrderItem[]
+  reviews    ProductReview[]
+
+  @@index([soldCount(sort: Desc)])
+  @@index([status, soldCount(sort: Desc)])
+}
+
+model ProductImage {
+  id         String    @id @default(uuid())
+  productId  String
+  imageUrl   String
+  altText    String?
+  imageType  ImageType @default(main)
+  sortOrder  Int       @default(0)
+  isFeatured Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model ProductVariant {
+  id              String   @id @default(uuid())
+  productId       String
+  name            String
+  value           String
+  basePrice       Decimal
+  discountPrice   Decimal?
+  priceAdjustment Decimal  @default(0)  // ← TAMBAH
+  stock           Int      @default(0)
+  imageUrl        String?
+  sku             String?  @unique
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+// ─── Review (dari v2) ────────────────────────────────────────────────────────
+
+model ProductReview {
+  id                 String   @id @default(uuid())
+  productId          String
+  userId             String
+  orderId            String
+  rating             Int?     // 1–5, opsional
+  review             String?  // min 5, max 2000 karakter
+  isVerifiedPurchase Boolean  @default(true)
+  helpfulCount       Int      @default(0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  product  Product  @relation(fields: [productId], references: [id])
+  user     User     @relation(fields: [userId], references: [id])
+  order    Order    @relation(fields: [orderId], references: [id])
+  helpfuls ProductReviewHelpful[]
+
+  @@unique([userId, productId, orderId])
+}
+
+model ProductReviewHelpful {
+  id        String   @id @default(uuid())
+  reviewId  String
+  userId    String
+  isHelpful Boolean
+  createdAt DateTime @default(now())
+
+  review ProductReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  user   User          @relation(fields: [userId], references: [id])
+
+  @@unique([reviewId, userId])
+}
+
+// ─── Cart ────────────────────────────────────────────────────────────────────
 
 model Cart {
   id        String     @id @default(uuid())
   userId    String     @unique
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
-  user      User       @relation(fields: [userId], references: [id])
-  items     CartItem[]
+
+  user  User       @relation(fields: [userId], references: [id])
+  items CartItem[]
 }
 
 model CartItem {
@@ -181,8 +244,9 @@ model CartItem {
   price     Decimal
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  product   Product  @relation(fields: [productId], references: [id])
+
+  cart    Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
 }
 
 model GuestCart {
@@ -190,20 +254,24 @@ model GuestCart {
   sessionId String
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
-  items     GuestCartItem[]
+
+  items GuestCartItem[]
 }
 
 model GuestCartItem {
-  id          String    @id @default(uuid())
+  id          String   @id @default(uuid())
   guestCartId String
   productId   String
   variantId   String?
   quantity    Int
   price       Decimal
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  guestCart   GuestCart @relation(fields: [guestCartId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  guestCart GuestCart @relation(fields: [guestCartId], references: [id], onDelete: Cascade)
 }
+
+// ─── Order & Payment ─────────────────────────────────────────────────────────
 
 model Order {
   id             String        @id @default(uuid())
@@ -219,10 +287,12 @@ model Order {
   notes          String?
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
-  user           User          @relation(fields: [userId], references: [id])
-  address        Address       @relation(fields: [addressId], references: [id])
-  items          OrderItem[]
-  payment        Payment?
+
+  user    User        @relation(fields: [userId], references: [id])
+  address Address     @relation(fields: [addressId], references: [id])
+  items   OrderItem[]
+  payment Payment?
+  reviews ProductReview[]
 }
 
 model OrderItem {
@@ -234,8 +304,9 @@ model OrderItem {
   price     Decimal
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product   Product  @relation(fields: [productId], references: [id])
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
 }
 
 model Payment {
@@ -248,8 +319,11 @@ model Payment {
   paidAt     DateTime?
   createdAt  DateTime        @default(now())
   updatedAt  DateTime        @updatedAt
-  order      Order           @relation(fields: [orderId], references: [id])
+
+  order Order @relation(fields: [orderId], references: [id])
 }
+
+// ─── Misc ────────────────────────────────────────────────────────────────────
 
 model Faq {
   id        String   @id @default(uuid())
@@ -272,21 +346,22 @@ model BlogPost {
 }
 
 model Consultation {
-  id        String               @id @default(uuid())
+  id        String             @id @default(uuid())
   name      String
   email     String
   phone     String?
   message   String
-  status    ConsultationStatus   @default(new)
-  createdAt DateTime             @default(now())
-  updatedAt DateTime             @updatedAt
+  status    ConsultationStatus @default(new)
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
 }
 
 model Membership {
-  userId           String   @id
-  points           Int      @default(0)
+  userId           String    @id
+  points           Int       @default(0)
   lastDailyLoginAt DateTime?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  user             User     @relation(fields: [userId], references: [id])
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
 }

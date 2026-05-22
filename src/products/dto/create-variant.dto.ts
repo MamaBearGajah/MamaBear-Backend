@@ -20,12 +20,17 @@ export class CreateVariantDto {
   @IsNotEmpty()
   value!: string;
 
-  @ApiPropertyOptional({ example: 'https://example.com/red.jpg' })
-  @IsString()
-  @IsOptional()
-  imageUrl?: string;
+  @ApiProperty({ example: 50000, minimum: 0 })
+  @IsNumber()
+  @Min(0)
+  basePrice!: number;
 
-  @ApiPropertyOptional({ example: 5000, description: 'Selisih harga dari base price' })
+  @ApiPropertyOptional({ example: 45000 })
+  @IsNumber()
+  @IsOptional()
+  discountPrice?: number;
+
+  @ApiPropertyOptional({ example: 0 })
   @IsNumber()
   @IsOptional()
   priceAdjustment?: number;
@@ -35,6 +40,11 @@ export class CreateVariantDto {
   @IsNumber()
   @IsNotEmpty()
   stock!: number;
+
+  @ApiPropertyOptional({ example: 'https://example.com/red.jpg' })
+  @IsString()
+  @IsOptional()
+  imageUrl?: string;
 
   @ApiPropertyOptional({ example: 'SKU-001-RED' })
   @IsString()

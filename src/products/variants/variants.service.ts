@@ -42,53 +42,37 @@ export class VariantsService {
 
     if (!variant) throw new NotFoundException('Varian tidak ditemukan di produk ini');
 
-    return {
-      ...variant,
-      availableStock: variant.stock - variant.reservedStock,
-    };
+    return variant;  // ✅ tidak ada reservedStock, jadi tidak hitung availableStock
   }
 
   // ─── ADD VARIANT ─────────────────────────────────────────────────────────────
 
   async addVariant(productId: string, dto: CreateVariantDto) {
-    // Pastikan produk ada sebelum tambah variant
     const product = await this.prisma.product.findUnique({ where: { id: productId } });
     if (!product) throw new NotFoundException('Produk tidak ditemukan');
 
-    const variant = await this.prisma.productVariant.create({
+    return this.prisma.productVariant.create({
       data: { ...dto, productId },
     });
-
-    return {
-      ...variant,
-      availableStock: variant.stock - variant.reservedStock,
-    };
   }
 
   // ─── UPDATE VARIANT ──────────────────────────────────────────────────────────
 
   async updateVariant(productId: string, variantId: string, dto: UpdateVariantDto) {
-    // ✅ Validasi not found sebelum update
     const existing = await this.prisma.productVariant.findFirst({
       where: { id: variantId, productId },
     });
     if (!existing) throw new NotFoundException('Varian tidak ditemukan di produk ini');
 
-    const variant = await this.prisma.productVariant.update({
+    return this.prisma.productVariant.update({
       where: { id: variantId },
       data: dto,
     });
-
-    return {
-      ...variant,
-      availableStock: variant.stock - variant.reservedStock,
-    };
   }
 
   // ─── DELETE VARIANT ──────────────────────────────────────────────────────────
 
   async removeVariant(productId: string, variantId: string) {
-    // ✅ Validasi not found sebelum delete
     const existing = await this.prisma.productVariant.findFirst({
       where: { id: variantId, productId },
     });

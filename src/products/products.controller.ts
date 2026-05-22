@@ -24,7 +24,7 @@ export class ProductsController {
   // PENTING: route statis harus di atas @Get(':id')
 
   @ApiOperation({ summary: 'Get semua produk (public)' })
-  @ApiResponse({ status: 200, description: 'List produk + availableStock' })
+  @ApiResponse({ status: 200, description: 'List produk' })
   @Get()
   findAll(@Query() query: ProductQueryDto) {
     return this.productsService.findAll(query);
@@ -44,14 +44,8 @@ export class ProductsController {
     return this.productsService.findBySlug(slug);
   }
 
-  @ApiOperation({ summary: 'Get produk by ID (public)' })
-  @ApiParam({ name: 'id' })
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.productsService.findOne(id);
-  }
-
   // ─── ADMIN ────────────────────────────────────────────────────────────────────
+  // ✅ variants/all harus di atas :id supaya tidak tertangkap sebagai id = "variants"
 
   @ApiOperation({ summary: 'Get SEMUA varian lintas produk (admin) — include productName + categoryName' })
   @ApiQuery({ name: 'page', required: false, type: Number })
@@ -84,6 +78,13 @@ export class ProductsController {
     return this.productsService.create(dto);
   }
 
+  @ApiOperation({ summary: 'Get produk by ID (public)' })
+  @ApiParam({ name: 'id' })
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.productsService.findOne(id);
+  }
+
   @ApiOperation({ summary: 'Update produk (admin)' })
   @ApiParam({ name: 'id' })
   @ApiResponse({ status: 200, description: 'Produk berhasil diupdate' })
@@ -91,12 +92,12 @@ export class ProductsController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.admin, Role.super_admin)
-  @Patch(':id')  // ✅ ganti dari Put ke Patch — partial update
+  @Patch(':id')
   update(@Param('id') id: string, @Body() dto: UpdateProductDto) {
     return this.productsService.update(id, dto);
   }
 
-  @ApiOperation({ summary: 'Hapus produk — soft delete (admin)' })
+  @ApiOperation({ summary: 'Hapus produk (admin)' })
   @ApiParam({ name: 'id' })
   @ApiResponse({ status: 200, description: 'Produk berhasil dihapus' })
   @ApiResponse({ status: 404, description: 'Produk tidak ditemukan' })

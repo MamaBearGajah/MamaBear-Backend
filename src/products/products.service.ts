@@ -7,22 +7,18 @@ import { ProductQueryDto } from './dto/product-query.dto';
 @Injectable()
 export class ProductsService {
   constructor(private prisma: PrismaService) {}
-  
+
   private slugify(text: string): string {
     return text
       .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/[^a-z0-9\s-]/g, '')
       .trim()
-      .replace(/\s+/g, "-")
-      .replace(/-+/g, "-")
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-');
   }
 
   // ─── STOCK HELPERS ────────────────────────────────────────────────────────────
 
-  /**
-   * Sync stock produk induk dari total stock semua variant aktif.
-   * Dipanggil dari VariantsService setiap kali variant ditambah/diupdate/dihapus.
-   */
   async syncProductStock(productId: string) {
     const result = await this.prisma.productVariant.aggregate({
       where: { productId, isActive: true },
@@ -39,45 +35,33 @@ export class ProductsService {
     }
   }
 
-  /**
-   * Reserve stok saat order dibuat (belum bayar).
-   * Schema saat ini belum punya reservedStock, jadi langsung kurangi stock.
-   * Dipanggil dari OrdersService saat order dibuat.
-   */
   async reserveStock(items: { productId: string; variantId?: string; quantity: number }[]) {
     await this.prisma.$transaction(async (tx) => {
       for (const item of items) {
         if (item.variantId) {
-          const variant = await tx.productVariant.findUnique({
-            where: { id: item.variantId },
-          });
+          const variant = await tx.productVariant.findUnique({ where: { id: item.variantId } });
           if (!variant) throw new NotFoundException('Variant tidak ditemukan');
           if (variant.stock < item.quantity) {
             throw new BadRequestException(
               `Stok tidak cukup untuk variant ${variant.name} ${variant.value}. Tersedia: ${variant.stock}`,
             );
           }
-
           await tx.productVariant.update({
             where: { id: item.variantId },
             data: { stock: { decrement: item.quantity } },
           });
-
           await tx.product.update({
             where: { id: item.productId },
             data: { stock: { decrement: item.quantity } },
           });
         } else {
-          const product = await tx.product.findUnique({
-            where: { id: item.productId },
-          });
+          const product = await tx.product.findUnique({ where: { id: item.productId } });
           if (!product) throw new NotFoundException('Produk tidak ditemukan');
           if (product.stock < item.quantity) {
             throw new BadRequestException(
               `Stok tidak cukup untuk produk ${product.name}. Tersedia: ${product.stock}`,
             );
           }
-
           await tx.product.update({
             where: { id: item.productId },
             data: { stock: { decrement: item.quantity } },
@@ -87,11 +71,6 @@ export class ProductsService {
     });
   }
 
-  /**
-   * Increment soldCount setelah payment sukses.
-   * Dipanggil dari PaymentsService saat payment confirmed.
-   * Note: stock sudah dikurangi di reserveStock saat order dibuat.
-   */
   async confirmStockDeduction(items: { productId: string; variantId?: string; quantity: number }[]) {
     await this.prisma.$transaction(async (tx) => {
       for (const item of items) {
@@ -103,10 +82,6 @@ export class ProductsService {
     });
   }
 
-  /**
-   * Kembalikan stok saat order dibatalkan / payment gagal / expired.
-   * Dipanggil dari PaymentsService atau OrdersService saat cancel.
-   */
   async releaseReservation(items: { productId: string; variantId?: string; quantity: number }[]) {
     await this.prisma.$transaction(async (tx) => {
       for (const item of items) {
@@ -115,7 +90,6 @@ export class ProductsService {
             where: { id: item.variantId },
             data: { stock: { increment: item.quantity } },
           });
-
           await tx.product.update({
             where: { id: item.productId },
             data: { stock: { increment: item.quantity } },
@@ -155,12 +129,10 @@ export class ProductsService {
       where.basePrice = {
         ...(minPrice !== undefined && { gte: minPrice }),
         ...(maxPrice !== undefined && { lte: maxPrice }),
-      }
+      };
     }
 
-    if (inStock) {
-      where.stock = { gt: 0 };
-    }
+    if (inStock) where.stock = { gt: 0 };
 
     const [data, total] = await Promise.all([
       this.prisma.product.findMany({
@@ -174,9 +146,12 @@ export class ProductsService {
         },
       }),
       this.prisma.product.count({ where }),
-    ])
+    ]);
 
-    return { data, meta: { page, limit, totalItems: total, totalPages: Math.ceil(total / limit) } }
+    return {
+      data,
+      meta: { page, limit, totalItems: total, totalPages: Math.ceil(total / limit) },
+    };
   }
 
   async findBestSellers(limit = 10) {
@@ -205,14 +180,6 @@ export class ProductsService {
 
     const { images, variants, ...productData } = dto;
 
-    const existing = await this.prisma.product.findFirst({
-      where: {
-        OR: [{ slug: productSlug }, { sku: dto.sku }]
-      }
-    })
-
-    const { images, variants, ...productData } = dto
-    
     return this.prisma.product.create({
       data: {
         ...productData,
@@ -220,15 +187,10 @@ export class ProductsService {
         images: images ? { create: images } : undefined,
         variants: variants ? { create: variants } : undefined,
       },
-      include: {
-        images: true,
-        variants: true,
-        category: true,
-      },
-    })
+      include: { images: true, variants: true, category: true },
+    });
   }
 
-  // Find Product by ID
   async findOne(id: string) {
     const product = await this.prisma.product.findUnique({
       where: { id },
@@ -242,7 +204,6 @@ export class ProductsService {
     return product;
   }
 
-  // Find Product by Slug
   async findBySlug(slug: string) {
     const product = await this.prisma.product.findUnique({
       where: { slug },
@@ -256,7 +217,6 @@ export class ProductsService {
     return product;
   }
 
-  // Update Product by ID
   async update(id: string, dto: UpdateProductDto) {
     await this.findOne(id);
     const { images: _, variants: __, ...updateData } = dto;
@@ -269,14 +229,12 @@ export class ProductsService {
     });
   }
 
-  // Delete Product by ID
-  async remove(id:string) {
-    await this.findOne(id)
-    return this.prisma.product.delete({ where: { id } })
+  async remove(id: string) {
+    await this.findOne(id);
+    return this.prisma.product.delete({ where: { id } });
   }
 
   // ─── ADMIN: ALL VARIANTS ACROSS PRODUCTS ──────────────────────────────────────
-  // Tetap di ProductsService karena query lintas produk, bukan per produk
 
   async findAllVariants(query: { page?: number; limit?: number; productId?: string }) {
     const { page = 1, limit = 20, productId } = query;
