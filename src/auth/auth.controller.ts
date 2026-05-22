@@ -6,7 +6,6 @@ import {
   ApiTags, ApiOperation, ApiResponse,
   ApiBearerAuth, ApiQuery,
 } from '@nestjs/swagger';
-// FIX 1: pakai 'import type' agar tidak error dengan isolatedModules + emitDecoratorMetadata
 import type { Response } from 'express';
 import { AuthService } from './auth.service';
 import {
@@ -20,7 +19,6 @@ import { ConfigService } from '@nestjs/config';
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
-  // FIX 2: inject ConfigService untuk akses FRONTEND_URL di verifyEmail
   constructor(
     private readonly authService: AuthService,
     private readonly config: ConfigService,
