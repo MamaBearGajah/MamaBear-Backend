@@ -8,12 +8,44 @@ import { UpdateVariantImagesBatchDto } from '../dto/update-batch-variant-images.
 export class VariantsService {
   constructor(private readonly prisma: PrismaService) {}
 
+  // ─── STOCK HELPER ────────────────────────────────────────────────────────────
+
+  /**
+   * Sync stock produk induk dari total stock semua variant aktif.
+   * Dipanggil setiap kali variant ditambah/diupdate/dihapus.
+   */
+  private async syncProductStock(productId: string) {
+    const result = await this.prisma.productVariant.aggregate({
+      where: { productId, isActive: true },
+      _sum: { stock: true },
+    });
+
+    const hasVariants = await this.prisma.productVariant.count({ where: { productId } });
+
+    if (hasVariants > 0) {
+      await this.prisma.product.update({
+        where: { id: productId },
+        data: { stock: result._sum.stock ?? 0 },
+      });
+    }
+  }
+
   // ─── GET ALL VARIANTS ────────────────────────────────────────────────────────
 
   async findVariants(productId: string) {
     return this.prisma.productVariant.findMany({
       where: { productId },
       orderBy: { createdAt: 'asc' },
+      include: {
+        product: {
+          select: {
+            id: true,
+            name: true,   // ✅ nama produk
+            stock: true,  // ✅ stok produk induk
+            category: { select: { id: true, name: true, slug: true } },  // ✅ nama kategori
+          },
+        },
+      },
     });
   }
 
@@ -30,18 +62,16 @@ export class VariantsService {
         product: {
           select: {
             id: true,
-            name: true,
+            name: true,   // ✅ nama produk
             slug: true,
-            category: {
-              select: { id: true, name: true, slug: true },
-            },
+            stock: true,  // ✅ stok produk induk
+            category: { select: { id: true, name: true, slug: true } },  // ✅ nama kategori
           },
         },
       },
     });
 
     if (!variant) throw new NotFoundException('Varian tidak ditemukan di produk ini');
-
     return variant;
   }
 
@@ -51,9 +81,12 @@ export class VariantsService {
     const product = await this.prisma.product.findUnique({ where: { id: productId } });
     if (!product) throw new NotFoundException('Produk tidak ditemukan');
 
-    return this.prisma.productVariant.create({
+    const variant = await this.prisma.productVariant.create({
       data: { ...dto, productId },
     });
+
+    await this.syncProductStock(productId);  // ✅ sync stok produk induk
+    return variant;
   }
 
   // ─── UPDATE VARIANT ──────────────────────────────────────────────────────────
@@ -64,10 +97,13 @@ export class VariantsService {
     });
     if (!existing) throw new NotFoundException('Varian tidak ditemukan di produk ini');
 
-    return this.prisma.productVariant.update({
+    const variant = await this.prisma.productVariant.update({
       where: { id: variantId },
       data: dto,
     });
+
+    await this.syncProductStock(productId);  // ✅ sync stok produk induk
+    return variant;
   }
 
   // ─── DELETE VARIANT ──────────────────────────────────────────────────────────
@@ -78,7 +114,10 @@ export class VariantsService {
     });
     if (!existing) throw new NotFoundException('Varian tidak ditemukan di produk ini');
 
-    return this.prisma.productVariant.delete({ where: { id: variantId } });
+    const variant = await this.prisma.productVariant.delete({ where: { id: variantId } });
+
+    await this.syncProductStock(productId);  // ✅ sync stok produk induk
+    return variant;
   }
 
   // ─── SET VARIANT IMAGE ───────────────────────────────────────────────────────
