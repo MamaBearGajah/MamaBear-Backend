@@ -25,6 +25,7 @@ import { RolesGuard } from './auth/guards/roles.guard';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { UsersModule } from './users/users.module';
 import { CustomThrottlerGuard } from './common/guards/throttler.guard';
+import { ReviewsModule } from './products/reviews/reviews.module';
 
 @Module({
   imports: [
@@ -47,7 +48,8 @@ import { CustomThrottlerGuard } from './common/guards/throttler.guard';
     MembershipModule,
     MediaModule,
     HealthModule,
-    UsersModule
+    UsersModule,
+    ReviewsModule
   ],
   controllers: [AppController],
   providers: [

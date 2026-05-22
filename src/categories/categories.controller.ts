@@ -72,13 +72,13 @@ export class CategoriesController {
     return this.categoriesService.remove(id);
   }
 
- @ApiOperation({ summary: 'Get semua produk dalam kategori' })
-@ApiParam({ name: 'id', description: 'Category ID' })
-@ApiResponse({ status: 200, description: 'List produk berhasil diambil' })
-@ApiResponse({ status: 404, description: 'Kategori tidak ditemukan' })
-@Get(':id/products')
-findProducts(@Param('id') id: string, @Query() query: ProductQueryDto) {
-  return this.categoriesService.findProducts(id, query);
-}
+  @ApiOperation({ summary: 'Get semua produk dalam kategori' })
+  @ApiParam({ name: 'id', description: 'Category ID' })
+  @ApiResponse({ status: 200, description: 'List produk berhasil diambil' })
+  @ApiResponse({ status: 404, description: 'Kategori tidak ditemukan' })
+  @Get(':id/products')
+  findProducts(@Param('id') id: string, @Query() query: ProductQueryDto) {
+    return this.categoriesService.findProducts(id, query);
+  }
 
 }
