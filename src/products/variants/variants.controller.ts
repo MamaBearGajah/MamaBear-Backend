@@ -37,7 +37,7 @@ export class VariantsController {
   @ApiParam({ name: 'variantId', description: 'Variant ID' })
   @ApiResponse({ status: 200, description: 'Detail varian berhasil diambil' })
   @ApiResponse({ status: 404, description: 'Varian tidak ditemukan' })
-  @Get(':variantId')  // untuk pre-fill form edit di admin dashboard
+  @Get(':variantId')
   findOneVariant(
     @Param('productId') productId: string,
     @Param('variantId') variantId: string,
