@@ -158,7 +158,16 @@ export class UsersService {
         items: {
           include: {
             product: {
-              select: { id: true, name: true, mainImage: true, slug: true },
+              select: { 
+                id: true, 
+                name: true, 
+                slug: true,
+                images: {
+                  where: { imageType: 'main' },
+                  take: 1,
+                  select: { imageUrl: true },
+                }
+              },
             },
           },
         },
@@ -175,7 +184,16 @@ export class UsersService {
         items: {
           include: {
             product: {
-              select: { id: true, name: true, mainImage: true, slug: true },
+              select: { 
+                id: true, 
+                name: true, 
+                slug: true,
+                images: {
+                  where: { imageType: 'main' },
+                  take: 1,
+                  select: { imageUrl: true },
+                }
+              },
             },
           },
         },
