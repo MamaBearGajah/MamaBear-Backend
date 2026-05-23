@@ -2,8 +2,10 @@ import { Controller, Get, Post, Body, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { ShippingService } from './shipping.service';
 import { ShippingCostDto } from './dto/shipping-cost.dto';
+import { Public } from 'src/auth/decorators';
 
 @ApiTags('Shipping')
+@Public()
 @Controller('shipping')
 export class ShippingController {
   constructor(private readonly shippingService: ShippingService) {}
