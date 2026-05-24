@@ -1,101 +1,135 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import axios from 'axios';
+import axios, { AxiosInstance } from 'axios';
 import { ShippingCostDto } from './dto/shipping-cost.dto';
 
 @Injectable()
 export class ShippingService {
   private readonly apiKey: string;
   private readonly baseUrl: string;
+  private readonly http: AxiosInstance;
+
   private provincesCache: any[] | null = null;
   private citiesCache: Map<string, any[]> = new Map();
 
-  constructor(private config: ConfigService) {
-    this.apiKey = this.config.getOrThrow<string>('RAJAONGKIR_API_KEY');
-    this.baseUrl = this.config.getOrThrow<string>('RAJAONGKIR_BASE_URL');
-  }
+  constructor(private readonly config: ConfigService) {
+    this.apiKey =
+      this.config.getOrThrow<string>('RAJAONGKIR_API_KEY');
 
-  private get headers() {
-    return { Key: this.apiKey };
+    this.baseUrl =
+      this.config.getOrThrow<string>('RAJAONGKIR_BASE_URL');
+
+    this.http = axios.create({
+      baseURL: this.baseUrl,
+      headers: {
+        key: this.apiKey,
+      },
+    });
   }
 
   async getProvinces() {
-    if (this.provincesCache) return this.provincesCache;
+    if (this.provincesCache) {
+      return this.provincesCache;
+    }
 
     try {
-      const { data } = await axios.get(`${this.baseUrl}/destination/province`, {
-        headers: this.headers,
-      });
-      this.provincesCache = data.data.map((p: any) => ({
-        id: p.id,
-        name: p.name,
+      const { data } = await this.http.get(
+        '/destination/province',
+      );
+
+      const provinces = data.data.map((province: any) => ({
+        id: province.id,
+        name: province.name,
       }));
-      return this.provincesCache;
-    } catch {
-      throw new InternalServerErrorException({
-        code: 'EXTERNAL_SERVICE_ERROR',
-        message: 'Gagal mengambil data provinsi dari RajaOngkir',
-      });
+
+      this.provincesCache = provinces;
+
+      return provinces;
+    } catch (error) {
+      this.handleError(
+        error,
+        'Gagal mengambil data provinsi dari RajaOngkir',
+      );
     }
   }
 
   async getCities(provinceId?: string) {
     const cacheKey = provinceId ?? 'all';
-    if (this.citiesCache.has(cacheKey)) return this.citiesCache.get(cacheKey);
+
+    if (this.citiesCache.has(cacheKey)) {
+      return this.citiesCache.get(cacheKey);
+    }
 
     try {
-      // V2: province_id sebagai path param, bukan query
-      const url = provinceId
-        ? `${this.baseUrl}/destination/city/${provinceId}`
-        : `${this.baseUrl}/destination/city`;
+      const endpoint = provinceId
+        ? `/destination/city/${provinceId}`
+        : '/destination/city';
 
-      const { data } = await axios.get(url, { headers: this.headers });
+      const { data } = await this.http.get(endpoint);
 
-      const result = data.data.map((c: any) => ({
-        id: c.id,
-        name: c.name,
-        zipCode: c.zip_code,
+      const cities = data.data.map((city: any) => ({
+        id: city.id,
+        name: city.name,
+        zipCode: city.zip_code,
       }));
-      this.citiesCache.set(cacheKey, result);
-      return result;
-    } catch {
-      throw new InternalServerErrorException({
-        code: 'EXTERNAL_SERVICE_ERROR',
-        message: 'Gagal mengambil data kota dari RajaOngkir',
-      });
+
+      this.citiesCache.set(cacheKey, cities);
+
+      return cities;
+    } catch (error) {
+      this.handleError(
+        error,
+        'Gagal mengambil data kota dari RajaOngkir',
+      );
     }
   }
 
   async calculateCost(dto: ShippingCostDto) {
     try {
-      // V2: pakai x-www-form-urlencoded, bukan JSON
-      const params = new URLSearchParams();
-      params.append('origin', dto.originCityId);
-      params.append('destination', dto.destinationCityId);
-      params.append('weight', dto.weight.toString());
-      params.append('courier', dto.courier);
+      const payload = new URLSearchParams({
+        origin: dto.originCityId,
+        destination: dto.destinationCityId,
+        weight: dto.weight.toString(),
+        courier: dto.courier,
+      });
 
-      const { data } = await axios.post(
-        `${this.baseUrl}/calculate/district/domestic-cost`,
-        params,
+      const { data } = await this.http.post(
+        '/calculate/district/domestic-cost',
+        payload,
         {
           headers: {
-            ...this.headers,
-            'Content-Type': 'application/x-www-form-urlencoded',
+            'content-type':
+              'application/x-www-form-urlencoded',
           },
         },
       );
 
-      return data.data.map((c: any) => ({
-        service: c.service,
-        cost: c.cost,
-        etd: c.etd,
+      return data.data.map((item: any) => ({
+        service: item.service,
+        cost: item.cost,
+        etd: item.etd,
       }));
-    } catch {
-      throw new InternalServerErrorException({
-        code: 'EXTERNAL_SERVICE_ERROR',
-        message: 'Gagal menghitung ongkos kirim dari RajaOngkir',
-      });
+    } catch (error) {
+      this.handleError(
+        error,
+        'Gagal menghitung ongkos kirim dari RajaOngkir',
+      );
     }
+  }
+
+  private handleError(error: any, message: string): never {
+    console.error(
+      'RAJAONGKIR ERROR:',
+      error?.response?.data || error.message,
+    );
+
+    throw new InternalServerErrorException({
+      code: 'EXTERNAL_SERVICE_ERROR',
+      message,
+      details: error?.response?.data || null,
+    });
   }
 }
