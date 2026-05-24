@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { ChatbotService } from './chatbot.service';
-import { ChatbotController } from './chatbot.controller';
+import { ChatbotService } from './chatbot.service.js';
+import { ChatbotController } from './chatbot.controller.js';
 
 @Module({
   controllers: [ChatbotController],

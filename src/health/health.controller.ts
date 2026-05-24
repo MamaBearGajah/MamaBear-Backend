@@ -1,34 +1,18 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { HealthService } from './health.service';
-import { CreateHealthDto } from './dto/create-health.dto';
-import { UpdateHealthDto } from './dto/update-health.dto';
+import { Controller, Get } from '@nestjs/common';
+import { ApiTags, ApiOkResponse } from '@nestjs/swagger';
+import { HealthService } from './health.service.js';
+import { Public } from '../auth/decorators/index.js';
+import { HealthResponseDto } from './dto/health-response.dto.js';
 
+@ApiTags('Health')
 @Controller('health')
 export class HealthController {
   constructor(private readonly healthService: HealthService) {}
 
-  @Post()
-  create(@Body() createHealthDto: CreateHealthDto) {
-    return this.healthService.create(createHealthDto);
-  }
-
+  @Public()
   @Get()
-  findAll() {
-    return this.healthService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.healthService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateHealthDto: UpdateHealthDto) {
-    return this.healthService.update(+id, updateHealthDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.healthService.remove(+id);
+  @ApiOkResponse({ description: 'Returns service health status, uptime, and database response time.', type: HealthResponseDto })
+  check() {
+    return this.healthService.check();
   }
 }

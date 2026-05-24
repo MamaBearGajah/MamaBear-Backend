@@ -1,14 +1,12 @@
-import { Product } from './../../generated/prisma/browser';
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { CreateProductDto } from './dto/create-product.dto';
-import { UpdateProductDto } from './dto/update-product.dto';
-import { PrismaService } from '../prisma/prisma.service';
-import { ProductQueryDto } from './dto/product-query.dto';
-import { dot } from 'node:test/reporters';
-import { CreateVariantDto } from './dto/create-variant.dto';
-import { UpdateVariantDto } from './dto/update-variant.dto';
-import { CreateImageDto } from './dto/create-image.dto';
-import { UpdateImageDto } from './dto/update-image.dto';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { CreateProductDto } from './dto/create-product.dto.js';
+import { UpdateProductDto } from './dto/update-product.dto.js';
+import { PrismaService } from '../prisma/prisma.service.js';
+import { ProductQueryDto } from './dto/product-query.dto.js';
+import { CreateVariantDto } from './dto/create-variant.dto.js';
+import { UpdateVariantDto } from './dto/update-variant.dto.js';
+import { CreateImageDto } from './dto/create-image.dto.js';
+import { UpdateImageDto } from './dto/update-image.dto.js';
 
 @Injectable()
 export class ProductsService {
@@ -137,6 +135,8 @@ export class ProductsService {
 
   // Add Product Variant
   async addVariant(productId: string, dto: CreateVariantDto) {
+    if (dto.stock !== undefined && dto.stock < 0)
+      throw new BadRequestException('Stok varian tidak boleh negatif');
     return this.prisma.productVariant.create({
       data: { ...dto, productId }
     })
@@ -144,6 +144,8 @@ export class ProductsService {
 
   // Update Variant
   async updateVariant(id: string, dto: UpdateVariantDto) {
+    if (dto.stock !== undefined && dto.stock < 0)
+      throw new BadRequestException('Stok varian tidak boleh negatif');
     return this.prisma.productVariant.update({
       where: { id },
       data: dto,
@@ -155,6 +157,34 @@ export class ProductsService {
     return this.prisma.productVariant.delete({
       where: { id },
     })
+  }
+
+  // Batch update imageUrl untuk array variantId
+  async batchUpdateVariantImages(
+    productId: string,
+    items: { variantId: string; imageUrl: string; altText?: string }[],
+  ) {
+    const results = await Promise.all(
+      items.map(async (item) => {
+        const variant = await this.prisma.productVariant.findFirst({
+          where: { id: item.variantId, productId },
+        });
+        if (!variant) {
+          return { variantId: item.variantId, status: 'failed', message: 'Variant tidak ditemukan' };
+        }
+        await this.prisma.productVariant.update({
+          where: { id: item.variantId },
+          data: { imageUrl: item.imageUrl },
+        });
+        return { variantId: item.variantId, status: 'updated' };
+      }),
+    );
+
+    return {
+      updated: results.filter((r) => r.status === 'updated').length,
+      failed: results.filter((r) => r.status === 'failed').length,
+      results,
+    };
   }
 
   // Add Product Image

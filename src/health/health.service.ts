@@ -1,26 +1,26 @@
 import { Injectable } from '@nestjs/common';
-import { CreateHealthDto } from './dto/create-health.dto';
-import { UpdateHealthDto } from './dto/update-health.dto';
+import { PrismaService } from '../prisma/prisma.service.js';
 
 @Injectable()
 export class HealthService {
-  create(createHealthDto: CreateHealthDto) {
-    return 'This action adds a new health';
-  }
+  constructor(private prisma: PrismaService) {}
 
-  findAll() {
-    return `This action returns all health`;
-  }
+  async check() {
+    const start = Date.now();
+    let dbStatus = 'ok';
 
-  findOne(id: number) {
-    return `This action returns a #${id} health`;
-  }
+    try {
+      await this.prisma.$queryRaw`SELECT 1`;
+    } catch {
+      dbStatus = 'error';
+    }
 
-  update(id: number, updateHealthDto: UpdateHealthDto) {
-    return `This action updates a #${id} health`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} health`;
+    return {
+      status: dbStatus === 'ok' ? 'ok' : 'degraded',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      database: dbStatus,
+      responseTime: `${Date.now() - start}ms`,
+    };
   }
 }

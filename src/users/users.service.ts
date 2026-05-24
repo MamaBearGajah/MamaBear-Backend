@@ -4,9 +4,9 @@ import {
   BadRequestException,
   ForbiddenException,
 } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service.js';
 import * as bcrypt from 'bcrypt';
-import { ChangePasswordDto, CreateAddressDto, UpdateAddressDto, UpdateProfileDto } from './dto/users.dto';
+import { ChangePasswordDto, CreateAddressDto, UpdateAddressDto, UpdateProfileDto } from './dto/users.dto.js';
 
 
 @Injectable()

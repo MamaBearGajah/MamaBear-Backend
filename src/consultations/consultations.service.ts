@@ -1,26 +1,33 @@
-import { Injectable } from '@nestjs/common';
-import { CreateConsultationDto } from './dto/create-consultation.dto';
-import { UpdateConsultationDto } from './dto/update-consultation.dto';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service.js';
+import { CreateConsultationDto, UpdateConsultationDto } from './dto/create-consultation.dto.js';
 
 @Injectable()
 export class ConsultationsService {
-  create(createConsultationDto: CreateConsultationDto) {
-    return 'This action adds a new consultation';
+  constructor(private prisma: PrismaService) {}
+
+  async create(dto: CreateConsultationDto) {
+    return this.prisma.consultation.create({ data: dto });
   }
 
-  findAll() {
-    return `This action returns all consultations`;
+  async findAll() {
+    return this.prisma.consultation.findMany({ orderBy: { createdAt: 'desc' } });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} consultation`;
+  async findOne(id: string) {
+    const item = await this.prisma.consultation.findUnique({ where: { id } });
+    if (!item) throw new NotFoundException('Konsultasi tidak ditemukan');
+    return item;
   }
 
-  update(id: number, updateConsultationDto: UpdateConsultationDto) {
-    return `This action updates a #${id} consultation`;
+  async update(id: string, dto: UpdateConsultationDto) {
+    await this.findOne(id);
+    return this.prisma.consultation.update({ where: { id }, data: dto });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} consultation`;
+  async remove(id: string) {
+    await this.findOne(id);
+    await this.prisma.consultation.delete({ where: { id } });
+    return { message: 'Konsultasi berhasil dihapus' };
   }
 }

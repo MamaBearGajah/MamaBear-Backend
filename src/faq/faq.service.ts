@@ -1,26 +1,36 @@
-import { Injectable } from '@nestjs/common';
-import { CreateFaqDto } from './dto/create-faq.dto';
-import { UpdateFaqDto } from './dto/update-faq.dto';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service.js';
+import { CreateFaqDto, UpdateFaqDto } from './dto/create-faq.dto.js';
 
 @Injectable()
 export class FaqService {
-  create(createFaqDto: CreateFaqDto) {
-    return 'This action adds a new faq';
+  constructor(private prisma: PrismaService) {}
+
+  async findAll(onlyActive = true) {
+    return this.prisma.faq.findMany({
+      where: onlyActive ? { isActive: true } : undefined,
+      orderBy: { createdAt: 'asc' },
+    });
   }
 
-  findAll() {
-    return `This action returns all faq`;
+  async findOne(id: string) {
+    const faq = await this.prisma.faq.findUnique({ where: { id } });
+    if (!faq) throw new NotFoundException('FAQ tidak ditemukan');
+    return faq;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} faq`;
+  async create(dto: CreateFaqDto) {
+    return this.prisma.faq.create({ data: dto });
   }
 
-  update(id: number, updateFaqDto: UpdateFaqDto) {
-    return `This action updates a #${id} faq`;
+  async update(id: string, dto: UpdateFaqDto) {
+    await this.findOne(id);
+    return this.prisma.faq.update({ where: { id }, data: dto });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} faq`;
+  async remove(id: string) {
+    await this.findOne(id);
+    await this.prisma.faq.delete({ where: { id } });
+    return { message: 'FAQ berhasil dihapus' };
   }
 }
