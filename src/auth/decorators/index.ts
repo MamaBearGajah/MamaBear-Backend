@@ -1,8 +1,6 @@
-import { createParamDecorator, ExecutionContext } from '@nestjs/common';
-import { SetMetadata } from '@nestjs/common';
-import { Role } from 'generated/prisma/enums';
+import { createParamDecorator, ExecutionContext, SetMetadata } from '@nestjs/common';
+import { Role } from '../../../generated/prisma/enums.js';
 
-// Ambil seluruh user atau field tertentu dari req.user
 export const GetUser = createParamDecorator(
   (data: string | undefined, ctx: ExecutionContext) => {
     const request = ctx.switchToHttp().getRequest();
@@ -11,6 +9,8 @@ export const GetUser = createParamDecorator(
   },
 );
 
-// Decorator untuk set roles yang diperbolehkan
 export const ROLES_KEY = 'roles';
 export const Roles = (...roles: Role[]) => SetMetadata(ROLES_KEY, roles);
+
+export const IS_PUBLIC_KEY = 'isPublic';
+export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);

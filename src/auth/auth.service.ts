@@ -7,11 +7,11 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service.js';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
-import { MailService } from 'src/mail/mail.service';
-import { ForgotPasswordDto, LoginDto, RegisterDto, ResetPasswordDto } from './dto';
+import { MailService } from '../mail/mail.service.js';
+import { ForgotPasswordDto, LoginDto, RegisterDto, ResetPasswordDto } from './dto/index.js';
 
 @Injectable()
 export class AuthService {
