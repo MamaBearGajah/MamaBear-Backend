@@ -49,18 +49,18 @@ export class CategoriesService {
         products: {
           where: { status: 'active' },
           select: {
-                    id: true,
-                    name: true,
-                    slug: true,
-                    basePrice: true,
-                    discountPrice: true,
-                    status: true,
-                    images: {
-                      where: { isFeatured: true },
-                      take: 1,
-                      select: { imageUrl: true, altText: true },
-                    },
-                  },
+            id: true,
+            name: true,
+            slug: true,
+            basePrice: true,
+            discountPrice: true,
+            status: true,
+            images: {
+              where: { isFeatured: true },
+              take: 1,
+              select: { imageUrl: true, altText: true },
+            },
+          },
         },
       },
     });
@@ -91,6 +91,30 @@ export class CategoriesService {
       if (existing) throw new ConflictException(`Slug '${dto.slug}' sudah digunakan`);
     }
 
+    if (dto.parentId) {
+      if (dto.parentId === id) {
+        throw new ConflictException('Kategori tidak boleh menjadi parent dari dirinya sendiri')
+      }
+
+      let checkParentId = dto.parentId
+
+      while (checkParentId) {
+        const parentCategory = await this.prisma.category.findUnique({
+          where: { id: checkParentId },
+          select: { id: true, parentId: true },
+        })
+
+        if (!parentCategory) {
+          throw new NotFoundException(`Kategori parent dengan id ${checkParentId} tidak ditemukan`)
+        }
+
+        if (parentCategory.parentId === id) {
+          throw new ConflictException('Circular parent detected! Kategori tidak boleh menjadi sub-kategori dari keturunannya sendiri.')
+        }
+
+        checkParentId = parentCategory.parentId
+      }
+    }
     return this.prisma.category.update({ where: { id }, data: dto });
   }
 
@@ -110,53 +134,51 @@ export class CategoriesService {
   }
 
   async findProducts(id: string, query: ProductQueryDto) {
-  await this.findOne(id);
+    await this.findOne(id);
 
-  const { page = 1, limit = 20 } = query;
-  const skip = (page - 1) * limit;
+    const { page = 1, limit = 20 } = query;
+    const skip = (page - 1) * limit;
 
-  const where = {
-    categoryId: id,
-    ...(query.q && { name: { contains: query.q, mode: 'insensitive' as const } }),
-    ...(query.minPrice !== undefined && { basePrice: { gte: query.minPrice } }),
-    ...(query.maxPrice !== undefined && { basePrice: { lte: query.maxPrice } }),
-    ...(query.inStock && { stock: { gt: 0 } }),
-  };
+    const where = {
+      categoryId: id,
+      ...(query.q && { name: { contains: query.q, mode: 'insensitive' as const } }),
+      ...(query.minPrice !== undefined && { basePrice: { gte: query.minPrice } }),
+      ...(query.maxPrice !== undefined && { basePrice: { lte: query.maxPrice } }),
+      ...(query.inStock && { stock: { gt: 0 } }),
+    };
 
-  const [data, total] = await this.prisma.$transaction([
-    this.prisma.product.findMany({
-      where,
-      skip,
-      take: limit,
-      orderBy: { [query.sortBy ?? 'createdAt']: query.sortOrder ?? 'desc' },
-      select: {
-                id: true,
-                name: true,
-                slug: true,
-                basePrice: true,
-                discountPrice: true,
-                stock: true,
-                status: true,
-                images: {
-                  where: { isFeatured: true },
-                  take: 1,
-                  select: { imageUrl: true, altText: true },
+    const [data, total] = await this.prisma.$transaction([
+      this.prisma.product.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { [query.sortBy ?? 'createdAt']: query.sortOrder ?? 'desc' },
+        select: {
+                  id: true,
+                  name: true,
+                  slug: true,
+                  basePrice: true,
+                  discountPrice: true,
+                  stock: true,
+                  status: true,
+                  images: {
+                    where: { isFeatured: true },
+                    take: 1,
+                    select: { imageUrl: true, altText: true },
+                  },
                 },
-              },
-    }),
-    this.prisma.product.count({ where }),
-  ]);
+      }),
+      this.prisma.product.count({ where }),
+    ]);
 
-  return {
-    data,
-    meta: {
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    },
-  };
-}
-
-  
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
 }
