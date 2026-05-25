@@ -3,6 +3,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { Request } from 'express';
 
 export type JwtPayload = {
   sub: string;
@@ -17,8 +18,16 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     private prisma: PrismaService,
   ) {
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      // ✅ Baca dari cookie dulu, fallback ke Authorization header
+      jwtFromRequest: (req: Request) => {
+        return (
+          req?.cookies?.accessToken ??
+          ExtractJwt.fromAuthHeaderAsBearerToken()(req) ??
+          null
+        );
+      },
       secretOrKey: config.getOrThrow<string>('JWT_ACCESS_SECRET'),
+      passReqToCallback: false,
     });
   }
 
@@ -29,7 +38,8 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     });
 
     if (!user) throw new UnauthorizedException('User tidak ditemukan');
+    if (!user.isVerified) throw new UnauthorizedException('Akun belum diverifikasi');
 
-    return user; // akan tersimpan di req.user
+    return user;
   }
 }

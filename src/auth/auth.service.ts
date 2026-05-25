@@ -42,6 +42,7 @@ export class AuthService {
     } catch (error) {
       console.error('Gagal mengirim email verifikasi:', error);
     }
+
     return {
       message: 'Registrasi berhasil. Cek email untuk verifikasi akun.',
       userId: user.id,
@@ -62,7 +63,8 @@ export class AuthService {
       },
     });
 
-    if (!user) throw new BadRequestException('Token verifikasi tidak valid atau sudah expired');
+    if (!user)
+      throw new BadRequestException('Token verifikasi tidak valid atau sudah expired');
 
     await this.prisma.user.update({
       where: { id: user.id },
@@ -103,21 +105,26 @@ export class AuthService {
     if (!user.isVerified)
       throw new UnauthorizedException('Akun belum diverifikasi. Cek email kamu.');
 
-    const tokens = await this.generateTokens(user.id, user.email, user.role);
-
-    // Simpan hashed refresh token ke DB
+    const tokens = await this.generateTokens(user.id, user.email, user.role as string);
     await this.updateRefreshToken(user.id, tokens.refreshToken);
 
     return {
-      ...tokens,
-      user: { id: user.id, name: user.name, email: user.email, role: user.role },
+      // tokens diteruskan ke controller untuk set cookie
+      tokens,
+      // hanya data user yang masuk response body
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
     };
   }
 
   // ─────────────────────────────────────────────
   // REFRESH TOKEN
   // ─────────────────────────────────────────────
-  async refreshToken(userId: string, email: string, role: string, oldRefreshToken: string) {
+  async refreshToken(userId: string, email: string, role: string) {
     const tokens = await this.generateTokens(userId, email, role);
     await this.updateRefreshToken(userId, tokens.refreshToken);
     return tokens;
@@ -142,7 +149,6 @@ export class AuthService {
       where: { email: dto.email },
     });
 
-    // Jangan reveal apakah email ada atau tidak (security)
     if (!user) return { message: 'Jika email terdaftar, link reset telah dikirim' };
 
     const rawToken = crypto.randomBytes(32).toString('hex');
@@ -182,7 +188,7 @@ export class AuthService {
         password: hash,
         resetToken: null,
         resetTokenExp: null,
-        refreshToken: null, // invalidate semua sesi aktif
+        refreshToken: null,
       },
     });
 
@@ -206,7 +212,7 @@ export class AuthService {
       }),
     ]);
 
-    return { accessToken, refreshToken, expiresIn: 900 };
+    return { accessToken, refreshToken };
   }
 
   private async updateRefreshToken(userId: string, refreshToken: string) {

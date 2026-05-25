@@ -8,7 +8,6 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { ChangePasswordDto, CreateAddressDto, UpdateAddressDto, UpdateProfileDto } from './dto/users.dto';
 
-
 @Injectable()
 export class UsersService {
   constructor(private prisma: PrismaService) {}
@@ -28,7 +27,11 @@ export class UsersService {
         isVerified: true,
         createdAt: true,
         membership: {
-          select: { points: true, lastDailyLoginAt: true },
+          select: {
+            points: true,
+            // tier: true,
+            lastDailyLoginAt: true,
+          },
         },
       },
     });
@@ -66,7 +69,7 @@ export class UsersService {
     const hashed = await bcrypt.hash(dto.newPassword, 10);
     await this.prisma.user.update({
       where: { id: userId },
-      data: { password: hashed, refreshToken: null }, // invalidate sesi aktif
+      data: { password: hashed, refreshToken: null },
     });
 
     return { message: 'Password berhasil diubah. Silakan login kembali.' };
@@ -94,7 +97,6 @@ export class UsersService {
   }
 
   async createAddress(userId: string, dto: CreateAddressDto) {
-    // Jika ini alamat pertama, jadikan default otomatis
     const count = await this.prisma.address.count({ where: { userId } });
     const isDefault = count === 0;
 
@@ -106,7 +108,7 @@ export class UsersService {
   }
 
   async updateAddress(userId: string, addressId: string, dto: UpdateAddressDto) {
-    await this.getAddressById(userId, addressId); // validasi kepemilikan
+    await this.getAddressById(userId, addressId);
 
     const address = await this.prisma.address.update({
       where: { id: addressId },
@@ -117,9 +119,8 @@ export class UsersService {
   }
 
   async setDefaultAddress(userId: string, addressId: string) {
-    await this.getAddressById(userId, addressId); // validasi kepemilikan
+    await this.getAddressById(userId, addressId);
 
-    // Reset semua alamat user, lalu set yang dipilih jadi default
     await this.prisma.$transaction([
       this.prisma.address.updateMany({
         where: { userId },
@@ -158,7 +159,17 @@ export class UsersService {
         items: {
           include: {
             product: {
-              select: { id: true, name: true, mainImage: true, slug: true },
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+                images: {
+                  where: { imageType: 'main' },
+                  select: { imageUrl: true, altText: true },
+                  orderBy: { sortOrder: 'asc' },
+                  take: 1,
+                },
+              },
             },
           },
         },
@@ -175,7 +186,17 @@ export class UsersService {
         items: {
           include: {
             product: {
-              select: { id: true, name: true, mainImage: true, slug: true },
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+                images: {
+                  where: { imageType: 'main' },
+                  select: { imageUrl: true, altText: true },
+                  orderBy: { sortOrder: 'asc' },
+                  take: 1,
+                },
+              },
             },
           },
         },

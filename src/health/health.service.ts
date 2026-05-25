@@ -1,26 +1,45 @@
-import { Injectable } from '@nestjs/common';
-import { CreateHealthDto } from './dto/create-health.dto';
-import { UpdateHealthDto } from './dto/update-health.dto';
+import {
+  Injectable,
+  ServiceUnavailableException,
+  Logger,
+} from '@nestjs/common';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class HealthService {
-  create(createHealthDto: CreateHealthDto) {
-    return 'This action adds a new health';
+  private readonly logger = new Logger(HealthService.name);
+
+  constructor(private readonly prisma: PrismaService) {}
+
+  async check() {
+    const db = await this.checkDatabase();
+
+    return {
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      uptime: Math.floor(process.uptime()),
+      services: { db },
+    };
   }
 
-  findAll() {
-    return `This action returns all health`;
-  }
+  async checkDatabase() {
+    const start = Date.now();
 
-  findOne(id: number) {
-    return `This action returns a #${id} health`;
-  }
+    try {
+      await this.prisma.$queryRaw`SELECT 1`;
+      const latency = Date.now() - start;
 
-  update(id: number, updateHealthDto: UpdateHealthDto) {
-    return `This action updates a #${id} health`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} health`;
+      return {
+        status: 'ok',
+        latency: `${latency}ms`,
+      };
+    } catch (error) {
+      this.logger.error('Database health check failed', (error as Error).message);
+      throw new ServiceUnavailableException({
+        status: 'error',
+        message: 'Database tidak dapat dijangkau',
+        timestamp: new Date().toISOString(),
+      });
+    }
   }
 }
