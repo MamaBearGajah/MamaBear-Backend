@@ -96,7 +96,7 @@ export class CategoriesService {
         throw new ConflictException('Kategori tidak boleh menjadi parent dari dirinya sendiri')
       }
 
-      let checkParentId = dto.parentId
+      let checkParentId: string | null = dto.parentId
 
       while (checkParentId) {
         const parentCategory = await this.prisma.category.findUnique({
