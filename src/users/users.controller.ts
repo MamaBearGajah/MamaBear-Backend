@@ -10,15 +10,22 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { UsersService } from './users.service';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { GetUser } from 'src/auth/decorators';
 import {
   ChangePasswordDto,
   CreateAddressDto,
   UpdateAddressDto,
   UpdateProfileDto,
 } from './dto/users.dto';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { GetUser } from 'src/auth/decorators';
 
 @UseGuards(JwtAuthGuard)
 @Controller('users')
@@ -27,9 +34,6 @@ export class UsersController {
 
   // ─────────────────────────────────────────────
   // PROFILE
-  // GET  /users/me
-  // PATCH  /users/me
-  // PATCH  /users/me/change-password
   // ─────────────────────────────────────────────
   @Get('me')
   getProfile(@GetUser('sub') userId: string) {
@@ -37,29 +41,21 @@ export class UsersController {
   }
 
   @Patch('me')
-  updateProfile(
-    @GetUser('sub') userId: string,
-    @Body() dto: UpdateProfileDto,
-  ) {
+  @ApiOperation({ summary: 'Update profil user' })
+  @ApiResponse({ status: 200, description: 'Profil berhasil diperbarui' })
+  updateProfile(@GetUser('sub') userId: string, @Body() dto: UpdateProfileDto) {
     return this.usersService.updateProfile(userId, dto);
   }
 
   @Patch('me/change-password')
-  changePassword(
-    @GetUser('sub') userId: string,
-    @Body() dto: ChangePasswordDto,
-  ) {
+  @ApiOperation({ summary: 'Ganti password user' })
+  @ApiResponse({ status: 200, description: 'Password berhasil diganti' })
+  changePassword(@GetUser('sub') userId: string, @Body() dto: ChangePasswordDto) {
     return this.usersService.changePassword(userId, dto);
   }
 
   // ─────────────────────────────────────────────
   // ADDRESSES
-  // GET    /users/me/addresses
-  // GET    /users/me/addresses/:id
-  // POST   /users/me/addresses
-  // PATCH  /users/me/addresses/:id/default
-  // PATCH  /users/me/addresses/:id
-  // DELETE /users/me/addresses/:id
   // ─────────────────────────────────────────────
   @Get('me/addresses')
   getAddresses(@GetUser('sub') userId: string) {
@@ -67,31 +63,33 @@ export class UsersController {
   }
 
   @Get('me/addresses/:id')
-  getAddressById(
-    @GetUser('sub') userId: string,
-    @Param('id') addressId: string,
-  ) {
+  @ApiParam({ name: 'id', description: 'Address ID' })
+  @ApiOperation({ summary: 'Ambil detail alamat berdasarkan ID' })
+  @ApiResponse({ status: 200, description: 'Alamat berhasil diambil' })
+  getAddressById(@GetUser('sub') userId: string, @Param('id') addressId: string) {
     return this.usersService.getAddressById(userId, addressId);
   }
 
   @Post('me/addresses')
   @HttpCode(HttpStatus.CREATED)
-  createAddress(
-    @GetUser('sub') userId: string,
-    @Body() dto: CreateAddressDto,
-  ) {
+  @ApiOperation({ summary: 'Tambah alamat baru' })
+  @ApiResponse({ status: 201, description: 'Alamat berhasil ditambahkan' })
+  createAddress(@GetUser('sub') userId: string, @Body() dto: CreateAddressDto) {
     return this.usersService.createAddress(userId, dto);
   }
 
   @Patch('me/addresses/:id/default')
-  setDefaultAddress(
-    @GetUser('sub') userId: string,
-    @Param('id') addressId: string,
-  ) {
+  @ApiParam({ name: 'id', description: 'Address ID' })
+  @ApiOperation({ summary: 'Set alamat default' })
+  @ApiResponse({ status: 200, description: 'Alamat default berhasil diubah' })
+  setDefaultAddress(@GetUser('sub') userId: string, @Param('id') addressId: string) {
     return this.usersService.setDefaultAddress(userId, addressId);
   }
 
   @Patch('me/addresses/:id')
+  @ApiParam({ name: 'id', description: 'Address ID' })
+  @ApiOperation({ summary: 'Update alamat user' })
+  @ApiResponse({ status: 200, description: 'Alamat berhasil diperbarui' })
   updateAddress(
     @GetUser('sub') userId: string,
     @Param('id') addressId: string,
@@ -102,17 +100,15 @@ export class UsersController {
 
   @Delete('me/addresses/:id')
   @HttpCode(HttpStatus.OK)
-  deleteAddress(
-    @GetUser('sub') userId: string,
-    @Param('id') addressId: string,
-  ) {
+  @ApiParam({ name: 'id', description: 'Address ID' })
+  @ApiOperation({ summary: 'Hapus alamat user' })
+  @ApiResponse({ status: 200, description: 'Alamat berhasil dihapus' })
+  deleteAddress(@GetUser('sub') userId: string, @Param('id') addressId: string) {
     return this.usersService.deleteAddress(userId, addressId);
   }
 
   // ─────────────────────────────────────────────
   // ORDERS
-  // GET /users/me/orders
-  // GET /users/me/orders/:id
   // ─────────────────────────────────────────────
   @Get('me/orders')
   getOrders(@GetUser('sub') userId: string) {
@@ -120,10 +116,10 @@ export class UsersController {
   }
 
   @Get('me/orders/:id')
-  getOrderById(
-    @GetUser('sub') userId: string,
-    @Param('id') orderId: string,
-  ) {
+  @ApiParam({ name: 'id', description: 'Order ID' })
+  @ApiOperation({ summary: 'Ambil detail order berdasarkan ID' })
+  @ApiResponse({ status: 200, description: 'Detail order berhasil diambil' })
+  getOrderById(@GetUser('sub') userId: string, @Param('id') orderId: string) {
     return this.usersService.getOrderById(userId, orderId);
   }
 }

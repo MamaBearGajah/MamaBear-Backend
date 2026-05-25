@@ -12,7 +12,7 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductQueryDto } from './dto/product-query.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators';
+import { Public, Roles } from '../auth/decorators';
 import { Role } from 'generated/prisma/enums';
 
 @ApiTags('Products')
@@ -25,6 +25,7 @@ export class ProductsController {
 
   @ApiOperation({ summary: 'Get semua produk (public)' })
   @ApiResponse({ status: 200, description: 'List produk' })
+  @Public()
   @Get()
   findAll(@Query() query: ProductQueryDto) {
     return this.productsService.findAll(query);
@@ -32,6 +33,7 @@ export class ProductsController {
 
   @ApiOperation({ summary: 'Get best seller products (public)' })
   @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Default 10' })
+  @Public()
   @Get('best-sellers')
   findBestSellers(@Query('limit') limit?: string) {
     return this.productsService.findBestSellers(limit ? Number(limit) : 10);
@@ -39,6 +41,7 @@ export class ProductsController {
 
   @ApiOperation({ summary: 'Get produk by slug (public)' })
   @ApiParam({ name: 'slug' })
+  @Public()
   @Get('slug/:slug')
   findBySlug(@Param('slug') slug: string) {
     return this.productsService.findBySlug(slug);
@@ -80,6 +83,7 @@ export class ProductsController {
 
   @ApiOperation({ summary: 'Get produk by ID (public)' })
   @ApiParam({ name: 'id' })
+  @Public()
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.productsService.findOne(id);
