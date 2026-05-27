@@ -520,3 +520,15 @@ model Consultation {
 
   admin User? @relation(fields: [respondedBy], references: [id])
 }
+
+model SearchAnalytic {
+  id        String   @id @default(uuid())
+  query     String
+  count     Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([query])
+  @@index([count(sort: Desc)])
+  @@index([query])
+}

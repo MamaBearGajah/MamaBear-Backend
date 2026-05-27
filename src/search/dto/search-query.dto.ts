@@ -1,50 +1,62 @@
+import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import {
-    IsBoolean,
-    IsIn,
-    IsNumber,
-    IsOptional,
-    IsString,
-    Min,
-} from 'class-validator';
+import { IsBoolean, IsIn, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
 export class SearchQueryDto {
-    @IsOptional()
-    @IsString()
-    q?: string;
+  @ApiPropertyOptional({ description: 'Kata kunci pencarian' })
+  @IsOptional()
+  @IsString()
+  q?: string;
 
-    @IsOptional()
-    @Type(() => Number)
-    @IsNumber()
-    minPrice?: number;
+  @ApiPropertyOptional({ description: 'Harga minimum' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  minPrice?: number;
 
-    @IsOptional()
-    @Type(() => Number)
-    @IsNumber()
-    maxPrice?: number;
+  @ApiPropertyOptional({ description: 'Harga maksimum' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  maxPrice?: number;
 
-    @IsOptional()
-    @IsString()
-    categoryId?: string;
+  @ApiPropertyOptional({ description: 'Filter berdasarkan kategori (termasuk sub-kategori)' })
+  @IsOptional()
+  @IsString()
+  categoryId?: string;
 
-    @IsOptional()
-    @Type(() => Boolean)
-    @IsBoolean()
-    inStock?: boolean;
+  @ApiPropertyOptional({ description: 'Hanya tampilkan produk yang ada stok' })
+  @IsOptional()
+  @Type(() => Boolean)
+  @IsBoolean()
+  inStock?: boolean;
 
-    @IsOptional()
-    @IsIn(['asc', 'desc'])
-    sort?: 'asc' | 'desc';
+  @ApiPropertyOptional({
+    enum: ['createdAt', 'basePrice', 'price', 'soldCount', 'avgRating', 'name'],
+    description: 'Field untuk sorting. Gunakan "price" untuk sort by effective price (discountPrice ?? basePrice)',
+  })
+  @IsOptional()
+  @IsIn(['createdAt', 'basePrice', 'price', 'soldCount', 'avgRating', 'name'])
+  sortBy?: string;
 
-    @IsOptional()
-    @Type(() => Number)
-    @IsNumber()
-    @Min(1)
-    page?: number = 1;
+  @ApiPropertyOptional({ enum: ['asc', 'desc'], default: 'desc' })
+  @IsOptional()
+  @IsIn(['asc', 'desc'])
+  sortOrder?: 'asc' | 'desc';
 
-    @IsOptional()
-    @Type(() => Number)
-    @IsNumber()
-    @Min(1)
-    limit?: number = 10;
+  @ApiPropertyOptional({ default: 1 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(1)
+  page?: number;
+
+  @ApiPropertyOptional({ default: 10 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(1)
+  limit?: number;
 }

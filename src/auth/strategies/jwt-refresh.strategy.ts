@@ -13,7 +13,7 @@ export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh'
     private prisma: PrismaService,
   ) {
     super({
-      // ✅ Baca refresh token dari HTTP-only cookie
+      // Baca refresh token dari HTTP-only cookie
       jwtFromRequest: (req: Request) => req?.cookies?.refreshToken ?? null,
       secretOrKey: config.getOrThrow<string>('JWT_REFRESH_SECRET'),
       passReqToCallback: true,
@@ -21,22 +21,29 @@ export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh'
   }
 
   async validate(req: Request, payload: { sub: string; email: string; role: string }) {
-    // ✅ Ambil dari cookie (bukan Authorization header)
     const refreshToken = req?.cookies?.refreshToken;
     if (!refreshToken) throw new UnauthorizedException('Refresh token tidak ditemukan');
 
     const user = await this.prisma.user.findUnique({
       where: { id: payload.sub },
-      select: { id: true, email: true, role: true, refreshToken: true },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        refreshToken: true,
+        bannedAt: true,
+        deletedAt: true,
+      },
     });
 
-    if (!user || !user.refreshToken)
-      throw new UnauthorizedException('Refresh token tidak valid');
+    if (!user || user.deletedAt) throw new UnauthorizedException('User tidak ditemukan');
+    if (user.bannedAt) throw new UnauthorizedException('Akun kamu telah dinonaktifkan');
+    if (!user.refreshToken) throw new UnauthorizedException('Refresh token tidak valid');
 
-    // ✅ Bandingkan raw token dari cookie dengan hash di DB
     const isMatch = await bcrypt.compare(refreshToken, user.refreshToken);
     if (!isMatch) throw new UnauthorizedException('Refresh token tidak cocok');
 
-    return { ...user, refreshToken };
+    // ← hanya return yang dibutuhkan, jangan include refreshToken
+    return { id: user.id, email: user.email, role: user.role };
   }
 }
