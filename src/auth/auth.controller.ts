@@ -36,7 +36,7 @@ const ACCESS_COOKIE_OPTIONS = (isProduction: boolean) => ({
   httpOnly: true,
   secure: isProduction,
   sameSite: 'strict' as const,
-  maxAge: 15 * 60 * 1000,         // 15 menit
+  maxAge: 15 * 60 * 1000,           // 15 menit
   path: '/',
 });
 
@@ -56,6 +56,9 @@ export class AuthController {
     private readonly config: ConfigService,
   ) {}
 
+  // ─────────────────────────────────────────────
+  // REGISTER
+  // ─────────────────────────────────────────────
   @Public()
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
@@ -67,6 +70,9 @@ export class AuthController {
     return this.authService.register(dto);
   }
 
+  // ─────────────────────────────────────────────
+  // VERIFY EMAIL
+  // ─────────────────────────────────────────────
   @Public()
   @Get('verify-email')
   @ApiOperation({ summary: 'Verifikasi email via token — redirect ke frontend' })
@@ -82,42 +88,55 @@ export class AuthController {
     }
   }
 
+  // ─────────────────────────────────────────────
+  // RESEND VERIFICATION
+  // ─────────────────────────────────────────────
   @Public()
   @Post('resend-verification')
   @ApiOperation({ summary: 'Kirim ulang email verifikasi' })
   @ApiResponse({ status: 200, description: 'Email verifikasi berhasil dikirim' })
-  @ApiResponse({ status: 404, description: 'Email tidak ditemukan' })
+  @ApiResponse({ status: 400, description: 'Email sudah terverifikasi' })
+  @ApiResponse({ status: 404, description: 'Email belum terdaftar' })
   resendVerification(@Body() dto: ResendVerificationDto) {
     return this.authService.resendVerification(dto.email);
   }
 
+  // ─────────────────────────────────────────────
+  // LOGIN
+  // ─────────────────────────────────────────────
   @Public()
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Login — semua token di HTTP-only cookie' })
+  @ApiOperation({ summary: 'Login — token disimpan di HTTP-only cookie' })
   @ApiResponse({ status: 200, description: 'Login berhasil' })
-  @ApiResponse({ status: 401, description: 'Email atau password salah' })
+  @ApiResponse({ status: 401, description: 'Password salah / akun belum diverifikasi / akun di-ban' })
+  @ApiResponse({ status: 404, description: 'Email belum terdaftar' })
   async login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: Response) {
     const result = await this.authService.login(dto);
     const isProduction = process.env.NODE_ENV === 'production';
 
-    // ✅ accessToken di cookie
     res.cookie('accessToken', result.tokens.accessToken, ACCESS_COOKIE_OPTIONS(isProduction));
-
-    // ✅ refreshToken di cookie
     res.cookie('refreshToken', result.tokens.refreshToken, REFRESH_COOKIE_OPTIONS(isProduction));
 
-    // ✅ response body hanya data user
-    return result.user;
+    return {
+      success: true,
+      data: {
+        expiresIn: 900,
+        user: result.user,
+      },
+    };
   }
 
+  // ─────────────────────────────────────────────
+  // REFRESH TOKEN
+  // ─────────────────────────────────────────────
   @UseGuards(JwtRefreshGuard)
   @Post('refresh')
   @ApiOperation({ summary: 'Refresh access token menggunakan cookie' })
   @ApiResponse({ status: 200, description: 'Token baru berhasil dibuat' })
-  @ApiResponse({ status: 401, description: 'Refresh token tidak valid' })
+  @ApiResponse({ status: 401, description: 'Refresh token tidak valid atau expired' })
   async refreshToken(
-    @GetUser('sub') userId: string,
+    @GetUser('id') userId: string,
     @GetUser('email') email: string,
     @GetUser('role') role: string,
     @Res({ passthrough: true }) res: Response,
@@ -128,16 +147,21 @@ export class AuthController {
     res.cookie('accessToken', tokens.accessToken, ACCESS_COOKIE_OPTIONS(isProduction));
     res.cookie('refreshToken', tokens.refreshToken, REFRESH_COOKIE_OPTIONS(isProduction));
 
-    return { message: 'Token berhasil diperbarui' };
+    return { success: true, message: 'Token berhasil diperbarui' };
   }
 
+  // ─────────────────────────────────────────────
+  // LOGOUT
+  // ─────────────────────────────────────────────
   @UseGuards(JwtAuthGuard)
   @Post('logout')
   @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Logout — hapus semua cookie' })
   @ApiResponse({ status: 200, description: 'Logout berhasil' })
+  @ApiResponse({ status: 401, description: 'Tidak terautentikasi' })
   async logout(
-    @GetUser('sub') userId: string,
+    @GetUser('id') userId: string,
     @Res({ passthrough: true }) res: Response,
   ) {
     res.clearCookie('accessToken', { path: '/' });
@@ -145,16 +169,24 @@ export class AuthController {
     return this.authService.logout(userId);
   }
 
+  // ─────────────────────────────────────────────
+  // FORGOT PASSWORD
+  // ─────────────────────────────────────────────
   @Public()
   @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Request reset password via email' })
-  @ApiResponse({ status: 200, description: 'Email reset password berhasil dikirim' })
+  @ApiResponse({ status: 200, description: 'Email reset password berhasil dikirim (jika terdaftar)' })
   forgotPassword(@Body() dto: ForgotPasswordDto) {
     return this.authService.forgotPassword(dto);
   }
 
+  // ─────────────────────────────────────────────
+  // RESET PASSWORD
+  // ─────────────────────────────────────────────
   @Public()
   @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Reset password menggunakan token' })
   @ApiResponse({ status: 200, description: 'Password berhasil direset' })
   @ApiResponse({ status: 400, description: 'Token tidak valid atau expired' })

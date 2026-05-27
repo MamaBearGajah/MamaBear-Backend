@@ -36,7 +36,7 @@ export class UsersController {
   // PROFILE
   // ─────────────────────────────────────────────
   @Get('me')
-  getProfile(@GetUser('sub') userId: string) {
+  getProfile(@GetUser('id') userId: string) {
     return this.usersService.getProfile(userId);
   }
 
