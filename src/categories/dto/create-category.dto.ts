@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
 export class CreateCategoryDto {
   @ApiProperty({ example: 'Baju Bayi' })
@@ -7,17 +7,18 @@ export class CreateCategoryDto {
   @IsNotEmpty()
   name!: string;
 
-  @ApiProperty({ example: 'baju-bayi' })
+  // ✅ slug optional — auto-generate dari name jika tidak diisi
+  @ApiPropertyOptional({ example: 'baju-bayi', description: 'Jika kosong, otomatis di-generate dari name' })
   @IsString()
-  @IsNotEmpty()
-  slug!: string;
+  @IsOptional()
+  slug?: string;
 
   @ApiPropertyOptional({ example: 'Koleksi baju untuk bayi' })
   @IsString()
   @IsOptional()
   description?: string;
 
-  @ApiPropertyOptional({ example: 'https://example.com/image.jpg' })
+  @ApiPropertyOptional({ example: 'https://res.cloudinary.com/djyppabfc/image/upload/mamabear/categories/baju-bayi' })
   @IsString()
   @IsOptional()
   imageUrl?: string;
@@ -27,12 +28,13 @@ export class CreateCategoryDto {
   @IsOptional()
   parentId?: string;
 
-  @ApiPropertyOptional({ example: 1 })
+  @ApiPropertyOptional({ example: 1, description: 'Urutan tampil kategori' })
   @IsNumber()
+  @Min(0)
   @IsOptional()
   sortOrder?: number;
 
-  @ApiPropertyOptional({ example: true })
+  @ApiPropertyOptional({ example: true, default: true })
   @IsBoolean()
   @IsOptional()
   isActive?: boolean;

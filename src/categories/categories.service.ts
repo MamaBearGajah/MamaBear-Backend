@@ -13,6 +13,17 @@ export class CategoriesService {
     private readonly cache: CacheService,
   ) {}
 
+  private slugify(text: string): string {
+    return text
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .trim()
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-');
+  }
+
+  // ─── FIND ALL ─────────────────────────────────────────────────────────────
+
   async findAll(query: CategoryQueryDto) {
     const cacheKey = CacheService.keys.categories(JSON.stringify(query));
     const cached = await this.cache.get(cacheKey);
@@ -46,6 +57,9 @@ export class CategoriesService {
     return result;
   }
 
+  // ─── FIND ONE ─────────────────────────────────────────────────────────────
+  // Hanya return metadata kategori — tidak include products (gunakan findProducts())
+
   async findOne(id: string) {
     const cacheKey = CacheService.keys.category(id);
     const cached = await this.cache.get(cacheKey);
@@ -56,22 +70,6 @@ export class CategoriesService {
       include: {
         children: true,
         parent: true,
-        products: {
-          where: { status: 'active' },
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-            basePrice: true,
-            discountPrice: true,
-            status: true,
-            images: {
-              where: { isFeatured: true },
-              take: 1,
-              select: { imageUrl: true, altText: true },
-            },
-          },
-        },
       },
     });
 
@@ -81,7 +79,7 @@ export class CategoriesService {
     return category;
   }
 
-  // ─── Breadcrumb ────────────────────────────────────────────────────────────
+  // ─── BREADCRUMB ───────────────────────────────────────────────────────────
 
   async getBreadcrumb(id: string) {
     const breadcrumb: Array<{ id: string; name: string; slug: string }> = [];
@@ -99,28 +97,35 @@ export class CategoriesService {
       currentId = category.parentId;
     }
 
-    if (breadcrumb.length === 0 || breadcrumb[0].id !== id) {
+    if (breadcrumb.length === 0 || breadcrumb[breadcrumb.length - 1].id !== id) {
       throw new NotFoundException(`Kategori dengan id ${id} tidak ditemukan`);
     }
 
     return breadcrumb;
   }
 
-  // ─── CRUD ──────────────────────────────────────────────────────────────────
+  // ─── CREATE ───────────────────────────────────────────────────────────────
 
   async create(dto: CreateCategoryDto) {
-    const existing = await this.prisma.category.findUnique({ where: { slug: dto.slug } });
-    if (existing) throw new ConflictException(`Slug '${dto.slug}' sudah digunakan`);
+    const slug = dto.slug || this.slugify(dto.name);
+
+    const existing = await this.prisma.category.findUnique({ where: { slug } });
+    if (existing) throw new ConflictException(`Slug '${slug}' sudah digunakan`);
 
     if (dto.parentId) {
       const parent = await this.prisma.category.findUnique({ where: { id: dto.parentId } });
-      if (!parent) throw new NotFoundException(`Kategori parent tidak ditemukan`);
+      if (!parent) throw new NotFoundException('Kategori parent tidak ditemukan');
     }
 
-    const category = await this.prisma.category.create({ data: dto });
+    const category = await this.prisma.category.create({
+      data: { ...dto, slug },
+    });
+
     await this.invalidateCategoryCache();
     return category;
   }
+
+  // ─── UPDATE ───────────────────────────────────────────────────────────────
 
   async update(id: string, dto: UpdateCategoryDto) {
     await this.findOne(id);
@@ -137,8 +142,8 @@ export class CategoriesService {
         throw new ConflictException('Kategori tidak boleh menjadi parent dari dirinya sendiri');
       }
 
+      // Cek circular reference
       let checkParentId: string | null = dto.parentId;
-
       while (checkParentId) {
         const parentCategory = await this.prisma.category.findUnique({
           where: { id: checkParentId },
@@ -149,8 +154,10 @@ export class CategoriesService {
           throw new NotFoundException(`Kategori parent dengan id ${checkParentId} tidak ditemukan`);
         }
 
-        if (parentCategory.parentId === id) {
-          throw new ConflictException('Circular parent detected! Kategori tidak boleh menjadi sub-kategori dari keturunannya sendiri.');
+        if (parentCategory.id === id) {
+          throw new ConflictException(
+            'Circular reference terdeteksi! Kategori tidak boleh menjadi sub-kategori dari keturunannya sendiri.',
+          );
         }
 
         checkParentId = parentCategory.parentId;
@@ -162,6 +169,8 @@ export class CategoriesService {
     return category;
   }
 
+  // ─── DELETE ───────────────────────────────────────────────────────────────
+
   async remove(id: string) {
     const category = await this.prisma.category.findUnique({
       where: { id },
@@ -169,17 +178,25 @@ export class CategoriesService {
     });
 
     if (!category) throw new NotFoundException(`Kategori dengan id ${id} tidak ditemukan`);
-    if (category.products.length > 0)
-      throw new ConflictException(`Kategori masih memiliki ${category.products.length} produk, tidak bisa dihapus`);
-    if (category.children.length > 0)
-      throw new ConflictException(`Kategori masih memiliki sub-kategori, tidak bisa dihapus`);
+
+    if (category.products.length > 0) {
+      throw new ConflictException(
+        `Kategori masih memiliki ${category.products.length} produk, tidak bisa dihapus`,
+      );
+    }
+
+    if (category.children.length > 0) {
+      throw new ConflictException(
+        `Kategori masih memiliki ${category.children.length} sub-kategori, tidak bisa dihapus`,
+      );
+    }
 
     const deleted = await this.prisma.category.delete({ where: { id } });
     await this.invalidateCategoryCache(id);
     return deleted;
   }
 
-  // ─── Products in category (rekursif ke sub-kategori) ───────────────────────
+  // ─── PRODUCTS IN CATEGORY (rekursif) ─────────────────────────────────────
 
   async findProducts(id: string, query: ProductQueryDto) {
     await this.findOne(id); // validasi category exists
@@ -191,11 +208,12 @@ export class CategoriesService {
     const { page = 1, limit = 20 } = query;
     const skip = (page - 1) * limit;
 
-    // Ambil semua descendant category IDs (termasuk dirinya sendiri)
     const categoryIds = await this.getAllDescendantIds(id);
 
     const where: any = {
       categoryId: { in: categoryIds },
+      status: 'active',
+      deletedAt: null,
       ...(query.q && { name: { contains: query.q, mode: 'insensitive' as const } }),
       ...(query.minPrice !== undefined && { basePrice: { gte: query.minPrice } }),
       ...(query.maxPrice !== undefined && { basePrice: { lte: query.maxPrice } }),
@@ -217,6 +235,8 @@ export class CategoriesService {
           stock: true,
           status: true,
           categoryId: true,
+          avgRating: true,
+          reviewCount: true,
           category: { select: { id: true, name: true, slug: true } },
           images: {
             where: { isFeatured: true },
@@ -237,7 +257,7 @@ export class CategoriesService {
     return result;
   }
 
-  // ─── Private Helpers ───────────────────────────────────────────────────────
+  // ─── PRIVATE HELPERS ──────────────────────────────────────────────────────
 
   private async getAllDescendantIds(categoryId: string): Promise<string[]> {
     const ids: string[] = [categoryId];

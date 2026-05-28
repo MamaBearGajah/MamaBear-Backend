@@ -19,6 +19,11 @@ export class MediaService {
   // ─── Signed URL ────────────────────────────────────────────────────────────
 
   async generateSignedUrl(dto: SignUploadDto) {
+    // Validasi fileType jika disertakan
+    if (dto.fileType && !ALLOWED_TYPES.includes(dto.fileType)) {
+      throw new BadRequestException('Tipe file tidak diizinkan. Hanya jpeg, png, webp.');
+    }
+
     const timestamp = Math.round(Date.now() / 1000);
 
     const signature = cloudinary.utils.api_sign_request(
@@ -72,10 +77,14 @@ export class MediaService {
 
   private validateFile(file: Express.Multer.File) {
     if (!ALLOWED_TYPES.includes(file.mimetype)) {
-      throw new BadRequestException(`Tipe file tidak diizinkan: ${file.mimetype}. Hanya jpeg, png, webp.`);
+      throw new BadRequestException(
+        `Tipe file tidak diizinkan: ${file.mimetype}. Hanya jpeg, png, webp.`,
+      );
     }
     if (file.size > MAX_SIZE_BYTES) {
-      throw new BadRequestException(`File terlalu besar: ${file.originalname}. Maksimum 5MB.`);
+      throw new BadRequestException(
+        `File terlalu besar: ${file.originalname}. Maksimum 5MB.`,
+      );
     }
   }
 
@@ -87,9 +96,9 @@ export class MediaService {
       const stream = cloudinary.uploader.upload_stream(
         {
           folder,
-          // ✅ Cloudinary otomatis serves via CDN
-          // Format transformation bisa ditambahkan di sini jika perlu:
-          // eager: [{ format: 'webp', quality: 'auto' }],
+          transformation: [
+            { quality: 'auto', fetch_format: 'auto' }, // ✅ auto WebP di browser yang support
+          ],
         },
         (err, result) => {
           if (err) return reject(err);
