@@ -27,46 +27,66 @@ import {
   UpdateProfileDto,
 } from './dto/users.dto';
 
+@ApiTags('Users')
+@ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  // ─────────────────────────────────────────────
-  // PROFILE
-  // ─────────────────────────────────────────────
+  // ─── PROFILE ──────────────────────────────────────────────────────────────
+
   @Get('me')
-  getProfile(@GetUser('sub') userId: string) {
+  @ApiOperation({ summary: 'Ambil profil user saat ini' })
+  @ApiResponse({ status: 200, description: 'Profil berhasil diambil' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  getProfile(@GetUser('id') userId: string) {
     return this.usersService.getProfile(userId);
   }
 
   @Patch('me')
   @ApiOperation({ summary: 'Update profil user' })
   @ApiResponse({ status: 200, description: 'Profil berhasil diperbarui' })
-  updateProfile(@GetUser('sub') userId: string, @Body() dto: UpdateProfileDto) {
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  updateProfile(
+    @GetUser('id') userId: string,
+    @Body() dto: UpdateProfileDto,
+  ) {
     return this.usersService.updateProfile(userId, dto);
   }
 
   @Patch('me/change-password')
   @ApiOperation({ summary: 'Ganti password user' })
   @ApiResponse({ status: 200, description: 'Password berhasil diganti' })
-  changePassword(@GetUser('sub') userId: string, @Body() dto: ChangePasswordDto) {
+  @ApiResponse({ status: 400, description: 'Password lama salah' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  changePassword(
+    @GetUser('id') userId: string,
+    @Body() dto: ChangePasswordDto,
+  ) {
     return this.usersService.changePassword(userId, dto);
   }
 
-  // ─────────────────────────────────────────────
-  // ADDRESSES
-  // ─────────────────────────────────────────────
+  // ─── ADDRESSES ────────────────────────────────────────────────────────────
+
   @Get('me/addresses')
-  getAddresses(@GetUser('sub') userId: string) {
+  @ApiOperation({ summary: 'Ambil semua alamat user' })
+  @ApiResponse({ status: 200, description: 'Daftar alamat berhasil diambil' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  getAddresses(@GetUser('id') userId: string) {
     return this.usersService.getAddresses(userId);
   }
 
   @Get('me/addresses/:id')
-  @ApiParam({ name: 'id', description: 'Address ID' })
   @ApiOperation({ summary: 'Ambil detail alamat berdasarkan ID' })
+  @ApiParam({ name: 'id', description: 'Address ID' })
   @ApiResponse({ status: 200, description: 'Alamat berhasil diambil' })
-  getAddressById(@GetUser('sub') userId: string, @Param('id') addressId: string) {
+  @ApiResponse({ status: 404, description: 'Alamat tidak ditemukan' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  getAddressById(
+    @GetUser('id') userId: string,
+    @Param('id') addressId: string,
+  ) {
     return this.usersService.getAddressById(userId, addressId);
   }
 
@@ -74,24 +94,35 @@ export class UsersController {
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Tambah alamat baru' })
   @ApiResponse({ status: 201, description: 'Alamat berhasil ditambahkan' })
-  createAddress(@GetUser('sub') userId: string, @Body() dto: CreateAddressDto) {
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  createAddress(
+    @GetUser('id') userId: string,
+    @Body() dto: CreateAddressDto,
+  ) {
     return this.usersService.createAddress(userId, dto);
   }
 
   @Patch('me/addresses/:id/default')
-  @ApiParam({ name: 'id', description: 'Address ID' })
   @ApiOperation({ summary: 'Set alamat default' })
+  @ApiParam({ name: 'id', description: 'Address ID' })
   @ApiResponse({ status: 200, description: 'Alamat default berhasil diubah' })
-  setDefaultAddress(@GetUser('sub') userId: string, @Param('id') addressId: string) {
+  @ApiResponse({ status: 404, description: 'Alamat tidak ditemukan' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  setDefaultAddress(
+    @GetUser('id') userId: string,
+    @Param('id') addressId: string,
+  ) {
     return this.usersService.setDefaultAddress(userId, addressId);
   }
 
   @Patch('me/addresses/:id')
-  @ApiParam({ name: 'id', description: 'Address ID' })
   @ApiOperation({ summary: 'Update alamat user' })
+  @ApiParam({ name: 'id', description: 'Address ID' })
   @ApiResponse({ status: 200, description: 'Alamat berhasil diperbarui' })
+  @ApiResponse({ status: 404, description: 'Alamat tidak ditemukan' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   updateAddress(
-    @GetUser('sub') userId: string,
+    @GetUser('id') userId: string,
     @Param('id') addressId: string,
     @Body() dto: UpdateAddressDto,
   ) {
@@ -100,26 +131,38 @@ export class UsersController {
 
   @Delete('me/addresses/:id')
   @HttpCode(HttpStatus.OK)
-  @ApiParam({ name: 'id', description: 'Address ID' })
   @ApiOperation({ summary: 'Hapus alamat user' })
+  @ApiParam({ name: 'id', description: 'Address ID' })
   @ApiResponse({ status: 200, description: 'Alamat berhasil dihapus' })
-  deleteAddress(@GetUser('sub') userId: string, @Param('id') addressId: string) {
+  @ApiResponse({ status: 404, description: 'Alamat tidak ditemukan' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  deleteAddress(
+    @GetUser('id') userId: string,
+    @Param('id') addressId: string,
+  ) {
     return this.usersService.deleteAddress(userId, addressId);
   }
 
-  // ─────────────────────────────────────────────
-  // ORDERS
-  // ─────────────────────────────────────────────
+  // ─── ORDERS ───────────────────────────────────────────────────────────────
+
   @Get('me/orders')
-  getOrders(@GetUser('sub') userId: string) {
+  @ApiOperation({ summary: 'Ambil semua order user' })
+  @ApiResponse({ status: 200, description: 'Daftar order berhasil diambil' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  getOrders(@GetUser('id') userId: string) {
     return this.usersService.getOrders(userId);
   }
 
   @Get('me/orders/:id')
-  @ApiParam({ name: 'id', description: 'Order ID' })
   @ApiOperation({ summary: 'Ambil detail order berdasarkan ID' })
+  @ApiParam({ name: 'id', description: 'Order ID' })
   @ApiResponse({ status: 200, description: 'Detail order berhasil diambil' })
-  getOrderById(@GetUser('sub') userId: string, @Param('id') orderId: string) {
+  @ApiResponse({ status: 404, description: 'Order tidak ditemukan' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  getOrderById(
+    @GetUser('id') userId: string,
+    @Param('id') orderId: string,
+  ) {
     return this.usersService.getOrderById(userId, orderId);
   }
 }

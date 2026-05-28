@@ -12,18 +12,20 @@ function slugify(name: string): string {
   return name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
 }
 
-async function loginAs(app: INestApplication, email: string, password = 'Password123!') {
+async function loginAs(app: INestApplication, email: string, password = 'Password123!'): Promise<string[]> {
   const res = await request(app.getHttpServer())
     .post('/api/auth/login')
     .send({ email, password });
-  return res.body.data.accessToken as string;
+  
+  const cookies = res.headers['set-cookie'];
+  return Array.isArray(cookies) ? cookies : [cookies];
 }
 
 async function seedCategory(name: string) {
   return testPrisma.category.create({
     data: {
       name,
-      slug: slugify(name),
+      slug: `${slugify(name)}-${Date.now()}`, // unik per test
     },
   });
 }
@@ -34,18 +36,21 @@ async function seedProduct(overrides: Partial<{
   stock: number;
   categoryId: string;
 }> = {}) {
-  const category = await seedCategory('Baby Care');
+  const category = overrides.categoryId
+    ? null
+    : await seedCategory('Baby Care');
 
   return testPrisma.product.create({
     data: {
       name: overrides.name ?? 'Baby Shampoo',
-      slug: slugify(overrides.name ?? 'Baby Shampoo'),
+      slug: `${slugify(overrides.name ?? 'Baby Shampoo')}-${Date.now()}`, // unik per test
       description: 'Gentle baby shampoo',
       basePrice: overrides.basePrice ?? 50000,
       weight: 200,
       sku: `SKU-${Date.now()}-${Math.random().toString(36).slice(2)}`,
       stock: overrides.stock ?? 100,
-      categoryId: overrides.categoryId ?? category.id,
+      status: 'active', // ← harus active agar muncul di findAll
+      categoryId: overrides.categoryId ?? category!.id,
     },
   });
 }
@@ -55,8 +60,8 @@ async function seedProduct(overrides: Partial<{
 // ─────────────────────────────────────────────
 describe('Product Endpoints (Integration)', () => {
   let app: INestApplication;
-  let customerToken: string;
-  let adminToken: string;
+  let customerCookies: string[];
+  let adminCookies: string[];
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -80,8 +85,8 @@ describe('Product Endpoints (Integration)', () => {
     await createVerifiedUser({ email: 'customer@example.com', password: 'Password123!', role: 'customer' });
     await createVerifiedUser({ email: 'admin@example.com', password: 'Password123!', role: 'admin' });
 
-    customerToken = await loginAs(app, 'customer@example.com');
-    adminToken = await loginAs(app, 'admin@example.com');
+    customerCookies = await loginAs(app, 'customer@example.com');
+    adminCookies = await loginAs(app, 'admin@example.com');
   });
 
   // ─────────────────────────────────────────────
@@ -97,7 +102,7 @@ describe('Product Endpoints (Integration)', () => {
         .expect(200);
 
       expect(res.body.data).toBeDefined();
-      expect(Array.isArray(res.body.data.items ?? res.body.data)).toBe(true);
+      expect(Array.isArray(res.body.data)).toBe(true);
     });
 
     it('200 — should filter products by name query', async () => {
@@ -105,10 +110,11 @@ describe('Product Endpoints (Integration)', () => {
       await seedProduct({ name: 'Baby Powder' });
 
       const res = await request(app.getHttpServer())
-        .get('/api/products?search=Oil')
+        .get('/api/products?q=Oil') // ← q bukan search
         .expect(200);
 
-      const items = res.body.data.items ?? res.body.data;
+      const items = res.body.data;
+      expect(Array.isArray(items)).toBe(true);
       expect(items.every((p: any) => p.name.toLowerCase().includes('oil'))).toBe(true);
     });
 
@@ -121,7 +127,8 @@ describe('Product Endpoints (Integration)', () => {
         .get('/api/products?page=1&limit=2')
         .expect(200);
 
-      const items = res.body.data.items ?? res.body.data;
+      const items = res.body.data;
+      expect(Array.isArray(items)).toBe(true);
       expect(items.length).toBeLessThanOrEqual(2);
     });
   });
@@ -137,7 +144,7 @@ describe('Product Endpoints (Integration)', () => {
         .get(`/api/products/${product.id}`)
         .expect(200);
 
-      expect(res.body.data).toMatchObject({
+      expect(res.body).toMatchObject({
         id: product.id,
         name: product.name,
       });
@@ -145,7 +152,7 @@ describe('Product Endpoints (Integration)', () => {
 
     it('404 — should return 404 for non-existent product', async () => {
       await request(app.getHttpServer())
-        .get('/api/products/non-existent-id')
+        .get('/api/products/00000000-0000-0000-0000-000000000000')
         .expect(404);
     });
   });
@@ -159,20 +166,21 @@ describe('Product Endpoints (Integration)', () => {
 
       const res = await request(app.getHttpServer())
         .post('/api/products')
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Cookie', adminCookies) // ← cookie bukan Bearer
         .send({
           name: 'Rattles',
-          slug: 'rattles',
           description: 'Colorful baby rattles',
           basePrice: 75000,
           weight: 150,
           sku: 'SKU-RATTLES-001',
           stock: 50,
+          status: 'active',
           categoryId: category.id,
         })
         .expect(201);
 
-      expect(res.body.data).toMatchObject({ name: 'Rattles', basePrice: 75000 });
+      expect(res.body).toMatchObject({ name: 'Rattles' });
+      expect(Number(res.body.basePrice)).toBe(75000);
     });
 
     it('403 — customer should not create product', async () => {
@@ -180,15 +188,15 @@ describe('Product Endpoints (Integration)', () => {
 
       await request(app.getHttpServer())
         .post('/api/products')
-        .set('Authorization', `Bearer ${customerToken}`)
+        .set('Cookie', customerCookies)
         .send({
           name: 'Rattles',
-          slug: 'rattles',
           description: 'Baby rattles',
           basePrice: 75000,
           weight: 150,
           sku: 'SKU-RATTLES-002',
           stock: 50,
+          status: 'active',
           categoryId: category.id,
         })
         .expect(403);
@@ -204,7 +212,7 @@ describe('Product Endpoints (Integration)', () => {
     it('400 — should reject missing required fields', async () => {
       await request(app.getHttpServer())
         .post('/api/products')
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Cookie', adminCookies)
         .send({ name: 'Incomplete Product' })
         .expect(400);
     });
@@ -214,14 +222,14 @@ describe('Product Endpoints (Integration)', () => {
 
       await request(app.getHttpServer())
         .post('/api/products')
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Cookie', adminCookies)
         .send({
           name: 'Bad Product',
-          slug: 'bad-product',
           basePrice: -1000,
           weight: 100,
           sku: 'SKU-BAD-001',
           stock: 10,
+          status: 'active',
           categoryId: category.id,
         })
         .expect(400);
@@ -237,11 +245,11 @@ describe('Product Endpoints (Integration)', () => {
 
       const res = await request(app.getHttpServer())
         .patch(`/api/products/${product.id}`)
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Cookie', adminCookies)
         .send({ basePrice: 20000 })
         .expect(200);
 
-      expect(res.body.data.basePrice).toBe(20000);
+      expect(Number(res.body.basePrice)).toBe(20000);
     });
 
     it('403 — customer should not update product', async () => {
@@ -249,15 +257,15 @@ describe('Product Endpoints (Integration)', () => {
 
       await request(app.getHttpServer())
         .patch(`/api/products/${product.id}`)
-        .set('Authorization', `Bearer ${customerToken}`)
+        .set('Cookie', customerCookies)
         .send({ basePrice: 20000 })
         .expect(403);
     });
 
     it('404 — should return 404 for non-existent product', async () => {
       await request(app.getHttpServer())
-        .patch('/api/products/non-existent-id')
-        .set('Authorization', `Bearer ${adminToken}`)
+        .patch('/api/products/00000000-0000-0000-0000-000000000000')
+        .set('Cookie', adminCookies)
         .send({ basePrice: 20000 })
         .expect(404);
     });
@@ -272,7 +280,7 @@ describe('Product Endpoints (Integration)', () => {
 
       await request(app.getHttpServer())
         .delete(`/api/products/${product.id}`)
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Cookie', adminCookies)
         .expect(200);
 
       const deleted = await testPrisma.product.findUnique({ where: { id: product.id } });
@@ -284,7 +292,7 @@ describe('Product Endpoints (Integration)', () => {
 
       await request(app.getHttpServer())
         .delete(`/api/products/${product.id}`)
-        .set('Authorization', `Bearer ${customerToken}`)
+        .set('Cookie', customerCookies)
         .expect(403);
     });
 

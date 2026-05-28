@@ -26,8 +26,10 @@ const mockUser = {
   name: 'Test User',
   email: 'test@example.com',
   password: '$2b$10$hashedpassword',
-  role: 'USER',
+  role: 'customer',        // ← sesuai enum Role di schema
   isVerified: true,
+  bannedAt: null,           // ← tambah field yang dicek di login
+  deletedAt: null,          // ← tambah field yang dicek di jwt strategy
   refreshToken: null,
   verifyToken: null,
   verifyTokenExp: null,
@@ -96,7 +98,7 @@ describe('AuthService', () => {
     it('should register user and send verification email', async () => {
       prisma.user.findUnique.mockResolvedValue(null);
       prisma.user.create.mockResolvedValue(mockUser);
-      prisma.user.update.mockResolvedValue(mockUser); // sendVerificationEmail calls update
+      prisma.user.update.mockResolvedValue(mockUser);
 
       const result = await service.register(dto);
 
@@ -138,7 +140,6 @@ describe('AuthService', () => {
       prisma.user.update.mockResolvedValue(mockUser);
       mailService.sendVerificationEmail.mockRejectedValue(new Error('SMTP error'));
 
-      // Should not throw — email failure is caught internally
       await expect(service.register(dto)).resolves.toBeDefined();
     });
   });
@@ -149,7 +150,6 @@ describe('AuthService', () => {
   describe('verifyEmail()', () => {
     it('should verify email with valid token', async () => {
       const rawToken = 'valid-raw-token';
-      const hashedToken = crypto.createHash('sha256').update(rawToken).digest('hex');
 
       prisma.user.findFirst.mockResolvedValue({ ...mockUser, isVerified: false });
       prisma.user.update.mockResolvedValue({ ...mockUser, isVerified: true });
@@ -237,7 +237,7 @@ describe('AuthService', () => {
         name: mockUser.name,
         role: mockUser.role,
       });
-      });
+    });
 
     it('should save hashed refresh token to DB', async () => {
       prisma.user.findUnique.mockResolvedValue(mockUser);
@@ -251,12 +251,14 @@ describe('AuthService', () => {
       );
     });
 
-    it('should throw UnauthorizedException if user not found', async () => {
+    // ✅ Sesuai implementasi terbaru: email tidak terdaftar → NotFoundException
+    it('should throw NotFoundException if email is not registered', async () => {
       prisma.user.findUnique.mockResolvedValue(null);
 
-      await expect(service.login(dto)).rejects.toThrow(UnauthorizedException);
+      await expect(service.login(dto)).rejects.toThrow(NotFoundException);
     });
 
+    // ✅ Sesuai implementasi terbaru: password salah → UnauthorizedException
     it('should throw UnauthorizedException if password is wrong', async () => {
       prisma.user.findUnique.mockResolvedValue(mockUser);
       (bcrypt.compare as jest.Mock).mockResolvedValue(false);
@@ -270,23 +272,35 @@ describe('AuthService', () => {
       await expect(service.login(dto)).rejects.toThrow(UnauthorizedException);
     });
 
-    it('should not leak whether the email exists or password was wrong', async () => {
-      prisma.user.findUnique.mockResolvedValue(null);
+    // ✅ Tambah test banned account
+    it('should throw UnauthorizedException if account is banned', async () => {
+      prisma.user.findUnique.mockResolvedValue({ ...mockUser, bannedAt: new Date() });
 
+      await expect(service.login(dto)).rejects.toThrow(UnauthorizedException);
+    });
+
+    // ✅ Update: email tidak ditemukan → pesan berbeda dari password salah (by design)
+    it('should return different messages for missing email vs wrong password', async () => {
+      prisma.user.findUnique.mockResolvedValue(null);
+      let notFoundMessage = '';
       try {
         await service.login(dto);
       } catch (e) {
-        expect((e as Error).message).toBe('Email atau password salah');
+        notFoundMessage = (e as Error).message;
       }
 
       (bcrypt.compare as jest.Mock).mockResolvedValue(false);
       prisma.user.findUnique.mockResolvedValue(mockUser);
-
+      let wrongPassMessage = '';
       try {
         await service.login(dto);
       } catch (e) {
-        expect((e as Error).message).toBe('Email atau password salah');
+        wrongPassMessage = (e as Error).message;
       }
+
+      // Implementasi terbaru sengaja membedakan pesan untuk UX
+      expect(notFoundMessage).toBe('Email belum terdaftar');
+      expect(wrongPassMessage).toBe('Password salah');
     });
   });
 
@@ -332,7 +346,6 @@ describe('AuthService', () => {
 
       const result = await service.forgotPassword(dto);
 
-      // Must NOT throw — prevents email enumeration attack
       expect(result.message).toContain('Jika email terdaftar');
       expect(mailService.sendResetPasswordEmail).not.toHaveBeenCalled();
     });
@@ -373,7 +386,7 @@ describe('AuthService', () => {
             password: 'new-hashed-password',
             resetToken: null,
             resetTokenExp: null,
-            refreshToken: null, // ← invalidate active sessions
+            refreshToken: null,
           }),
         }),
       );

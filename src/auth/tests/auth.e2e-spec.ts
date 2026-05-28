@@ -56,7 +56,7 @@ describe('Auth Endpoints (Integration)', () => {
         .send(validPayload)
         .expect(201);
 
-      expect(res.body.data).toMatchObject({
+      expect(res.body).toMatchObject({
         message: expect.stringContaining('Registrasi berhasil'),
         email: validPayload.email,
       });
@@ -146,7 +146,7 @@ describe('Auth Endpoints (Integration)', () => {
         where: { id: user.id },
         data: {
           verifyToken: hashedToken,
-          verifyTokenExp: new Date(Date.now() - 1000), // expired
+          verifyTokenExp: new Date(Date.now() - 1000),
         },
       });
 
@@ -166,38 +166,47 @@ describe('Auth Endpoints (Integration)', () => {
       await createVerifiedUser({ email: 'login@example.com', password: 'Password123!' });
     });
 
-    it('200 — should return accessToken and set refreshToken cookie', async () => {
+    it('200 — should set accessToken and refreshToken as HTTP-only cookies', async () => {
       const res = await request(app.getHttpServer())
         .post('/api/auth/login')
         .send({ email: 'login@example.com', password: 'Password123!' })
         .expect(200);
 
-      // accessToken should be in body
-      expect(res.body.data.accessToken).toBeDefined();
-      expect(res.body.data.expiresIn).toBe(900);
-      expect(res.body.data.expiresAt).toBeDefined();
-
-      // refreshToken should NOT be in body
+      // ✅ Sesuai implementasi: token di cookie, BUKAN di body
+      expect(res.body.data.accessToken).toBeUndefined();
       expect(res.body.data.refreshToken).toBeUndefined();
 
-      // refreshToken should be in HTTP-only cookie
+      // ✅ Token ada di cookie
+      const accessCookie = findCookie(res.headers, 'accessToken');
       const refreshCookie = findCookie(res.headers, 'refreshToken');
+
+      expect(accessCookie).toBeDefined();
+      expect(accessCookie).toContain('HttpOnly');
+
       expect(refreshCookie).toBeDefined();
       expect(refreshCookie).toContain('HttpOnly');
       expect(refreshCookie).toContain('Path=/api/auth');
+
+      // ✅ Body hanya berisi user dan expiresIn
+      expect(res.body.data.expiresIn).toBe(900);
+      expect(res.body.data.user).toMatchObject({
+        email: 'login@example.com',
+      });
     });
 
+    // ✅ Sesuai implementasi terbaru: email tidak ditemukan → 404
+    it('404 — should return 404 for unregistered email', async () => {
+      await request(app.getHttpServer())
+        .post('/api/auth/login')
+        .send({ email: 'ghost@example.com', password: 'Password123!' })
+        .expect(404);
+    });
+
+    // ✅ Sesuai implementasi terbaru: password salah → 401
     it('401 — should reject wrong password', async () => {
       await request(app.getHttpServer())
         .post('/api/auth/login')
         .send({ email: 'login@example.com', password: 'WrongPassword!' })
-        .expect(401);
-    });
-
-    it('401 — should reject non-existent email', async () => {
-      await request(app.getHttpServer())
-        .post('/api/auth/login')
-        .send({ email: 'ghost@example.com', password: 'Password123!' })
         .expect(401);
     });
 
@@ -210,7 +219,8 @@ describe('Auth Endpoints (Integration)', () => {
         .expect(401);
     });
 
-    it('should return identical error message for wrong email and wrong password', async () => {
+    // ✅ Update: implementasi terbaru sengaja beda pesan untuk UX
+    it('should return different error messages for unregistered email vs wrong password', async () => {
       const noUser = await request(app.getHttpServer())
         .post('/api/auth/login')
         .send({ email: 'ghost@example.com', password: 'Password123!' });
@@ -219,8 +229,8 @@ describe('Auth Endpoints (Integration)', () => {
         .post('/api/auth/login')
         .send({ email: 'login@example.com', password: 'WrongPassword!' });
 
-      // Same message — prevents email enumeration
-      expect(noUser.body.message).toBe(wrongPass.body.message);
+      expect(noUser.body.message).toBe('Email belum terdaftar');
+      expect(wrongPass.body.message).toBe('Password salah');
     });
   });
 
@@ -228,7 +238,7 @@ describe('Auth Endpoints (Integration)', () => {
   // POST /api/auth/refresh
   // ─────────────────────────────────────────────
   describe('POST /api/auth/refresh', () => {
-    it('200 — should return new accessToken using cookie', async () => {
+    it('200 — should issue new cookies using refresh cookie', async () => {
       await createVerifiedUser({ email: 'refresh@example.com', password: 'Password123!' });
 
       const loginRes = await request(app.getHttpServer())
@@ -239,14 +249,17 @@ describe('Auth Endpoints (Integration)', () => {
 
       const refreshRes = await request(app.getHttpServer())
         .post('/api/auth/refresh')
-        .set('Cookie', cookies)
+        .set('Cookie', Array.isArray(cookies) ? cookies : [cookies])
         .expect(200);
 
-      expect(refreshRes.body.data.accessToken).toBeDefined();
-      expect(refreshRes.body.data.refreshToken).toBeUndefined();
+      // ✅ Token tidak di body
+      expect(refreshRes.body.data?.accessToken).toBeUndefined();
+      expect(refreshRes.body.data?.refreshToken).toBeUndefined();
 
-      // New cookie should be issued (token rotation)
+      // ✅ New cookies issued (token rotation)
+      const newAccessCookie = findCookie(refreshRes.headers, 'accessToken');
       const newRefreshCookie = findCookie(refreshRes.headers, 'refreshToken');
+      expect(newAccessCookie).toBeDefined();
       expect(newRefreshCookie).toBeDefined();
     });
 
@@ -259,23 +272,25 @@ describe('Auth Endpoints (Integration)', () => {
   // POST /api/auth/logout
   // ─────────────────────────────────────────────
   describe('POST /api/auth/logout', () => {
-    it('200 — should logout and clear cookie', async () => {
+    it('200 — should logout and clear cookies', async () => {
       await createVerifiedUser({ email: 'logout@example.com', password: 'Password123!' });
 
       const loginRes = await request(app.getHttpServer())
         .post('/api/auth/login')
         .send({ email: 'logout@example.com', password: 'Password123!' });
 
-      const accessToken = loginRes.body.data.accessToken;
+      const cookies = loginRes.headers['set-cookie'];
 
       const logoutRes = await request(app.getHttpServer())
         .post('/api/auth/logout')
-        .set('Authorization', `Bearer ${accessToken}`)
+        .set('Cookie', Array.isArray(cookies) ? cookies : [cookies])
         .expect(200);
 
-      // Cookie should be cleared
-      const clearedCookie = findCookie(logoutRes.headers, 'refreshToken');
-      expect(clearedCookie).toContain('Expires=Thu, 01 Jan 1970');
+      // ✅ Cookies cleared
+      const clearedAccess = findCookie(logoutRes.headers, 'accessToken');
+      const clearedRefresh = findCookie(logoutRes.headers, 'refreshToken');
+      expect(clearedAccess).toContain('Expires=Thu, 01 Jan 1970');
+      expect(clearedRefresh).toContain('Expires=Thu, 01 Jan 1970');
     });
 
     it('401 — should reject unauthenticated request', async () => {
@@ -300,8 +315,7 @@ describe('Auth Endpoints (Integration)', () => {
         .send({ email: 'ghost@example.com' })
         .expect(200);
 
-      // Security: same message both cases
-      expect(withUser.body.data.message).toBe(withoutUser.body.data.message);
+      expect(withUser.body.message).toBe(withoutUser.body.message);
     });
   });
 

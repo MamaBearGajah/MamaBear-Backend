@@ -3,17 +3,27 @@ import { ConfigService } from '@nestjs/config';
 import { v2 as cloudinary } from 'cloudinary';
 import { SignUploadDto } from './dto/sign-upload.dto';
 
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
+
 @Injectable()
 export class MediaService {
   constructor(private readonly config: ConfigService) {
     cloudinary.config({
       cloud_name: this.config.getOrThrow('CLOUDINARY_CLOUD_NAME'),
-      api_key: this.config.getOrThrow('CLOUDINARY_API_KEY'),
+      api_key:    this.config.getOrThrow('CLOUDINARY_API_KEY'),
       api_secret: this.config.getOrThrow('CLOUDINARY_API_SECRET'),
     });
   }
 
+  // ─── Signed URL ────────────────────────────────────────────────────────────
+
   async generateSignedUrl(dto: SignUploadDto) {
+    // Validasi fileType jika disertakan
+    if (dto.fileType && !ALLOWED_TYPES.includes(dto.fileType)) {
+      throw new BadRequestException('Tipe file tidak diizinkan. Hanya jpeg, png, webp.');
+    }
+
     const timestamp = Math.round(Date.now() / 1000);
 
     const signature = cloudinary.utils.api_sign_request(
@@ -30,20 +40,66 @@ export class MediaService {
     };
   }
 
+  // ─── Single Upload ─────────────────────────────────────────────────────────
+
   async uploadFile(file: Express.Multer.File, folder: string) {
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    this.validateFile(file);
+    return this.uploadToCloudinary(file.buffer, folder);
+  }
 
-    if (!allowedTypes.includes(file.mimetype)) {
-      throw new BadRequestException('File type not allowed. Only jpeg, png, webp are accepted.');
+  // ─── Multiple Upload ───────────────────────────────────────────────────────
+
+  async uploadMultipleFiles(files: Express.Multer.File[], folder: string) {
+    files.forEach((file) => this.validateFile(file));
+
+    const results = await Promise.all(
+      files.map((file) => this.uploadToCloudinary(file.buffer, folder)),
+    );
+
+    return results;
+  }
+
+  // ─── Delete ────────────────────────────────────────────────────────────────
+
+  async deleteFile(publicId: string) {
+    return new Promise<{ deleted: string; result: string }>((resolve, reject) => {
+      cloudinary.uploader.destroy(publicId, (err, result) => {
+        if (err) return reject(err);
+        if (result?.result !== 'ok' && result?.result !== 'not found') {
+          return reject(new BadRequestException(`Gagal menghapus gambar: ${result?.result}`));
+        }
+        resolve({ deleted: publicId, result: result?.result ?? 'ok' });
+      });
+    });
+  }
+
+  // ─── Private Helpers ───────────────────────────────────────────────────────
+
+  private validateFile(file: Express.Multer.File) {
+    if (!ALLOWED_TYPES.includes(file.mimetype)) {
+      throw new BadRequestException(
+        `Tipe file tidak diizinkan: ${file.mimetype}. Hanya jpeg, png, webp.`,
+      );
     }
-
-    if (file.size > 5 * 1024 * 1024) {
-      throw new BadRequestException('File too large. Maximum size is 5MB.');
+    if (file.size > MAX_SIZE_BYTES) {
+      throw new BadRequestException(
+        `File terlalu besar: ${file.originalname}. Maksimum 5MB.`,
+      );
     }
+  }
 
-    return new Promise<{ imageUrl: string; publicId: string }>((resolve, reject) => {
+  private uploadToCloudinary(
+    buffer: Buffer,
+    folder: string,
+  ): Promise<{ imageUrl: string; publicId: string }> {
+    return new Promise((resolve, reject) => {
       const stream = cloudinary.uploader.upload_stream(
-        { folder },
+        {
+          folder,
+          transformation: [
+            { quality: 'auto', fetch_format: 'auto' }, // ✅ auto WebP di browser yang support
+          ],
+        },
         (err, result) => {
           if (err) return reject(err);
           resolve({
@@ -52,8 +108,7 @@ export class MediaService {
           });
         },
       );
-
-      stream.end(file.buffer);
+      stream.end(buffer);
     });
   }
 }

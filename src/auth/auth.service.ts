@@ -83,7 +83,7 @@ export class AuthService {
   // ─────────────────────────────────────────────
   async resendVerification(email: string) {
     const user = await this.prisma.user.findUnique({ where: { email } });
-    if (!user) throw new NotFoundException('User tidak ditemukan');
+    if (!user) throw new NotFoundException('Email belum terdaftar');
     if (user.isVerified) throw new BadRequestException('Email sudah terverifikasi');
 
     await this.sendVerificationEmail(user.id, user.email);
@@ -94,24 +94,32 @@ export class AuthService {
   // LOGIN
   // ─────────────────────────────────────────────
   async login(dto: LoginDto) {
+    // 1. Cek apakah email terdaftar
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
-    if (!user) throw new UnauthorizedException('Email atau password salah');
+    if (!user) throw new NotFoundException('Email belum terdaftar');
 
+    // 2. Cek password
     const passwordMatch = await bcrypt.compare(dto.password, user.password);
-    if (!passwordMatch) throw new UnauthorizedException('Email atau password salah');
+    if (!passwordMatch) throw new UnauthorizedException('Password salah');
 
+    // 3. Cek verifikasi email
     if (!user.isVerified)
       throw new UnauthorizedException('Akun belum diverifikasi. Cek email kamu.');
 
+    // 4. Cek apakah akun di-ban
+    if (user.bannedAt)
+      throw new UnauthorizedException(
+        `Akun kamu telah dinonaktifkan${user.banReason ? `: ${user.banReason}` : '.'}`,
+      );
+
+    // 5. Generate tokens
     const tokens = await this.generateTokens(user.id, user.email, user.role as string);
     await this.updateRefreshToken(user.id, tokens.refreshToken);
 
     return {
-      // tokens diteruskan ke controller untuk set cookie
       tokens,
-      // hanya data user yang masuk response body
       user: {
         id: user.id,
         name: user.name,
@@ -149,6 +157,7 @@ export class AuthService {
       where: { email: dto.email },
     });
 
+    // Sengaja tidak membedakan pesan — mencegah email enumeration
     if (!user) return { message: 'Jika email terdaftar, link reset telah dikirim' };
 
     const rawToken = crypto.randomBytes(32).toString('hex');
