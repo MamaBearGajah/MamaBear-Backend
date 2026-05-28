@@ -12,7 +12,7 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductQueryDto } from './dto/product-query.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators';
+import { Public, Roles } from '../auth/decorators';
 import { Role } from 'generated/prisma/enums';
 
 @ApiTags('Products')
@@ -20,41 +20,52 @@ import { Role } from 'generated/prisma/enums';
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
-  // ─── PUBLIC ───────────────────────────────────────────────────────────────────
+  // ─── PUBLIC ───────────────────────────────────────────────────────────────
   // PENTING: route statis harus di atas @Get(':id')
 
+  @Public()
+  @Get()
   @ApiOperation({ summary: 'Get semua produk (public)' })
   @ApiResponse({ status: 200, description: 'List produk' })
-  @Get()
   findAll(@Query() query: ProductQueryDto) {
     return this.productsService.findAll(query);
   }
 
+  @Public()
+  @Get('filter')
+  @ApiOperation({ summary: 'Filter produk dengan query params (public) — alias dari GET /products' })
+  @ApiResponse({ status: 200, description: 'List produk hasil filter' })
+  filter(@Query() query: ProductQueryDto) {
+    return this.productsService.filter(query);
+  }
+
+  @Public()
+  @Get('best-sellers')
   @ApiOperation({ summary: 'Get best seller products (public)' })
   @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Default 10' })
-  @Get('best-sellers')
   findBestSellers(@Query('limit') limit?: string) {
     return this.productsService.findBestSellers(limit ? Number(limit) : 10);
   }
 
+  @Public()
+  @Get('slug/:slug')
   @ApiOperation({ summary: 'Get produk by slug (public)' })
   @ApiParam({ name: 'slug' })
-  @Get('slug/:slug')
   findBySlug(@Param('slug') slug: string) {
     return this.productsService.findBySlug(slug);
   }
 
-  // ─── ADMIN ────────────────────────────────────────────────────────────────────
+  // ─── ADMIN ────────────────────────────────────────────────────────────────
   // ✅ variants/all harus di atas :id supaya tidak tertangkap sebagai id = "variants"
 
-  @ApiOperation({ summary: 'Get SEMUA varian lintas produk (admin) — include productName + categoryName' })
-  @ApiQuery({ name: 'page', required: false, type: Number })
-  @ApiQuery({ name: 'limit', required: false, type: Number })
-  @ApiQuery({ name: 'productId', required: false })
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.admin, Role.super_admin)
   @Get('variants/all')
+  @ApiOperation({ summary: 'Get SEMUA varian lintas produk (admin) — include productName + categoryName' })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'productId', required: false })
   findAllVariants(
     @Query('page') page?: string,
     @Query('limit') limit?: string,
@@ -67,55 +78,46 @@ export class ProductsController {
     });
   }
 
-  @ApiOperation({ summary: 'Buat produk baru (admin)' })
-  @ApiResponse({ status: 201, description: 'Produk berhasil dibuat' })
-  @ApiResponse({ status: 400, description: 'Slug atau SKU sudah digunakan' })
+  @Post()
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.admin, Role.super_admin)
-  @Post()
+  @ApiOperation({ summary: 'Buat produk baru (admin)' })
+  @ApiResponse({ status: 201, description: 'Produk berhasil dibuat' })
+  @ApiResponse({ status: 400, description: 'Slug atau SKU sudah digunakan' })
   create(@Body() dto: CreateProductDto) {
     return this.productsService.create(dto);
   }
 
+  @Public()
+  @Get(':id')
   @ApiOperation({ summary: 'Get produk by ID (public)' })
   @ApiParam({ name: 'id' })
-  @Get(':id')
   findOne(@Param('id') id: string) {
     return this.productsService.findOne(id);
   }
 
+  @Patch(':id')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.admin, Role.super_admin)
   @ApiOperation({ summary: 'Update produk (admin)' })
   @ApiParam({ name: 'id' })
   @ApiResponse({ status: 200, description: 'Produk berhasil diupdate' })
   @ApiResponse({ status: 404, description: 'Produk tidak ditemukan' })
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.admin, Role.super_admin)
-  @Patch(':id')
   update(@Param('id') id: string, @Body() dto: UpdateProductDto) {
     return this.productsService.update(id, dto);
   }
 
+  @Delete(':id')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.admin, Role.super_admin)
   @ApiOperation({ summary: 'Hapus produk (admin)' })
   @ApiParam({ name: 'id' })
   @ApiResponse({ status: 200, description: 'Produk berhasil dihapus' })
   @ApiResponse({ status: 404, description: 'Produk tidak ditemukan' })
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.admin, Role.super_admin)
-  @Delete(':id')
   remove(@Param('id') id: string) {
     return this.productsService.remove(id);
   }
 }
-
-// ─── CATATAN ROUTING ─────────────────────────────────────────────────────────
-//
-// Variant   → products.module mendaftarkan VariantsModule
-//             endpoint: /products/:productId/variants  (variants.controller)
-//
-// Image     → products.module mendaftarkan ImagesModule
-//             endpoint: /products/:productId/images    (images.controller)
-//
-// variants/all tetap di sini karena query lintas produk (bukan per-produk)

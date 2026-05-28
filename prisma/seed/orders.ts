@@ -78,7 +78,8 @@ export async function seedOrders(
     reviewData: Array<{ rating: number; review: string } | null>;
   }) {
     const shippingCost = 15000;
-    const total = opts.lines.reduce((sum, l) => sum + l.price * l.quantity, 0) + shippingCost;
+    const subtotal = opts.lines.reduce((sum, l) => sum + l.price * l.quantity, 0);
+    const total = subtotal + shippingCost;
 
     const order = await prisma.order.create({
       data: {
@@ -86,7 +87,7 @@ export async function seedOrders(
         addressId: opts.addressId,
         status: OrderStatus.delivered,
         paymentStatus: PaymentStatus.paid,
-        total, shippingCost,
+        subtotal, total, shippingCost,
         courier: "JNE", service: "REG",
         trackingNumber: opts.trackingNumber,
         createdAt: opts.createdAt,

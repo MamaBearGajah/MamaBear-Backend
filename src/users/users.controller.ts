@@ -10,7 +10,6 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -18,12 +17,9 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-
 import { UsersService } from './users.service';
-
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { GetUser } from 'src/auth/decorators';
-
 import {
   ChangePasswordDto,
   CreateAddressDto,
@@ -68,7 +64,7 @@ export class UsersController {
   }
 
   // ADDRESSES
-
+  // ─────────────────────────────────────────────
   @Get('me/addresses')
   @ApiOperation({ summary: 'Ambil semua alamat user' })
   @ApiResponse({ status: 200, description: 'Daftar alamat berhasil diambil' })
@@ -134,7 +130,7 @@ export class UsersController {
   }
 
   // ORDERS
-
+  // ─────────────────────────────────────────────
   @Get('me/orders')
   @ApiOperation({ summary: 'Ambil semua order user' })
   @ApiResponse({ status: 200, description: 'Daftar order berhasil diambil' })
