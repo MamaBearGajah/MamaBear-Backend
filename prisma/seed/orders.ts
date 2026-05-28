@@ -78,7 +78,8 @@ export async function seedOrders(
     reviewData: Array<{ rating: number; review: string } | null>;
   }) {
     const shippingCost = 15000;
-    const total = opts.lines.reduce((sum, l) => sum + l.price * l.quantity, 0) + shippingCost;
+    const subtotal = opts.lines.reduce((sum, l) => sum + l.price * l.quantity, 0);
+    const total = subtotal + shippingCost;
 
     const order = await prisma.order.create({
       data: {
@@ -86,7 +87,7 @@ export async function seedOrders(
         addressId: opts.addressId,
         status: OrderStatus.delivered,
         paymentStatus: PaymentStatus.paid,
-        total, shippingCost,
+        subtotal, total, shippingCost,
         courier: "JNE", service: "REG",
         trackingNumber: opts.trackingNumber,
         createdAt: opts.createdAt,
@@ -156,5 +157,25 @@ export async function seedOrders(
   await createMockOrder({ userId: c[8].id, addressId: a[8].id, createdAt: daysAgo(4),  trackingNumber: "JNE0001234578", lines: [{ productId: almonMix.id, price: 40000, quantity: 6 }], reviewData: [reviewsAlmonMix[9]] });
   await createMockOrder({ userId: c[9].id, addressId: a[9].id, createdAt: daysAgo(2),  trackingNumber: "JNE0001234579", lines: [{ productId: zoyaMix.id, price: 38000, quantity: 5 }, { productId: almonMix.id, price: 40000, quantity: 4 }], reviewData: [null, null] });
 
-  console.log("✅ Orders, payments & reviews seeded");
+  // ─── Sync avgRating & reviewCount ke semua produk ─────────────────────────
+
+  const allProductIds = [almonMix.id, zoyaMix.id, tehPelancar.id, kukis.id, kapsul.id];
+
+  for (const productId of allProductIds) {
+    const result = await prisma.productReview.aggregate({
+      where: { productId },
+      _avg: { rating: true },
+      _count: { rating: true },
+    });
+
+    await prisma.product.update({
+      where: { id: productId },
+      data: {
+        avgRating: result._avg.rating ?? 0,
+        reviewCount: result._count.rating,
+      },
+    });
+  }
+
+  console.log("✅ Orders, payments, reviews & avgRating seeded");
 }

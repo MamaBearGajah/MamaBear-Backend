@@ -5,6 +5,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
+import { RedisCacheModule } from './cache/cache.module';
 import { AuthModule } from './auth/auth.module';
 import { ProductsModule } from './products/products.module';
 import { CategoriesModule } from './categories/categories.module';
@@ -25,11 +26,13 @@ import { RolesGuard } from './auth/guards/roles.guard';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { UsersModule } from './users/users.module';
 import { CustomThrottlerGuard } from './common/guards/throttler.guard';
+import { ReviewsModule } from './products/reviews/reviews.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 60 }]),
+    RedisCacheModule,
     PrismaModule,
     AuthModule,
     ProductsModule,
@@ -47,7 +50,8 @@ import { CustomThrottlerGuard } from './common/guards/throttler.guard';
     MembershipModule,
     MediaModule,
     HealthModule,
-    UsersModule
+    UsersModule,
+    ReviewsModule,
   ],
   controllers: [AppController],
   providers: [
