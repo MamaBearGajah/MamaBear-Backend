@@ -1,4 +1,3 @@
-// src/search/search.module.ts
 import { Module } from '@nestjs/common';
 import { SearchService } from './search.service';
 import { SearchController } from './search.controller';
@@ -8,6 +7,6 @@ import { CacheService } from '../cache/cache.service';
 @Module({
   imports: [PrismaModule],
   controllers: [SearchController],
-  providers: [SearchService, CacheService],
+  providers: [SearchService],
 })
 export class SearchModule {}
