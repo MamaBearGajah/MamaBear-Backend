@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import { IsBoolean, IsIn, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
 export class SearchQueryDto {
@@ -29,13 +29,34 @@ export class SearchQueryDto {
 
   @ApiPropertyOptional({ description: 'Hanya tampilkan produk yang ada stok' })
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(({ value }) => value === 'true' || value === true)
   @IsBoolean()
   inStock?: boolean;
+
+  // ─── Variant Filters ──────────────────────────────────────────────────────
+
+  @ApiPropertyOptional({
+    description: 'Nama atribut varian, misal: Rasa, Ukuran, Warna',
+    example: 'Rasa',
+  })
+  @IsOptional()
+  @IsString()
+  variantName?: string;
+
+  @ApiPropertyOptional({
+    description: 'Nilai varian, misal: Coklat, Vanilla, L, Merah',
+    example: 'Coklat',
+  })
+  @IsOptional()
+  @IsString()
+  variantValue?: string;
+
+  // ─── Sorting ──────────────────────────────────────────────────────────────
 
   @ApiPropertyOptional({
     enum: ['createdAt', 'basePrice', 'price', 'soldCount', 'avgRating', 'name'],
     description: 'Field untuk sorting. Gunakan "price" untuk sort by effective price (discountPrice ?? basePrice)',
+    default: 'createdAt',
   })
   @IsOptional()
   @IsIn(['createdAt', 'basePrice', 'price', 'soldCount', 'avgRating', 'name'])
@@ -45,6 +66,8 @@ export class SearchQueryDto {
   @IsOptional()
   @IsIn(['asc', 'desc'])
   sortOrder?: 'asc' | 'desc';
+
+  // ─── Pagination ───────────────────────────────────────────────────────────
 
   @ApiPropertyOptional({ default: 1 })
   @IsOptional()

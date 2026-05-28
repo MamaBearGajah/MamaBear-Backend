@@ -1,6 +1,6 @@
 import {
   Controller, Get, Post, Patch, Delete,
-  Body, Param, Query, UseGuards,
+  Body, Param, Query, HttpCode, HttpStatus,
 } from '@nestjs/common';
 import {
   ApiTags, ApiOperation, ApiResponse,
@@ -11,8 +11,6 @@ import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { CategoryQueryDto } from './dto/category-query.dto';
 import { ProductQueryDto } from 'src/products/dto/product-query.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
 import { Public, Roles } from '../auth/decorators';
 import { Role } from 'generated/prisma/enums';
 
@@ -29,16 +27,6 @@ export class CategoriesController {
   @ApiResponse({ status: 200, description: 'List kategori berhasil diambil' })
   findAll(@Query() query: CategoryQueryDto) {
     return this.categoriesService.findAll(query);
-  }
-
-  @Public()
-  @Get(':id')
-  @ApiOperation({ summary: 'Get detail kategori by ID (public)' })
-  @ApiParam({ name: 'id' })
-  @ApiResponse({ status: 200, description: 'Detail kategori' })
-  @ApiResponse({ status: 404, description: 'Kategori tidak ditemukan' })
-  findOne(@Param('id') id: string) {
-    return this.categoriesService.findOne(id);
   }
 
   @Public()
@@ -61,39 +49,55 @@ export class CategoriesController {
     return this.categoriesService.findProducts(id, query);
   }
 
+  @Public()
+  @Get(':id')
+  @ApiOperation({ summary: 'Get detail kategori by ID (public)' })
+  @ApiParam({ name: 'id' })
+  @ApiResponse({ status: 200, description: 'Detail kategori' })
+  @ApiResponse({ status: 404, description: 'Kategori tidak ditemukan' })
+  findOne(@Param('id') id: string) {
+    return this.categoriesService.findOne(id);
+  }
+
   // ─── ADMIN ────────────────────────────────────────────────────────────────
 
   @Post()
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.admin, Role.super_admin)
+  @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Buat kategori baru (admin)' })
   @ApiResponse({ status: 201, description: 'Kategori berhasil dibuat' })
   @ApiResponse({ status: 409, description: 'Slug sudah digunakan' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Akses ditolak' })
   create(@Body() dto: CreateCategoryDto) {
     return this.categoriesService.create(dto);
   }
 
   @Patch(':id')
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.admin, Role.super_admin)
   @ApiOperation({ summary: 'Update kategori (admin)' })
   @ApiParam({ name: 'id' })
   @ApiResponse({ status: 200, description: 'Kategori berhasil diupdate' })
   @ApiResponse({ status: 404, description: 'Kategori tidak ditemukan' })
+  @ApiResponse({ status: 409, description: 'Slug sudah digunakan atau circular reference' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Akses ditolak' })
   update(@Param('id') id: string, @Body() dto: UpdateCategoryDto) {
     return this.categoriesService.update(id, dto);
   }
 
   @Delete(':id')
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.admin, Role.super_admin)
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Hapus kategori (admin)' })
   @ApiParam({ name: 'id' })
   @ApiResponse({ status: 200, description: 'Kategori berhasil dihapus' })
   @ApiResponse({ status: 409, description: 'Kategori masih memiliki produk atau sub-kategori' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Akses ditolak' })
   remove(@Param('id') id: string) {
     return this.categoriesService.remove(id);
   }

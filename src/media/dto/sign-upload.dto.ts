@@ -1,5 +1,5 @@
-import { IsString, IsNotEmpty, IsIn } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { IsString, IsNotEmpty, IsOptional, IsIn } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class SignUploadDto {
   @ApiProperty({ example: 'products', description: 'Cloudinary folder tujuan upload' })
@@ -7,13 +7,15 @@ export class SignUploadDto {
   @IsNotEmpty()
   folder!: string;
 
-  @ApiProperty({ example: 'image.jpg' })
+  // ✅ fileName dan fileType optional — tidak dipakai di service tapi bisa untuk validasi client-side
+  @ApiPropertyOptional({ example: 'image.jpg' })
   @IsString()
-  @IsNotEmpty()
-  fileName!: string;
+  @IsOptional()
+  fileName?: string;
 
-  @ApiProperty({ example: 'image/jpeg', enum: ['image/jpeg', 'image/png', 'image/webp'] })
+  @ApiPropertyOptional({ example: 'image/jpeg', enum: ['image/jpeg', 'image/png', 'image/webp'] })
   @IsString()
   @IsIn(['image/jpeg', 'image/png', 'image/webp'])
-  fileType!: string;
+  @IsOptional()
+  fileType?: string;
 }

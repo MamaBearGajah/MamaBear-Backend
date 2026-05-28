@@ -1,4 +1,3 @@
-// src/search/search.service.ts
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CacheService } from '../cache/cache.service';
@@ -18,6 +17,8 @@ export class SearchService {
       maxPrice,
       categoryId,
       inStock,
+      variantName,
+      variantValue,
       sortBy = 'createdAt',
       sortOrder = 'desc',
       page = 1,
@@ -29,28 +30,30 @@ export class SearchService {
     if (cached) return cached;
 
     const skip = (page - 1) * limit;
+    const where: any = { status: 'active', deletedAt: null };
 
-    const where: any = { status: 'active' };
-
+    // ─── Keyword search ───────────────────────────────────────────────────
     if (q) {
       where.OR = [
         { name:        { contains: q, mode: 'insensitive' } },
         { description: { contains: q, mode: 'insensitive' } },
         { sku:         { contains: q, mode: 'insensitive' } },
+        { variants:    { some: { value: { contains: q, mode: 'insensitive' }, isActive: true } } },
       ];
-
       // Track analytics async — tidak block response
       this.trackSearch(q).catch(() => {});
     }
 
+    // ─── Category filter (rekursif include subcategory) ───────────────────
     if (categoryId) {
-      // Rekursif: cari semua descendant category IDs
       const categoryIds = await this.getAllDescendantIds(categoryId);
       where.categoryId = { in: categoryIds };
     }
 
+    // ─── Stock filter ─────────────────────────────────────────────────────
     if (inStock) where.stock = { gt: 0 };
 
+    // ─── Price filter ─────────────────────────────────────────────────────
     if (minPrice !== undefined || maxPrice !== undefined) {
       where.basePrice = {
         ...(minPrice !== undefined && { gte: minPrice }),
@@ -58,7 +61,18 @@ export class SearchService {
       };
     }
 
-    // ✅ Sort di DB — bukan in-memory
+    // ─── Variant filter (Rasa, Ukuran, Warna, dll) ────────────────────────
+    if (variantName || variantValue) {
+      where.variants = {
+        some: {
+          isActive: true,
+          ...(variantName && { name: { contains: variantName, mode: 'insensitive' } }),
+          ...(variantValue && { value: { contains: variantValue, mode: 'insensitive' } }),
+        },
+      };
+    }
+
+    // ─── Sort ─────────────────────────────────────────────────────────────
     const orderBy = this.buildOrderBy(sortBy, sortOrder);
 
     const [products, total] = await Promise.all([
@@ -68,8 +82,16 @@ export class SearchService {
         take: limit,
         orderBy,
         include: {
-          images: { where: { isFeatured: true }, take: 1, select: { imageUrl: true, altText: true } },
+          images: {
+            where: { isFeatured: true },
+            take: 1,
+            select: { imageUrl: true, altText: true },
+          },
           category: { select: { id: true, name: true, slug: true } },
+          variants: {
+            where: { isActive: true },
+            select: { id: true, name: true, value: true, basePrice: true, discountPrice: true, stock: true },
+          },
         },
       }),
       this.prisma.product.count({ where }),
@@ -94,6 +116,7 @@ export class SearchService {
     const products = await this.prisma.product.findMany({
       where: {
         status: 'active',
+        deletedAt: null,
         name: { contains: q, mode: 'insensitive' },
       },
       select: { name: true, slug: true },
@@ -129,14 +152,10 @@ export class SearchService {
       update: { count: { increment: 1 } },
       create: { query: normalized, count: 1 },
     });
-    // Invalidate popular searches cache
     await this.cache.del(CacheService.keys.popularSearches());
   }
 
   private buildOrderBy(sortBy: string, sortOrder: 'asc' | 'desc') {
-    // Sort by effective price: gunakan discountPrice jika ada, fallback ke basePrice
-    // Prisma tidak support conditional column sort langsung,
-    // jadi sort by discountPrice dulu (nulls last), lalu basePrice sebagai fallback
     if (sortBy === 'price') {
       return [
         { discountPrice: { sort: sortOrder, nulls: 'last' } as any },
