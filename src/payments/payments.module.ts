@@ -6,7 +6,7 @@ import { MidtransService } from './providers/midtrans.service';
 
 @Module({
   controllers: [PaymentsController],
-    providers: [
+  providers: [
     PaymentsService,
     XenditService,
     MidtransService,
