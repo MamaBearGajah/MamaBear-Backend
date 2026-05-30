@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Headers,
 } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
@@ -21,8 +22,27 @@ export class PaymentsController {
   }
 
   @Get('midtrans-test')
+
   async testMidtrans() {
     return this.paymentsService.testMidtrans();
+  }
+
+  @Post('webhook/xendit')
+  async xenditWebhook(
+    @Headers('x-callback-token') callbackToken: string,
+    @Body() body: any,
+  ) {
+    return this.paymentsService.handleXenditWebhook(
+      callbackToken,
+      body,
+    );
+  }
+
+  @Post('webhook/midtrans')
+  async midtransWebhook(
+    @Body() body: any,
+  ) {
+    return this.paymentsService.handleMidtransWebhook(body);
   }
 
   @Post('checkout')
