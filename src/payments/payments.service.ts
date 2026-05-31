@@ -14,17 +14,27 @@ export class PaymentsService {
     private readonly midtransService: MidtransService,
   ) {}
 
+  // =========================
+  // XENDIT PAYMENT TEST
+  // =========================
   async testXendit() {
     return this.xenditService.createInvoice();
   }
 
+  // =========================
+  // MIDTRANS PAYMENT TEST
+  // =========================
   async testMidtrans() {
     return this.midtransService.createToken();
   }
 
+  // =========================
+  // PAYMENT CHECKOUT FLOW
+  // =========================
   async create(createPaymentDto: CreatePaymentDto) {
     const { provider, amount, orderId } = createPaymentDto;
 
+    // XENDIT CHECKOUT
     if (provider === 'xendit') {
       const invoice = await this.xenditService.createInvoice();
 
@@ -41,6 +51,7 @@ export class PaymentsService {
       return invoice;
     }
 
+    // MIDTRANS CHECKOUT
     if (provider === 'midtrans') {
       const transaction = await this.midtransService.createToken();
 
@@ -61,6 +72,9 @@ export class PaymentsService {
     };
   }
 
+  // =========================
+  // XENDIT WEBHOOK HANDLER
+  // =========================
   async handleXenditWebhook(
     callbackToken: string,
     body: any,
@@ -88,20 +102,42 @@ export class PaymentsService {
       };
     }
 
-    await this.prisma.payment.update({
-      where: {
-        id: payment.id,
-      },
-      data: {
-        status: status.toLowerCase(),
-      },
-    });
+    if (payment.status === 'paid') {
+      return {
+        message: 'Payment already processed',
+      };
+    }
+
+    // Atomic transaction:
+    // update payment status + order payment status
+    await this.prisma.$transaction([
+      this.prisma.payment.update({
+        where: {
+          id: payment.id,
+        },
+        data: {
+          status: status.toLowerCase(),
+        },
+      }),
+
+      this.prisma.order.update({
+        where: {
+          id: payment.orderId,
+        },
+        data: {
+          paymentStatus: status.toLowerCase(),
+        },
+      }),
+    ]);
 
     return {
       message: 'Webhook processed',
     };
   }
 
+  // =========================
+  // MIDTRANS WEBHOOK HANDLER
+  // =========================
   async handleMidtransWebhook(body: any) {
     const {
       order_id,
@@ -113,6 +149,7 @@ export class PaymentsService {
 
     const serverKey = process.env.MIDTRANS_SERVER_KEY!;
 
+    // Verify Midtrans SHA512 signature
     const hash = crypto
       .createHash('sha512')
       .update(
@@ -141,6 +178,12 @@ export class PaymentsService {
       };
     }
 
+    if (payment.status === 'paid') {
+      return {
+        message: 'Payment already processed',
+      };
+    }
+
     let paymentStatus: 'pending' | 'paid' | 'expired' = 'pending';
 
     if (transaction_status === 'settlement') {
@@ -154,14 +197,27 @@ export class PaymentsService {
       paymentStatus = 'expired';
     }
 
-    await this.prisma.payment.update({
-      where: {
-        id: payment.id,
-      },
-      data: {
-        status: paymentStatus,
-      },
-    });
+    // Atomic transaction:
+    // update payment status + order payment status
+    await this.prisma.$transaction([
+      this.prisma.payment.update({
+        where: {
+          id: payment.id,
+        },
+        data: {
+          status: paymentStatus,
+        },
+      }),
+
+      this.prisma.order.update({
+        where: {
+          id: payment.orderId,
+        },
+        data: {
+          paymentStatus: paymentStatus,
+        },
+      }),
+    ]);
 
     return {
       message: 'Midtrans webhook processed',

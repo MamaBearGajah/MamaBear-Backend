@@ -16,17 +16,26 @@ import { UpdatePaymentDto } from './dto/update-payment.dto';
 export class PaymentsController {
   constructor(private readonly paymentsService: PaymentsService) {}
 
+  // =========================
+  // XENDIT TEST ENDPOINT
+  // =========================
   @Get('xendit-test')
   async testXendit() {
     return this.paymentsService.testXendit();
   }
 
+  // =========================
+  // MIDTRANS TEST ENDPOINT
+  // =========================
   @Get('midtrans-test')
 
   async testMidtrans() {
     return this.paymentsService.testMidtrans();
   }
 
+  // =========================
+  // XENDIT WEBHOOK ENDPOINT
+  // =========================
   @Post('webhook/xendit')
   async xenditWebhook(
     @Headers('x-callback-token') callbackToken: string,
@@ -38,6 +47,9 @@ export class PaymentsController {
     );
   }
 
+  // =========================
+  // MIDTRANS WEBHOOK ENDPOINT
+  // =========================
   @Post('webhook/midtrans')
   async midtransWebhook(
     @Body() body: any,
@@ -45,11 +57,17 @@ export class PaymentsController {
     return this.paymentsService.handleMidtransWebhook(body);
   }
 
+  // =========================
+  // PAYMENT CHECKOUT ENDPOINT
+  // =========================
   @Post('checkout')
   async create(@Body() createPaymentDto: CreatePaymentDto) {
     return this.paymentsService.create(createPaymentDto);
   }
 
+  // =========================
+  // DEFAULT CRUD ENDPOINTS
+  // =========================
   @Get()
   findAll() {
     return this.paymentsService.findAll();
