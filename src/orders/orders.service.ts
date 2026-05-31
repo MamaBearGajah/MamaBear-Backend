@@ -47,7 +47,7 @@ export class OrdersService {
 
     // Shipping
     const shippingOptions = await this.shippingService.calculateCost({
-      originCityId: process.env.WAREHOUSE_CITY_ID,
+      originCityId: process.env.WAREHOUSE_CITY_ID!,
       destinationCityId: address.cityId,
       weight: totalWeight,
       courier: dto.courier,
@@ -173,10 +173,12 @@ export class OrdersService {
       })
 
       for (const item of order.items) {
-        await tx.productVariant.update({
-          where: { id: item.variantId },
-          data: { stock: { increment: item.quantity } },
-        })
+        if (item.variantId !== null) {
+          await tx.productVariant.update({
+            where: { id: item.variantId },
+            data: { stock: { increment: item.quantity } },
+          })
+        }
       }
 
       return cancelled
