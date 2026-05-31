@@ -4,21 +4,23 @@ import { BadRequestException, ForbiddenException, Injectable, NotFoundException 
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { ShippingService } from '../shipping/shipping.service';
 
 @Injectable()
 export class OrdersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly shippingService: ShippingService) {}
 
   // Create Order
   async create(userId: string, dto: CreateOrderDto) {
     const cart = await this.prisma.cart.findFirst({
-      where: { userId, status: 'active' },
+      where: { userId },
       include: {
         items: {
           include: {
-            productVariant: {
-              include: { product: true },
-            },
+            variant: { include: { product: true } },
+            product: true,
           },
         },
       },
@@ -28,9 +30,9 @@ export class OrdersService {
     }
 
     for (const item of cart.items) {
-      const variant = item.ProductVariant
+      const variant = item.variant
       if (!variant) throw new BadRequestException(`Product variant not found for cart item ${item.id}`)
-      if (variant.stock < item.quantity) throw new BadRequestException(`Insufficient stock for: ${variant.product?.name ?? item.productVariantId}`)
+      if (variant.stock < item.quantity) throw new BadRequestException(`Insufficient stock for: ${variant.product?.name ?? item.productId}`)
     }
 
     const address = await this.prisma.address.findFirst({
@@ -38,12 +40,31 @@ export class OrdersService {
     })
     if (!address) throw new NotFoundException('Address not found')
 
+    const totalWeight = cart.items.reduce((sum, item) => {
+      const weight = item.product?.weight ?? 0
+      return sum + weight * item.quantity
+    }, 0)
+
+    // Shipping
+    const shippingOptions = await this.shippingService.calculateCost({
+      originCityId: process.env.WAREHOUSE_CITY_ID,
+      destinationCityId: address.cityId,
+      weight: totalWeight,
+      courier: dto.courier,
+    })
+
+    const selectedService = shippingOptions
+      .flatMap((o: any) => o.cost)
+      .find((c: any) => c.service === dto.service)
+    if (!selectedService) throw new BadRequestException('Shipping service not available')
+
+    const shippingCost = selectedService.cost[0].value
+
     const subtotal = cart.items.reduce((sum, item) => {
-      const price = Number(item.effectivePrice ?? item.productVariant?.price ?? 0)
+      const price = Number(item.variant?.basePrice ?? item.price ?? 0)
       return sum + price * item.quantity
     }, 0)
 
-    const shippingCost = 15000 //examples
     const total = subtotal + shippingCost
 
     const order = await this.prisma.$transaction(async (tx) => {
@@ -69,23 +90,20 @@ export class OrdersService {
           productId: item.productId,
           variantId: item.variantId ?? null,
           quantity: item.quantity,
-          price: item.effectivePrice ?? item.productVariant?.price ?? 0,
-          subtotal: Number(item.effectivePrice ?? item.productVariant?.price ?? 0) * item.quantity,
+          price: item.variant?.basePrice ?? item.price ?? 0,
         }))
       })
 
       for (const item of cart.items) {
-        await tx.productVariant.update({
-          where: { id: item.variantId },
-          data: { stock: { decrement: item.quantity } },
-        })
+        if (item.variantId) {
+          await tx.productVariant.update({
+            where: { id: item.variantId },
+            data: { stock: { decrement: item.quantity } },
+          })
+        }
       }
 
       await tx.cartItem.deleteMany({ where: { cartId: cart.id } })
-      await tx.cart.update({
-        where: { id: cart.id },
-        data: { status: 'checked_out' },
-      })
 
       return newOrder
     })
@@ -104,9 +122,11 @@ export class OrdersService {
         orderBy: { createdAt: 'desc' },
         skip,
         take: limit,
-        include: { items: { include: { productVariant: { include: { product: true } } } } },
-        address: true,
-        payment: true,
+        include: { 
+          items: { include: { variant: { include: { product: true } } } },
+          address: true,
+          payment: true,
+        },
       }),
       this.prisma.order.count({ where: { userId } }),
     ])
@@ -127,9 +147,11 @@ export class OrdersService {
   async findOne(userId: string, orderId: string) {
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },
-      include: { items: { include: { productVariant: { include: { product: true } } } } },
-      address: true,
-      payment: true,
+      include: { 
+        items: { include: { variant: { include: { product: true } } } },
+        address: true,
+        payment: true,
+      },
     })
     if (!order) throw new NotFoundException('Order not found')
     if (order.userId !== userId) throw new ForbiddenException('Access denied')
@@ -145,21 +167,19 @@ export class OrdersService {
     if (order.status !== 'pending') throw new BadRequestException('Only pending orders can be cancelled')
   
     return this.prisma.$transaction(async (tx) => {
-      const cancelled = await this.tx.order.update({
+      const cancelled = await tx.order.update({
         where: { id: orderId },
         data: { status: 'cancelled', cancelledAt: new Date() },
       })
 
       for (const item of order.items) {
         await tx.productVariant.update({
-          where: { id: item.productVariantId },
+          where: { id: item.variantId },
           data: { stock: { increment: item.quantity } },
         })
       }
 
       return cancelled
     })
-    
-    
   }
 }
