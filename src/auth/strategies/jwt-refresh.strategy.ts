@@ -4,6 +4,7 @@ import { Strategy } from 'passport-jwt';
 import { Request } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { Role } from '../../../generated/prisma/enums';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -13,14 +14,14 @@ export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh'
     private prisma: PrismaService,
   ) {
     super({
-      // Baca refresh token dari HTTP-only cookie
       jwtFromRequest: (req: Request) => req?.cookies?.refreshToken ?? null,
       secretOrKey: config.getOrThrow<string>('JWT_REFRESH_SECRET'),
       passReqToCallback: true,
     });
   }
 
-  async validate(req: Request, payload: { sub: string; email: string; role: string }) {
+  // FIX: role di payload di-type sebagai Role, bukan string
+  async validate(req: Request, payload: { sub: string; email: string; role: Role }) {
     const refreshToken = req?.cookies?.refreshToken;
     if (!refreshToken) throw new UnauthorizedException('Refresh token tidak ditemukan');
 
@@ -43,7 +44,7 @@ export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh'
     const isMatch = await bcrypt.compare(refreshToken, user.refreshToken);
     if (!isMatch) throw new UnauthorizedException('Refresh token tidak cocok');
 
-    // ← hanya return yang dibutuhkan, jangan include refreshToken
+    // Return role dari DB (bukan dari payload JWT) — lebih aman kalau role berubah
     return { id: user.id, email: user.email, role: user.role };
   }
 }

@@ -9,7 +9,7 @@ export class CategoryQueryDto {
   @IsOptional()
   isActive?: boolean;
 
-  @ApiPropertyOptional({ example: 'parent-uuid-123', description: 'Filter berdasarkan parent ID. Gunakan "null" untuk root categories' })
+  @ApiPropertyOptional({ example: 'parent-uuid-123', description: 'Filter berdasarkan parent ID. Gunakan null untuk root categories' })
   @IsString()
   @IsOptional()
   parentId?: string;

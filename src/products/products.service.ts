@@ -118,11 +118,10 @@ export class ProductsService {
     if (cached) return cached;
 
     const result = await this.queryProducts(query);
-    await this.cache.set(cacheKey, result, 60 * 2); // 2 menit
+    await this.cache.set(cacheKey, result, 60 * 2);
     return result;
   }
 
-  // ✅ /products/filter — endpoint terpisah dengan logika yang sama
   async filter(query: ProductQueryDto) {
     return this.findAll(query);
   }
@@ -133,12 +132,12 @@ export class ProductsService {
     if (cached) return cached;
 
     const products = await this.prisma.product.findMany({
-      where: { status: 'active' },
+      where: { status: 'active', deletedAt: null },
       orderBy: { soldCount: 'desc' },
       take: limit,
       include: {
         images: {
-          where: { imageType: 'main' },
+          where: { isFeatured: true },
           select: { imageUrl: true, altText: true },
           take: 1,
         },
@@ -146,7 +145,7 @@ export class ProductsService {
       },
     });
 
-    await this.cache.set(cacheKey, products, 60 * 5); // 5 menit
+    await this.cache.set(cacheKey, products, 60 * 5);
     return products;
   }
 
@@ -179,11 +178,11 @@ export class ProductsService {
     const cached = await this.cache.get(cacheKey);
     if (cached) return cached;
 
-    const product = await this.prisma.product.findUnique({
-      where: { id },
+    const product = await this.prisma.product.findFirst({
+      where: { id, deletedAt: null },
       include: {
-        images: true,
-        variants: { where: { isActive: true } },
+        images: { orderBy: { sortOrder: 'asc' } },
+        variants: { where: { isActive: true }, orderBy: { createdAt: 'asc' } },
         category: true,
       },
     });
@@ -198,11 +197,11 @@ export class ProductsService {
     const cached = await this.cache.get(cacheKey);
     if (cached) return cached;
 
-    const product = await this.prisma.product.findUnique({
-      where: { slug },
+    const product = await this.prisma.product.findFirst({
+      where: { slug, deletedAt: null },
       include: {
-        images: true,
-        variants: { where: { isActive: true } },
+        images: { orderBy: { sortOrder: 'asc' } },
+        variants: { where: { isActive: true }, orderBy: { createdAt: 'asc' } },
         category: true,
       },
     });
@@ -229,7 +228,11 @@ export class ProductsService {
 
   async remove(id: string) {
     await this.findOne(id);
-    const product = await this.prisma.product.delete({ where: { id } });
+    // Soft delete
+    const product = await this.prisma.product.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
     await this.invalidateProductCache(id);
     return product;
   }
@@ -254,7 +257,7 @@ export class ProductsService {
               slug: true,
               stock: true,
               images: {
-                where: { imageType: 'main' },
+                where: { isFeatured: true },
                 select: { imageUrl: true },
                 take: 1,
               },
@@ -278,21 +281,26 @@ export class ProductsService {
     const {
       page = 1, limit = 20, q, categoryId,
       minPrice, maxPrice, inStock,
+      variantName, variantValue,
       sortBy = 'createdAt', sortOrder = 'desc',
     } = query;
 
-    const where: any = { status: 'active' };
+    const where: any = { status: 'active', deletedAt: null };
 
+    // ─── Keyword search ───────────────────────────────────────────────────
     if (q) {
       where.OR = [
-        { name: { contains: q, mode: 'insensitive' } },
+        { name:        { contains: q, mode: 'insensitive' } },
         { description: { contains: q, mode: 'insensitive' } },
-        { sku: { contains: q, mode: 'insensitive' } },
+        { sku:         { contains: q, mode: 'insensitive' } },
+        { variants:    { some: { value: { contains: q, mode: 'insensitive' }, isActive: true } } },
       ];
     }
 
+    // ─── Category filter ──────────────────────────────────────────────────
     if (categoryId) where.categoryId = categoryId;
 
+    // ─── Price filter ─────────────────────────────────────────────────────
     if (minPrice !== undefined || maxPrice !== undefined) {
       where.basePrice = {
         ...(minPrice !== undefined && { gte: minPrice }),
@@ -300,7 +308,19 @@ export class ProductsService {
       };
     }
 
+    // ─── Stock filter ─────────────────────────────────────────────────────
     if (inStock) where.stock = { gt: 0 };
+
+    // ─── Variant filter (rasa, ukuran, dll) ───────────────────────────────
+    if (variantName || variantValue) {
+      where.variants = {
+        some: {
+          isActive: true,
+          ...(variantName && { name: { contains: variantName, mode: 'insensitive' } }),
+          ...(variantValue && { value: { contains: variantValue, mode: 'insensitive' } }),
+        },
+      };
+    }
 
     const [data, total] = await Promise.all([
       this.prisma.product.findMany({
@@ -311,6 +331,10 @@ export class ProductsService {
         include: {
           images: { where: { isFeatured: true }, take: 1 },
           category: { select: { id: true, name: true, slug: true } },
+          variants: {
+            where: { isActive: true },
+            select: { id: true, name: true, value: true, basePrice: true, discountPrice: true, stock: true },
+          },
         },
       }),
       this.prisma.product.count({ where }),
