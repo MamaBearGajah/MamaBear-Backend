@@ -47,7 +47,7 @@ export class OrdersService {
 
     // Shipping
     const shippingOptions = await this.shippingService.calculateCost({
-      originCityId: process.env.WAREHOUSE_CITY_ID!,
+      originCityId: process.env.WAREHOUSE_CITY_ID!, // apakah ada gudang atau gimana?
       destinationCityId: address.cityId,
       weight: totalWeight,
       courier: dto.courier,
