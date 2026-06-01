@@ -37,6 +37,7 @@ const ACCESS_COOKIE_OPTIONS = (isProduction: boolean) => ({
   secure: isProduction,
   sameSite: 'strict' as const,
   maxAge: 15 * 60 * 1000,           // 15 menit
+  // maxAge: 10 * 1000, // 10 detik (untuk testing)
   path: '/',
 });
 
@@ -135,6 +136,7 @@ export class AuthController {
   // ─────────────────────────────────────────────
   // REFRESH TOKEN
   // ─────────────────────────────────────────────
+  @Public()
   @UseGuards(JwtRefreshGuard)
   @Post('refresh')
   @ApiOperation({ summary: 'Refresh access token menggunakan cookie' })

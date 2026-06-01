@@ -27,6 +27,7 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { UsersModule } from './users/users.module';
 import { CustomThrottlerGuard } from './common/guards/throttler.guard';
 import { ReviewsModule } from './products/reviews/reviews.module';
+import { GuestCartModule } from './guest-cart/guest-cart.module';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { ReviewsModule } from './products/reviews/reviews.module';
     HealthModule,
     UsersModule,
     ReviewsModule,
+    GuestCartModule,
   ],
   controllers: [AppController],
   providers: [
