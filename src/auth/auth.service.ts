@@ -236,6 +236,7 @@ export class AuthService {
       this.jwtService.signAsync(payload, {
         secret: this.config.getOrThrow('JWT_ACCESS_SECRET'),
         expiresIn: '15m',
+        // expiresIn: '10s', // Untuk testing
       }),
       this.jwtService.signAsync(payload, {
         secret: this.config.getOrThrow('JWT_REFRESH_SECRET'),
