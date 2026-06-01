@@ -1,7 +1,8 @@
-import { IsBoolean, IsNotEmpty } from "class-validator";
+import { ApiProperty } from '@nestjs/swagger';
+import { IsBoolean } from 'class-validator';
 
 export class HelpfulVoteDto {
-    @IsBoolean()
-    @IsNotEmpty()
-    isHelpful!: boolean
+  @ApiProperty({ example: true })
+  @IsBoolean()
+  isHelpful!: boolean;
 }
