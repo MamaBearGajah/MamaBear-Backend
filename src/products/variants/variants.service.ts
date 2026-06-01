@@ -1,19 +1,19 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { CacheService } from '../../cache/cache.service';
 import { CreateVariantDto } from '../dto/create-variant.dto';
 import { UpdateVariantDto } from '../dto/update-variant.dto';
 import { UpdateVariantImagesBatchDto } from '../dto/update-batch-variant-images.dto';
 
 @Injectable()
 export class VariantsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly cache: CacheService,
+  ) {}
 
   // ─── STOCK HELPER ────────────────────────────────────────────────────────────
 
-  /**
-   * Sync stock produk induk dari total stock semua variant aktif.
-   * Dipanggil setiap kali variant ditambah/diupdate/dihapus.
-   */
   private async syncProductStock(productId: string) {
     const result = await this.prisma.productVariant.aggregate({
       where: { productId, isActive: true },
@@ -28,6 +28,11 @@ export class VariantsService {
         data: { stock: result._sum.stock ?? 0 },
       });
     }
+
+    // FIX: Invalidate cache setelah stock berubah
+    await this.cache.del(CacheService.keys.product(productId));
+    await this.cache.delByPattern('products:list:*');
+    await this.cache.delByPattern('products:best-sellers:*');
   }
 
   // ─── GET ALL VARIANTS ────────────────────────────────────────────────────────
@@ -40,9 +45,9 @@ export class VariantsService {
         product: {
           select: {
             id: true,
-            name: true,   // ✅ nama produk
-            stock: true,  // ✅ stok produk induk
-            category: { select: { id: true, name: true, slug: true } },  // ✅ nama kategori
+            name: true,
+            stock: true,
+            category: { select: { id: true, name: true, slug: true } },
           },
         },
       },
@@ -51,10 +56,6 @@ export class VariantsService {
 
   // ─── GET ONE VARIANT ─────────────────────────────────────────────────────────
 
-  /**
-   * Dipakai admin dashboard untuk pre-fill form edit variant.
-   * Include product.name dan category.name.
-   */
   async findOneVariant(productId: string, variantId: string) {
     const variant = await this.prisma.productVariant.findFirst({
       where: { id: variantId, productId },
@@ -62,10 +63,10 @@ export class VariantsService {
         product: {
           select: {
             id: true,
-            name: true,   // ✅ nama produk
+            name: true,
             slug: true,
-            stock: true,  // ✅ stok produk induk
-            category: { select: { id: true, name: true, slug: true } },  // ✅ nama kategori
+            stock: true,
+            category: { select: { id: true, name: true, slug: true } },
           },
         },
       },
@@ -85,7 +86,7 @@ export class VariantsService {
       data: { ...dto, productId },
     });
 
-    await this.syncProductStock(productId);  // ✅ sync stok produk induk
+    await this.syncProductStock(productId);
     return variant;
   }
 
@@ -102,7 +103,7 @@ export class VariantsService {
       data: dto,
     });
 
-    await this.syncProductStock(productId);  // ✅ sync stok produk induk
+    await this.syncProductStock(productId);
     return variant;
   }
 
@@ -116,7 +117,7 @@ export class VariantsService {
 
     const variant = await this.prisma.productVariant.delete({ where: { id: variantId } });
 
-    await this.syncProductStock(productId);  // ✅ sync stok produk induk
+    await this.syncProductStock(productId);
     return variant;
   }
 
@@ -151,6 +152,9 @@ export class VariantsService {
   // ─── BATCH UPDATE VARIANT IMAGES ─────────────────────────────────────────────
 
   async batchUpdateVariantImages(productId: string, dto: UpdateVariantImagesBatchDto) {
+    const product = await this.prisma.product.findUnique({ where: { id: productId } });
+    if (!product) throw new NotFoundException('Produk tidak ditemukan');
+
     return this.prisma.$transaction(
       dto.variants.map((item) =>
         this.prisma.productVariant.updateMany({

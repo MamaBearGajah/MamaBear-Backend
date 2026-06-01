@@ -6,6 +6,31 @@ import { UpdateCategoryDto } from './dto/update-category.dto';
 import { CategoryQueryDto } from './dto/category-query.dto';
 import { ProductQueryDto } from 'src/products/dto/product-query.dto';
 
+// Include children aktif saja, rekursif 4 level sesuai struktur:
+// Moms & Baby > Maternity Supplies > ASI Booster > Teh/Kookie/Kapsul
+const CHILDREN_INCLUDE = {
+  where: { isActive: true },
+  orderBy: { sortOrder: 'asc' as const },
+  include: {
+    children: {
+      where: { isActive: true },
+      orderBy: { sortOrder: 'asc' as const },
+      include: {
+        children: {
+          where: { isActive: true },
+          orderBy: { sortOrder: 'asc' as const },
+          include: {
+            children: {
+              where: { isActive: true },
+              orderBy: { sortOrder: 'asc' as const },
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
 @Injectable()
 export class CategoriesService {
   constructor(
@@ -32,8 +57,10 @@ export class CategoriesService {
     const { isActive, parentId, page = 1, limit = 20 } = query;
     const skip = (page - 1) * limit;
 
-    const where = {
+    const where: any = {
       ...(isActive !== undefined && { isActive }),
+      // FIX: parentId bisa null (root) atau string (filter by parent)
+      // undefined = tidak difilter, null = root categories, string = filter by parent
       ...(parentId !== undefined && { parentId }),
     };
 
@@ -43,7 +70,10 @@ export class CategoriesService {
         skip,
         take: limit,
         orderBy: { sortOrder: 'asc' },
-        include: { children: true },
+        // FIX: Rekursif 3 level, filter children yang aktif saja
+        include: {
+          children: CHILDREN_INCLUDE,
+        },
       }),
       this.prisma.category.count({ where }),
     ]);
@@ -53,12 +83,11 @@ export class CategoriesService {
       meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
     };
 
-    await this.cache.set(cacheKey, result, 60 * 10); // 10 menit
+    await this.cache.set(cacheKey, result, 60 * 10);
     return result;
   }
 
   // ─── FIND ONE ─────────────────────────────────────────────────────────────
-  // Hanya return metadata kategori — tidak include products (gunakan findProducts())
 
   async findOne(id: string) {
     const cacheKey = CacheService.keys.category(id);
@@ -68,7 +97,8 @@ export class CategoriesService {
     const category = await this.prisma.category.findUnique({
       where: { id },
       include: {
-        children: true,
+        // FIX: children rekursif + filter aktif
+        children: CHILDREN_INCLUDE,
         parent: true,
       },
     });
@@ -142,7 +172,6 @@ export class CategoriesService {
         throw new ConflictException('Kategori tidak boleh menjadi parent dari dirinya sendiri');
       }
 
-      // Cek circular reference
       let checkParentId: string | null = dto.parentId;
       while (checkParentId) {
         const parentCategory = await this.prisma.category.findUnique({
@@ -199,7 +228,7 @@ export class CategoriesService {
   // ─── PRODUCTS IN CATEGORY (rekursif) ─────────────────────────────────────
 
   async findProducts(id: string, query: ProductQueryDto) {
-    await this.findOne(id); // validasi category exists
+    await this.findOne(id);
 
     const cacheKey = CacheService.keys.categoryProducts(id, JSON.stringify(query));
     const cached = await this.cache.get(cacheKey);
@@ -215,8 +244,8 @@ export class CategoriesService {
       status: 'active',
       deletedAt: null,
       ...(query.q && { name: { contains: query.q, mode: 'insensitive' as const } }),
-      ...(query.minPrice !== undefined && { basePrice: { gte: query.minPrice } }),
-      ...(query.maxPrice !== undefined && { basePrice: { lte: query.maxPrice } }),
+      ...(query.minPrice !== undefined && { discountPrice: { gte: query.minPrice } }),
+      ...(query.maxPrice !== undefined && { discountPrice: { lte: query.maxPrice } }),
       ...(query.inStock && { stock: { gt: 0 } }),
     };
 
@@ -253,7 +282,7 @@ export class CategoriesService {
       meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
     };
 
-    await this.cache.set(cacheKey, result, 60 * 2); // 2 menit
+    await this.cache.set(cacheKey, result, 60 * 2);
     return result;
   }
 

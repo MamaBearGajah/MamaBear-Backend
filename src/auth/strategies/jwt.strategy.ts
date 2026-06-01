@@ -3,12 +3,14 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { Role } from '../../../generated/prisma/enums';
 import { Request } from 'express';
 
 export type JwtPayload = {
   sub: string;
   email: string;
-  role: string;
+  // FIX: role di-type sebagai Role enum, bukan string
+  role: Role;
 };
 
 @Injectable()
@@ -18,7 +20,6 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     private prisma: PrismaService,
   ) {
     super({
-      // ✅ Baca dari cookie dulu, fallback ke Authorization header
       jwtFromRequest: (req: Request) => {
         return (
           req?.cookies?.accessToken ??
@@ -44,16 +45,12 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       },
     });
 
-    // Tidak ditemukan atau sudah soft-delete
     if (!user || user.deletedAt) throw new UnauthorizedException('User tidak ditemukan');
-
-    // Belum verifikasi email
     if (!user.isVerified) throw new UnauthorizedException('Akun belum diverifikasi');
-
-    // Akun di-ban
     if (user.bannedAt) throw new UnauthorizedException('Akun kamu telah dinonaktifkan');
 
-    // Hanya return field yang dibutuhkan — bannedAt & deletedAt tidak perlu di request.user
+    // Return role dari DB, bukan dari payload JWT
+    // Ini penting: kalau admin di-demote, token lama tidak bisa eskalasi privilege
     return { id: user.id, email: user.email, role: user.role };
   }
 }

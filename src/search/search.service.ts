@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '../../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CacheService } from '../cache/cache.service';
 import { SearchQueryDto } from './dto/search-query.dto';
@@ -23,7 +24,48 @@ export class SearchService {
     if (cached) return cached;
 
     const skip = (page - 1) * limit;
+
+    // ─── Resolve category descendants ────────────────────────────────────────
+    let categoryIds: string[] | null = null;
+    if (categoryId) {
+      categoryIds = await this.getAllDescendantIds(categoryId);
+    }
+
+    // ─── Price filter via COALESCE (raw query) ────────────────────────────────
+    // Prisma tidak support COALESCE — pakai raw agar produk tanpa discountPrice
+    // tetap ikut filter dengan fallback ke basePrice
+    let priceFilteredIds: string[] | null = null;
+    if (minPrice !== undefined || maxPrice !== undefined) {
+      const min = minPrice ?? 0;
+      const max = maxPrice ?? Number.MAX_SAFE_INTEGER;
+
+      const rows = await this.prisma.$queryRaw<{ id: string }[]>(
+        Prisma.sql`
+          SELECT id FROM "Product"
+          WHERE status = 'active'
+            AND "deletedAt" IS NULL
+            AND COALESCE("discountPrice", "basePrice") >= ${min}
+            AND COALESCE("discountPrice", "basePrice") <= ${max}
+            ${categoryIds
+              ? Prisma.sql`AND "categoryId" = ANY(${categoryIds}::uuid[])`
+              : Prisma.empty
+            }
+        `,
+      );
+
+      priceFilteredIds = rows.map((r) => r.id);
+    }
+
+    // ─── Prisma where ─────────────────────────────────────────────────────────
     const where: any = { status: 'active', deletedAt: null };
+
+    // Kalau ada price filter, id sudah mencakup category filter dari raw query
+    // Kalau tidak ada price filter, pakai categoryIds langsung
+    if (priceFilteredIds) {
+      where.id = { in: priceFilteredIds };
+    } else if (categoryIds) {
+      where.categoryId = { in: categoryIds };
+    }
 
     if (q) {
       where.OR = [
@@ -35,19 +77,7 @@ export class SearchService {
       this.trackSearch(q).catch(() => {});
     }
 
-    if (categoryId) {
-      const categoryIds = await this.getAllDescendantIds(categoryId);
-      where.categoryId = { in: categoryIds };
-    }
-
     if (inStock) where.stock = { gt: 0 };
-
-    if (minPrice !== undefined || maxPrice !== undefined) {
-      where.basePrice = {
-        ...(minPrice !== undefined && { gte: minPrice }),
-        ...(maxPrice !== undefined && { lte: maxPrice }),
-      };
-    }
 
     if (variantName || variantValue) {
       where.variants = {
@@ -83,15 +113,9 @@ export class SearchService {
       this.prisma.product.count({ where }),
     ]);
 
-    // ✅ { data, meta } → TransformInterceptor akan wrap jadi { success, data, meta }
     const result = {
       data: products,
-      meta: {
-        page,
-        limit,
-        totalItems: total,
-        totalPages: Math.ceil(total / limit),
-      },
+      meta: { page, limit, totalItems: total, totalPages: Math.ceil(total / limit) },
     };
 
     await this.cache.set(cacheKey, result, 60 * 2);
@@ -118,7 +142,6 @@ export class SearchService {
       take: 10,
     });
 
-    // ✅ Contract: array of strings
     const suggestions = products.map((p) => p.name);
     await this.cache.set(cacheKey, suggestions, 60 * 5);
     return suggestions;
