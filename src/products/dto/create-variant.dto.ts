@@ -1,12 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
-  IsBoolean,
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
-  IsString,
-  Min,
+  IsBoolean, IsNotEmpty, IsNumber,
+  IsOptional, IsString, Min,
 } from 'class-validator';
 
 export class CreateVariantDto {
@@ -25,8 +21,9 @@ export class CreateVariantDto {
   @Min(0)
   basePrice!: number;
 
-  @ApiPropertyOptional({ example: 45000 })
+  @ApiPropertyOptional({ example: 45000, minimum: 0 })
   @IsNumber()
+  @Min(0)
   @IsOptional()
   discountPrice?: number;
 
@@ -35,9 +32,11 @@ export class CreateVariantDto {
   @IsOptional()
   priceAdjustment?: number;
 
-  @ApiProperty({ example: 50, description: 'Jumlah stok varian ini' })
+  // FIX: Tambah Min(0) untuk validasi stock >= 0
+  @ApiProperty({ example: 50, minimum: 0, description: 'Jumlah stok varian ini' })
   @Type(() => Number)
   @IsNumber()
+  @Min(0)
   @IsNotEmpty()
   stock!: number;
 

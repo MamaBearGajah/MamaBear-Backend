@@ -17,7 +17,7 @@ export class VariantsService {
   private async syncProductStock(productId: string) {
     const result = await this.prisma.productVariant.aggregate({
       where: { productId, isActive: true },
-      _sum: { stock: true },
+      _sum: { stock: true, reservedStock: true },
     });
 
     const hasVariants = await this.prisma.productVariant.count({ where: { productId } });
@@ -25,20 +25,33 @@ export class VariantsService {
     if (hasVariants > 0) {
       await this.prisma.product.update({
         where: { id: productId },
-        data: { stock: result._sum.stock ?? 0 },
+        data: {
+          stock: result._sum.stock ?? 0,
+          reservedStock: result._sum.reservedStock ?? 0,
+        },
       });
     }
 
-    // FIX: Invalidate cache setelah stock berubah
     await this.cache.del(CacheService.keys.product(productId));
     await this.cache.delByPattern('products:list:*');
     await this.cache.delByPattern('products:best-sellers:*');
   }
 
+  // ─── VARIANT RESPONSE HELPER ─────────────────────────────────────────────────
+
+  // Tambah effectivePrice dan availableStock ke setiap variant response
+  private withComputedFields<T extends { basePrice: any; discountPrice: any | null; stock: number; reservedStock: number }>(variant: T) {
+    return {
+      ...variant,
+      effectivePrice: variant.discountPrice ?? variant.basePrice,
+      availableStock: variant.stock - variant.reservedStock,
+    };
+  }
+
   // ─── GET ALL VARIANTS ────────────────────────────────────────────────────────
 
   async findVariants(productId: string) {
-    return this.prisma.productVariant.findMany({
+    const variants = await this.prisma.productVariant.findMany({
       where: { productId },
       orderBy: { createdAt: 'asc' },
       include: {
@@ -52,6 +65,8 @@ export class VariantsService {
         },
       },
     });
+
+    return variants.map(this.withComputedFields.bind(this));
   }
 
   // ─── GET ONE VARIANT ─────────────────────────────────────────────────────────
@@ -73,7 +88,7 @@ export class VariantsService {
     });
 
     if (!variant) throw new NotFoundException('Varian tidak ditemukan di produk ini');
-    return variant;
+    return this.withComputedFields(variant);
   }
 
   // ─── ADD VARIANT ─────────────────────────────────────────────────────────────
@@ -82,12 +97,13 @@ export class VariantsService {
     const product = await this.prisma.product.findUnique({ where: { id: productId } });
     if (!product) throw new NotFoundException('Produk tidak ditemukan');
 
+    // Validasi stock >= 0 sudah dihandle di DTO via @Min(0)
     const variant = await this.prisma.productVariant.create({
       data: { ...dto, productId },
     });
 
     await this.syncProductStock(productId);
-    return variant;
+    return this.withComputedFields(variant);
   }
 
   // ─── UPDATE VARIANT ──────────────────────────────────────────────────────────
@@ -98,13 +114,14 @@ export class VariantsService {
     });
     if (!existing) throw new NotFoundException('Varian tidak ditemukan di produk ini');
 
+    // Validasi stock >= 0 sudah dihandle di DTO via @Min(0)
     const variant = await this.prisma.productVariant.update({
       where: { id: variantId },
       data: dto,
     });
 
     await this.syncProductStock(productId);
-    return variant;
+    return this.withComputedFields(variant);
   }
 
   // ─── DELETE VARIANT ──────────────────────────────────────────────────────────
@@ -155,6 +172,7 @@ export class VariantsService {
     const product = await this.prisma.product.findUnique({ where: { id: productId } });
     if (!product) throw new NotFoundException('Produk tidak ditemukan');
 
+    // Catatan: altText tidak ada di ProductVariant — hanya imageUrl yang bisa diupdate
     return this.prisma.$transaction(
       dto.variants.map((item) =>
         this.prisma.productVariant.updateMany({
