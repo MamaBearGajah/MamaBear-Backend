@@ -14,7 +14,7 @@ export class OrdersService {
   // ─── Create Order ────────────────────────────────────────────────────────────
   async create(userId: string, dto: CreateOrderDto) {
     const cart = await this.prisma.cart.findFirst({
-      where: { userId, status: 'active' },
+      where: { userId },
       include: {
         items: {
           include: {
