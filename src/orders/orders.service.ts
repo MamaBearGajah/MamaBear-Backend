@@ -1,5 +1,4 @@
-import { map } from 'rxjs/operators';
-import { Prisma, ProductVariant } from './../../generated/prisma/client';
+import { Prisma } from './../../generated/prisma/client';
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
@@ -12,10 +11,10 @@ export class OrdersService {
     private readonly prisma: PrismaService,
     private readonly shippingService: ShippingService) {}
 
-  // Create Order
+  // ─── Create Order ────────────────────────────────────────────────────────────
   async create(userId: string, dto: CreateOrderDto) {
     const cart = await this.prisma.cart.findFirst({
-      where: { userId },
+      where: { userId, status: 'active' },
       include: {
         items: {
           include: {
@@ -25,14 +24,15 @@ export class OrdersService {
         },
       },
     })
-    if (!cart || cart.items.length === 0) {
-      throw new BadRequestException('Cart is empty or not found')
-    }
+    if (!cart || cart.items.length === 0) throw new BadRequestException('Cart is empty or not found')
 
+    // Stock validation and price per items
     for (const item of cart.items) {
-      const variant = item.variant
-      if (!variant) throw new BadRequestException(`Product variant not found for cart item ${item.id}`)
-      if (variant.stock < item.quantity) throw new BadRequestException(`Insufficient stock for: ${variant.product?.name ?? item.productId}`)
+      if (!item.variant) throw new BadRequestException(`Product variant not found for cart item ${item.id}`)
+      if (item.variant.stock < item.quantity) throw new BadRequestException(`Insufficient stock for: ${item.variant.product?.name ?? item.productId}`)
+    
+      const price = item.variant.basePrice ?? item.price
+      if (!price || Number(price) <= 0) throw new BadRequestException(`Invalid price for product: ${item.variant.product?.name ?? item.productId}`)
     }
 
     const address = await this.prisma.address.findFirst({
@@ -88,12 +88,24 @@ export class OrdersService {
         data: cart.items.map((item) => ({
           orderId: newOrder.id,
           productId: item.productId,
+          productName: item.product?.name ?? 'Unknown Product', // snapshot product name
           variantId: item.variantId ?? null,
+          variantName: item.variant ? `${item.variant.name}: ${item.variant.value}`: null,  // snapshot variant name
           quantity: item.quantity,
-          price: item.variant?.basePrice ?? item.price ?? 0,
+          price: item.variant?.basePrice ?? item.price,
         }))
       })
 
+      // OrderStatusHistory
+      await tx.orderStatusHistory.create({
+        data: {
+          orderId: newOrder.id,
+          status: 'pending',
+          note: 'Order created successfully',
+        },
+      })
+
+      // Decrement variant stock
       for (const item of cart.items) {
         if (item.variantId) {
           await tx.productVariant.update({
@@ -101,6 +113,19 @@ export class OrdersService {
             data: { stock: { decrement: item.quantity } },
           })
         }
+      }
+
+      // Increment soldCount product
+      const productSoldMap = cart.items.reduce<Record<string, number>>((acc, item) => {
+        acc[item.productId] = (acc[item.productId] ?? 0) + item.quantity
+        return acc
+      }, {})
+
+      for (const [productId, qty] of Object.entries(productSoldMap)) {
+        await tx.product.update({
+          where: { id: productId },
+          data: { soldCount: { increment: qty } },
+        })
       }
 
       await tx.cartItem.deleteMany({ where: { cartId: cart.id } })
@@ -112,7 +137,7 @@ export class OrdersService {
   }
 
 
-  // Find All Orders
+  // ─── Find All Orders ─────────────────────────────────────────────────────────
   async findAll(userId: string, page = 1, limit = 10) {
     const skip = (page - 1) * limit
 
@@ -142,8 +167,7 @@ export class OrdersService {
     }
   }
 
-
-  // Find One Order
+  // ─── Find One Order ──────────────────────────────────────────────────────────
   async findOne(userId: string, orderId: string) {
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },
@@ -160,7 +184,7 @@ export class OrdersService {
   }
 
 
-  // Cancelled Orders
+  // ─── Cancel Order ────────────────────────────────────────────────────────────
   async cancel(userId: string, orderId: string) {
     const order = await this.findOne(userId, orderId)
 
@@ -172,13 +196,36 @@ export class OrdersService {
         data: { status: 'cancelled', cancelledAt: new Date() },
       })
 
+      // OrderStatusHistory
+      await tx.orderStatusHistory.create({
+        data: {
+          orderId,
+          status: 'cancelled',
+          note: 'Order cancelled by user',
+        }
+      })
+
+      // Return variant stock
       for (const item of order.items) {
-        if (item.variantId !== null) {
+        if (item.variantId) {
           await tx.productVariant.update({
             where: { id: item.variantId },
             data: { stock: { increment: item.quantity } },
           })
         }
+      }
+
+      // Return soldCount
+      const productSoldMap = order.items.reduce<Record<string, number>>((acc, item) => {
+        acc[item.productId] = (acc[item.productId] ?? 0) + item.quantity
+        return acc
+      }, {})
+
+      for (const [productId, qty] of Object.entries(productSoldMap)) {
+        await tx.product.update({
+          where: { id: productId },
+          data: { soldCount: { decrement: qty } },
+        })
       }
 
       return cancelled
