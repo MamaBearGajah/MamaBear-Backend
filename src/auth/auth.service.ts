@@ -4,6 +4,7 @@ import {
   UnauthorizedException,
   NotFoundException,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -12,6 +13,10 @@ import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import { MailService } from 'src/mail/mail.service';
 import { ForgotPasswordDto, LoginDto, RegisterDto, ResetPasswordDto } from './dto';
+import { Role } from '../../generated/prisma/enums';
+
+// Dummy hash untuk mencegah timing attack saat user tidak ditemukan
+const DUMMY_HASH = '$2b$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNOPQRSTUVWXYZ012345';
 
 @Injectable()
 export class AuthService {
@@ -83,39 +88,56 @@ export class AuthService {
   // ─────────────────────────────────────────────
   async resendVerification(email: string) {
     const user = await this.prisma.user.findUnique({ where: { email } });
-    if (!user) throw new NotFoundException('Email belum terdaftar');
-    if (user.isVerified) throw new BadRequestException('Email sudah terverifikasi');
+
+    // FIX: Hindari user enumeration — jangan beda-bedain pesan error
+    if (!user || user.isVerified) {
+      if (user?.isVerified) throw new BadRequestException('Email sudah terverifikasi');
+      // Jika user tidak ada, diam-diam return — sama seperti forgotPassword
+      return { message: 'Jika email terdaftar dan belum terverifikasi, email telah dikirim ulang' };
+    }
 
     await this.sendVerificationEmail(user.id, user.email);
-    return { message: 'Email verifikasi telah dikirim ulang' };
+    return { message: 'Jika email terdaftar dan belum terverifikasi, email telah dikirim ulang' };
   }
 
   // ─────────────────────────────────────────────
   // LOGIN
   // ─────────────────────────────────────────────
   async login(dto: LoginDto) {
-    // 1. Cek apakah email terdaftar
+    // 1. Cari user berdasarkan email
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
-    if (!user) throw new NotFoundException('Email belum terdaftar');
 
-    // 2. Cek password
-    const passwordMatch = await bcrypt.compare(dto.password, user.password);
-    if (!passwordMatch) throw new UnauthorizedException('Password salah');
+    // 2. Selalu jalankan bcrypt.compare untuk mencegah timing attack
+    //    Gunakan dummy hash jika user tidak ditemukan
+    const passwordMatch = await bcrypt.compare(
+      dto.password,
+      user?.password ?? DUMMY_HASH,
+    );
 
-    // 3. Cek verifikasi email
+    // FIX: Satukan pesan error email/password — mencegah user enumeration
+    if (!user || !passwordMatch) {
+      throw new UnauthorizedException('Email atau password salah');
+    }
+
+    // 3. Cek akun soft-deleted
+    if (user.deletedAt)
+      throw new UnauthorizedException('Akun tidak ditemukan atau telah dihapus');
+
+    // 4. Cek verifikasi email
     if (!user.isVerified)
-      throw new UnauthorizedException('Akun belum diverifikasi. Cek email kamu.');
+      throw new ForbiddenException('Akun belum diverifikasi. Cek email kamu.');
 
-    // 4. Cek apakah akun di-ban
+    // 5. Cek apakah akun di-ban
     if (user.bannedAt)
       throw new UnauthorizedException(
         `Akun kamu telah dinonaktifkan${user.banReason ? `: ${user.banReason}` : '.'}`,
       );
 
-    // 5. Generate tokens
-    const tokens = await this.generateTokens(user.id, user.email, user.role as string);
+    // 6. Generate tokens
+
+    const tokens = await this.generateTokens(user.id, user.email, user.role);
     await this.updateRefreshToken(user.id, tokens.refreshToken);
 
     return {
@@ -132,7 +154,7 @@ export class AuthService {
   // ─────────────────────────────────────────────
   // REFRESH TOKEN
   // ─────────────────────────────────────────────
-  async refreshToken(userId: string, email: string, role: string) {
+  async refreshToken(userId: string, email: string, role: Role) {
     const tokens = await this.generateTokens(userId, email, role);
     await this.updateRefreshToken(userId, tokens.refreshToken);
     return tokens;
@@ -197,7 +219,7 @@ export class AuthService {
         password: hash,
         resetToken: null,
         resetTokenExp: null,
-        refreshToken: null,
+        refreshToken: null, // Invalidate semua sesi aktif
       },
     });
 
@@ -207,13 +229,14 @@ export class AuthService {
   // ─────────────────────────────────────────────
   // PRIVATE HELPERS
   // ─────────────────────────────────────────────
-  private async generateTokens(userId: string, email: string, role: string) {
+  private async generateTokens(userId: string, email: string, role: Role) {
     const payload = { sub: userId, email, role };
 
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload, {
         secret: this.config.getOrThrow('JWT_ACCESS_SECRET'),
         expiresIn: '15m',
+        // expiresIn: '10s', // Untuk testing
       }),
       this.jwtService.signAsync(payload, {
         secret: this.config.getOrThrow('JWT_REFRESH_SECRET'),

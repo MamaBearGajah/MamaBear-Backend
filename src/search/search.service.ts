@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '../../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CacheService } from '../cache/cache.service';
 import { SearchQueryDto } from './dto/search-query.dto';
@@ -12,17 +13,10 @@ export class SearchService {
 
   async search(query: SearchQueryDto) {
     const {
-      q,
-      minPrice,
-      maxPrice,
-      categoryId,
-      inStock,
-      variantName,
-      variantValue,
-      sortBy = 'createdAt',
-      sortOrder = 'desc',
-      page = 1,
-      limit = 10,
+      q, minPrice, maxPrice, categoryId, inStock,
+      variantName, variantValue,
+      sortBy = 'createdAt', sortOrder = 'desc',
+      page = 1, limit = 10,
     } = query;
 
     const cacheKey = CacheService.keys.search(JSON.stringify(query));
@@ -30,9 +24,49 @@ export class SearchService {
     if (cached) return cached;
 
     const skip = (page - 1) * limit;
+
+    // ─── Resolve category descendants ────────────────────────────────────────
+    let categoryIds: string[] | null = null;
+    if (categoryId) {
+      categoryIds = await this.getAllDescendantIds(categoryId);
+    }
+
+    // ─── Price filter via COALESCE (raw query) ────────────────────────────────
+    // Prisma tidak support COALESCE — pakai raw agar produk tanpa discountPrice
+    // tetap ikut filter dengan fallback ke basePrice
+    let priceFilteredIds: string[] | null = null;
+    if (minPrice !== undefined || maxPrice !== undefined) {
+      const min = minPrice ?? 0;
+      const max = maxPrice ?? Number.MAX_SAFE_INTEGER;
+
+      const rows = await this.prisma.$queryRaw<{ id: string }[]>(
+        Prisma.sql`
+          SELECT id FROM "Product"
+          WHERE status = 'active'
+            AND "deletedAt" IS NULL
+            AND COALESCE("discountPrice", "basePrice") >= ${min}
+            AND COALESCE("discountPrice", "basePrice") <= ${max}
+            ${categoryIds
+              ? Prisma.sql`AND "categoryId" = ANY(${categoryIds}::uuid[])`
+              : Prisma.empty
+            }
+        `,
+      );
+
+      priceFilteredIds = rows.map((r) => r.id);
+    }
+
+    // ─── Prisma where ─────────────────────────────────────────────────────────
     const where: any = { status: 'active', deletedAt: null };
 
-    // ─── Keyword search ───────────────────────────────────────────────────
+    // Kalau ada price filter, id sudah mencakup category filter dari raw query
+    // Kalau tidak ada price filter, pakai categoryIds langsung
+    if (priceFilteredIds) {
+      where.id = { in: priceFilteredIds };
+    } else if (categoryIds) {
+      where.categoryId = { in: categoryIds };
+    }
+
     if (q) {
       where.OR = [
         { name:        { contains: q, mode: 'insensitive' } },
@@ -40,28 +74,11 @@ export class SearchService {
         { sku:         { contains: q, mode: 'insensitive' } },
         { variants:    { some: { value: { contains: q, mode: 'insensitive' }, isActive: true } } },
       ];
-      // Track analytics async — tidak block response
       this.trackSearch(q).catch(() => {});
     }
 
-    // ─── Category filter (rekursif include subcategory) ───────────────────
-    if (categoryId) {
-      const categoryIds = await this.getAllDescendantIds(categoryId);
-      where.categoryId = { in: categoryIds };
-    }
-
-    // ─── Stock filter ─────────────────────────────────────────────────────
     if (inStock) where.stock = { gt: 0 };
 
-    // ─── Price filter ─────────────────────────────────────────────────────
-    if (minPrice !== undefined || maxPrice !== undefined) {
-      where.basePrice = {
-        ...(minPrice !== undefined && { gte: minPrice }),
-        ...(maxPrice !== undefined && { lte: maxPrice }),
-      };
-    }
-
-    // ─── Variant filter (Rasa, Ukuran, Warna, dll) ────────────────────────
     if (variantName || variantValue) {
       where.variants = {
         some: {
@@ -72,7 +89,6 @@ export class SearchService {
       };
     }
 
-    // ─── Sort ─────────────────────────────────────────────────────────────
     const orderBy = this.buildOrderBy(sortBy, sortOrder);
 
     const [products, total] = await Promise.all([
@@ -99,10 +115,10 @@ export class SearchService {
 
     const result = {
       data: products,
-      meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+      meta: { page, limit, totalItems: total, totalPages: Math.ceil(total / limit) },
     };
 
-    await this.cache.set(cacheKey, result, 60 * 2); // 2 menit
+    await this.cache.set(cacheKey, result, 60 * 2);
     return result;
   }
 
@@ -117,14 +133,17 @@ export class SearchService {
       where: {
         status: 'active',
         deletedAt: null,
-        name: { contains: q, mode: 'insensitive' },
+        OR: [
+          { name: { contains: q, mode: 'insensitive' } },
+          { variants: { some: { value: { contains: q, mode: 'insensitive' }, isActive: true } } },
+        ],
       },
       select: { name: true, slug: true },
       take: 10,
     });
 
-    const suggestions = products.map((p) => ({ name: p.name, slug: p.slug }));
-    await this.cache.set(cacheKey, suggestions, 60 * 5); // 5 menit
+    const suggestions = products.map((p) => p.name);
+    await this.cache.set(cacheKey, suggestions, 60 * 5);
     return suggestions;
   }
 
@@ -139,11 +158,9 @@ export class SearchService {
       select: { query: true, count: true },
     });
 
-    await this.cache.set(cacheKey, searches, 60 * 10); // 10 menit
+    await this.cache.set(cacheKey, searches, 60 * 10);
     return searches;
   }
-
-  // ─── Private Helpers ──────────────────────────────────────────────────────
 
   private async trackSearch(query: string) {
     const normalized = query.trim().toLowerCase();
@@ -162,7 +179,6 @@ export class SearchService {
         { basePrice: sortOrder },
       ];
     }
-
     const allowedSorts = ['createdAt', 'basePrice', 'soldCount', 'avgRating', 'name'];
     const field = allowedSorts.includes(sortBy) ? sortBy : 'createdAt';
     return { [field]: sortOrder };
@@ -171,7 +187,6 @@ export class SearchService {
   private async getAllDescendantIds(categoryId: string): Promise<string[]> {
     const ids: string[] = [categoryId];
     const queue = [categoryId];
-
     while (queue.length > 0) {
       const parentId = queue.shift()!;
       const children = await this.prisma.category.findMany({
@@ -183,7 +198,6 @@ export class SearchService {
         queue.push(child.id);
       }
     }
-
     return ids;
   }
 }

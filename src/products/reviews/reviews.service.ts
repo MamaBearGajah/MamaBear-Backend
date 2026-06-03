@@ -1,110 +1,187 @@
-import { PrismaService } from 'src/prisma/prisma.service';
-import { ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  ForbiddenException,
+  BadRequestException,
+} from '@nestjs/common';
+import { PrismaService } from '../../prisma/prisma.service';
 import { CreateReviewDto } from '../dto/create-review.dto';
 import { UpdateReviewDto } from '../dto/update-review.dto';
-import { ReviewQueryDto } from '../dto/review-query.dto';
+import { Role } from 'generated/prisma/enums';
 
 @Injectable()
 export class ReviewsService {
-    constructor(private readonly prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) {}
 
-    async findByProduct(productId: string, query: ReviewQueryDto) {
-      const { page = 1, limit = 10, rating } = query
-      const skip = (page - 1) * limit
+  async getReviews(
+    productId: string,
+    page = 1,
+    limit = 10,
+    sortBy: 'rating' | 'createdAt' = 'createdAt',
+    sortOrder: 'asc' | 'desc' = 'desc',
+    userId?: string,
+  ) {
+    const product = await this.prisma.product.findUnique({ where: { id: productId } });
+    if (!product) throw new NotFoundException('Produk tidak ditemukan');
 
-      const where = {
-        productId,
-        ...(rating && { rating }),
-      }
-
-      const [data, total] = await this.prisma.$transaction([
-        this.prisma.productReview.findMany({
-          where, 
-          skip,
-          take: limit,
-          orderBy: { [query.sortBy ?? 'createdAt']: query.sortOrder ?? 'desc' },
-          include: {
-            user: { select: { id: true, name: true } },
-          },
-        }),
-        this.prisma.productReview.count({ where }),
-      ])
-
-      return {
-        data,
-        meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
-      }
-    }
-
-    async create(productId: string, userId: string, dto: CreateReviewDto) {
-      const product = await this.prisma.product.findUnique({ where: { id: productId } })
-      if (!product) throw new NotFoundException('Produk tidak ditemukan!')
-
-      const existing = await this.prisma.productReview.findFirst({
-        where: { productId, userId },
-      })
-      if (!existing) throw new ConflictException('Anda sudah memberikan review untuk produk ini.')
-
-      const order = await this.prisma.order.findFirst({
-        where: { id: dto.orderId, userId },
-        include: { items: true },
-      })
-      if (!order) throw new NotFoundException('Order tidak ditemukan!')
-
-      const hasProduct = order.items.some(item => item.productId === productId)
-      const isVerifiedPurchase = !!order && hasProduct
-
-      return this.prisma.productReview.create({
-        data: {
-          productId,
-          userId,
-          orderId: dto.orderId,
-          rating: dto.rating,
-          review: dto.review,
-          isVerifiedPurchase,
+    const [reviews, total] = await Promise.all([
+      this.prisma.productReview.findMany({
+        where: { productId },
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: { [sortBy]: sortOrder },
+        include: {
+          user: { select: { id: true, name: true } },
+          helpfuls: userId
+            ? { where: { userId }, select: { isHelpful: true } }
+            : false,
         },
-      })
+      }),
+      this.prisma.productReview.count({ where: { productId } }),
+    ]);
+
+    const data = reviews.map((r) => {
+      const { helpfuls, ...rest } = r as any;
+      const userVote = userId && helpfuls && helpfuls.length > 0
+        ? helpfuls[0].isHelpful
+        : null;
+      return { ...rest, userVote };
+    });
+
+    return {
+      data,
+      meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+    };
+  }
+
+  async createReview(productId: string, userId: string, dto: CreateReviewDto) {
+    if (dto.rating == null && !dto.review) {
+      throw new BadRequestException('Rating atau review harus diisi (minimal salah satu)');
     }
 
-    async update(id: string, userId: string, dto: UpdateReviewDto) {
-      const review = await this.prisma.productReview.findUnique({ where: { id } })
-      if (!review) throw new NotFoundException('Review tidak ditemukan!')
-      if (review.userId !== userId) throw new ForbiddenException('Review ini bukan merupakan review Anda')
+    const product = await this.prisma.product.findUnique({ where: { id: productId } });
+    if (!product) throw new NotFoundException('Produk tidak ditemukan');
 
-      return this.prisma.productReview.update({
-        where: { id },
-        data: {
-          ...(dto.rating && { rating: dto.rating }),
-          ...(dto.review !== undefined && { review: dto.review }),
-        }
-      })
+    const order = await this.prisma.order.findFirst({
+      where: {
+        id: dto.orderId,
+        userId,
+        status: 'delivered',
+        items: { some: { productId } },
+      },
+    });
+    if (!order) throw new ForbiddenException('Pembelian terverifikasi diperlukan untuk memberi ulasan');
+
+    const existing = await this.prisma.productReview.findUnique({
+      where: { userId_productId_orderId: { userId, productId, orderId: dto.orderId } },
+    });
+    if (existing) throw new ConflictException('Anda sudah mengulas produk ini untuk pesanan ini');
+
+    return this.prisma.productReview.create({
+      data: {
+        productId,
+        userId,
+        orderId: dto.orderId,
+        rating: dto.rating,
+        review: dto.review,
+        isVerifiedPurchase: true,
+      },
+      include: { user: { select: { id: true, name: true } } },
+    });
+  }
+
+  async updateReview(reviewId: string, userId: string, dto: UpdateReviewDto) {
+    if (dto.rating == null && !dto.review) {
+      throw new BadRequestException('Rating atau review harus diisi (minimal salah satu)');
     }
 
-    async remove(id: string, userId: string) {
-      const review = await this.prisma.productReview.findUnique({ where: { id } })
-      if (!review) throw new NotFoundException('Review tidak ditemukan!')
-      if (review.userId !== userId) throw new ForbiddenException('Review ini bukan merupakan review Anda')
+    const review = await this.prisma.productReview.findUnique({ where: { id: reviewId } });
+    if (!review) throw new NotFoundException('Review tidak ditemukan');
+    if (review.userId !== userId) throw new ForbiddenException('Review ini bukan milik Anda');
 
-        return this.prisma.productReview.delete({ where: { id } })
+    return this.prisma.productReview.update({
+      where: { id: reviewId },
+      data: {
+        ...(dto.rating != null && { rating: dto.rating }),
+        ...(dto.review !== undefined && { review: dto.review }),
+      },
+      include: { user: { select: { id: true, name: true } } },
+    });
+  }
+
+  async deleteReview(reviewId: string, userId: string, role: Role) {
+    const review = await this.prisma.productReview.findUnique({ where: { id: reviewId } });
+    if (!review) throw new NotFoundException('Review tidak ditemukan');
+
+    const isAdmin = role === Role.admin || role === Role.super_admin;
+    if (!isAdmin && review.userId !== userId) {
+      throw new ForbiddenException('Review ini bukan milik Anda');
     }
 
-    async helpfulVote(reviewId: string, userId: string, isHelpful: boolean) {
-      const review = await this.prisma.productReview.findUnique({ where: { id: reviewId } })
-      if (!review) throw new NotFoundException('Review tidak ditemukan!')
-      
-      const existing = await this.prisma.productReviewHelpful.findFirst({
-        where: { reviewId, userId },
-      })
+    await this.prisma.productReview.delete({ where: { id: reviewId } });
+    return { message: 'Review berhasil dihapus' };
+  }
 
-      if (existing) {
-        return this.prisma.productReviewHelpful.update({
-          where: { id: existing.id },
-          data: { isHelpful },
-        })
-      }
+  async toggleHelpful(reviewId: string, userId: string, isHelpful: boolean) {
+    const review = await this.prisma.productReview.findUnique({ where: { id: reviewId } });
+    if (!review) throw new NotFoundException('Review tidak ditemukan');
 
-      return this.prisma.productReviewHelpful.create({
-        data: { reviewId, userId, isHelpful },
-      })
+    const existing = await this.prisma.productReviewHelpful.findUnique({
+      where: { reviewId_userId: { reviewId, userId } },
+    });
+
+    if (existing && existing.isHelpful === isHelpful) {
+      await this.prisma.productReviewHelpful.delete({
+        where: { reviewId_userId: { reviewId, userId } },
+      });
+      const count = await this.prisma.productReviewHelpful.count({
+        where: { reviewId, isHelpful: true },
+      });
+      await this.prisma.productReview.update({
+        where: { id: reviewId },
+        data: { helpfulCount: count },
+      });
+      return { message: 'Helpful vote dihapus' };
     }
+
+    await this.prisma.productReviewHelpful.upsert({
+      where: { reviewId_userId: { reviewId, userId } },
+      create: { reviewId, userId, isHelpful },
+      update: { isHelpful },
+    });
+
+    const count = await this.prisma.productReviewHelpful.count({
+      where: { reviewId, isHelpful: true },
+    });
+
+    await this.prisma.productReview.update({
+      where: { id: reviewId },
+      data: { helpfulCount: count },
+    });
+
+    return { message: 'Helpful vote berhasil direcord', isHelpful };
+  }
+
+  async getRatingSummary(productId: string) {
+    const product = await this.prisma.product.findUnique({ where: { id: productId } });
+    if (!product) throw new NotFoundException('Produk tidak ditemukan');
+
+    const reviews = await this.prisma.productReview.findMany({
+      where: { productId, rating: { not: null } },
+      select: { rating: true },
+    });
+
+    const rated = reviews.filter((r) => r.rating !== null) as { rating: number }[];
+    const ratingCount = rated.length;
+    const totalRating = rated.reduce((sum, r) => sum + r.rating, 0);
+    const avgRating = ratingCount > 0 ? totalRating / ratingCount : 0;
+
+    const breakdown: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    for (const r of rated) {
+      breakdown[r.rating] = (breakdown[r.rating] ?? 0) + 1;
+    }
+
+    return { avgRating: Math.round(avgRating * 10) / 10, ratingCount, breakdown };
+  }
 }
