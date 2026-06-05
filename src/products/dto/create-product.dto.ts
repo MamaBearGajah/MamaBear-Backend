@@ -1,6 +1,17 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsArray, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, MaxLength, Min, MinLength, ValidateNested } from 'class-validator';
+import {
+  IsArray,
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  MaxLength,
+  Min,
+  MinLength,
+  ValidateNested,
+} from 'class-validator';
 import { CreateVariantDto } from './create-variant.dto';
 import { CreateImageDto } from './create-image.dto';
 
@@ -69,13 +80,17 @@ export class CreateProductDto {
   @IsOptional()
   categoryId?: string;
 
+  // FIX: tambah @IsOptional() sebelum @IsArray()
+  // Tanpa ini, kalau field tidak dikirim, class-validator tetap validasi → "must be an array"
   @ApiPropertyOptional({ type: [CreateImageDto] })
+  @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CreateImageDto)
   images?: CreateImageDto[];
 
   @ApiPropertyOptional({ type: [CreateVariantDto] })
+  @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CreateVariantDto)

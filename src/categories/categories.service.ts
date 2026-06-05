@@ -59,8 +59,6 @@ export class CategoriesService {
 
     const where: any = {
       ...(isActive !== undefined && { isActive }),
-      // FIX: parentId bisa null (root) atau string (filter by parent)
-      // undefined = tidak difilter, null = root categories, string = filter by parent
       ...(parentId !== undefined && { parentId }),
     };
 
@@ -70,10 +68,7 @@ export class CategoriesService {
         skip,
         take: limit,
         orderBy: { sortOrder: 'asc' },
-        // FIX: Rekursif 3 level, filter children yang aktif saja
-        include: {
-          children: CHILDREN_INCLUDE,
-        },
+        include: { children: CHILDREN_INCLUDE },
       }),
       this.prisma.category.count({ where }),
     ]);
@@ -97,7 +92,6 @@ export class CategoriesService {
     const category = await this.prisma.category.findUnique({
       where: { id },
       include: {
-        // FIX: children rekursif + filter aktif
         children: CHILDREN_INCLUDE,
         parent: true,
       },
@@ -238,14 +232,58 @@ export class CategoriesService {
     const skip = (page - 1) * limit;
 
     const categoryIds = await this.getAllDescendantIds(id);
+    const andConditions: any[] = [];
+
+    // Keyword search
+    if (query.q) {
+      andConditions.push({
+        OR: [
+          { name:        { contains: query.q, mode: 'insensitive' as const } },
+          { description: { contains: query.q, mode: 'insensitive' as const } },
+        ],
+      });
+    }
+
+    // Price filter: COALESCE discountPrice → basePrice
+    if (query.minPrice !== undefined || query.maxPrice !== undefined) {
+      andConditions.push({
+        OR: [
+          {
+            discountPrice: {
+              not: null,
+              ...(query.minPrice !== undefined && { gte: query.minPrice }),
+              ...(query.maxPrice !== undefined && { lte: query.maxPrice }),
+            },
+          },
+          {
+            discountPrice: null,
+            basePrice: {
+              ...(query.minPrice !== undefined && { gte: query.minPrice }),
+              ...(query.maxPrice !== undefined && { lte: query.maxPrice }),
+            },
+          },
+        ],
+      });
+    }
+
+    // Variant filter — ikut masuk AND agar tidak konflik dengan filter lain
+    if (query.variantName || query.variantValue) {
+      andConditions.push({
+        variants: {
+          some: {
+            isActive: true,
+            ...(query.variantName  && { name:  { contains: query.variantName,  mode: 'insensitive' as const } }),
+            ...(query.variantValue && { value: { contains: query.variantValue, mode: 'insensitive' as const } }),
+          },
+        },
+      });
+    }
 
     const where: any = {
       categoryId: { in: categoryIds },
       status: 'active',
       deletedAt: null,
-      ...(query.q && { name: { contains: query.q, mode: 'insensitive' as const } }),
-      ...(query.minPrice !== undefined && { discountPrice: { gte: query.minPrice } }),
-      ...(query.maxPrice !== undefined && { discountPrice: { lte: query.maxPrice } }),
+      ...(andConditions.length > 0 && { AND: andConditions }),
       ...(query.inStock && { stock: { gt: 0 } }),
     };
 
@@ -271,6 +309,10 @@ export class CategoriesService {
             where: { isFeatured: true },
             take: 1,
             select: { imageUrl: true, altText: true },
+          },
+          variants: {
+            where: { isActive: true },
+            select: { id: true, name: true, value: true, basePrice: true, discountPrice: true, stock: true },
           },
         },
       }),
