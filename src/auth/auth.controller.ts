@@ -35,7 +35,7 @@ import { Role } from '../../generated/prisma/enums';
 const ACCESS_COOKIE_OPTIONS = (isProduction: boolean) => ({
   httpOnly: true,
   secure: isProduction,
-  sameSite: 'strict' as const,
+  sameSite: (isProduction ? 'strict' : 'lax') as 'strict' | 'lax',
   maxAge: 15 * 60 * 1000,           // 15 menit
   // maxAge: 10 * 1000, // 10 detik (untuk testing)
   path: '/',
@@ -44,7 +44,7 @@ const ACCESS_COOKIE_OPTIONS = (isProduction: boolean) => ({
 const REFRESH_COOKIE_OPTIONS = (isProduction: boolean) => ({
   httpOnly: true,
   secure: isProduction,
-  sameSite: 'strict' as const,
+  sameSite: (isProduction ? 'strict' : 'lax') as 'strict' | 'lax',
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 hari
   // FIX: path harus sama persis dengan path saat clearCookie di logout
   // Pastikan prefix /api sesuai dengan global prefix app di main.ts
