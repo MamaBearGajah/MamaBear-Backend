@@ -1,93 +1,45 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  Headers,
-} from '@nestjs/common';
+import { Controller, Post, Body, Headers, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { PaymentsService } from './payments.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
-import { UpdatePaymentDto } from './dto/update-payment.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { Public } from '../auth/decorators';
 
+@ApiTags('Payments')
 @Controller('payments')
 export class PaymentsController {
   constructor(private readonly paymentsService: PaymentsService) {}
 
-  // =========================
-  // XENDIT TEST ENDPOINT
-  // =========================
-  @Get('xendit-test')
-  async testXendit() {
-    return this.paymentsService.testXendit();
+  // ─── Checkout ─────────────────────────────────────────────────────────────
+
+  @Post('checkout')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Buat payment untuk order (Xendit / Midtrans)' })
+  @ApiResponse({ status: 201, description: 'Payment berhasil dibuat, dapat paymentUrl' })
+  @ApiResponse({ status: 404, description: 'Order tidak ditemukan' })
+  create(@Body() dto: CreatePaymentDto) {
+    return this.paymentsService.create(dto);
   }
 
-  // =========================
-  // MIDTRANS TEST ENDPOINT
-  // =========================
-  @Get('midtrans-test')
+  // ─── Webhooks (Public — tidak perlu auth, verifikasi via token/signature) ──
 
-  async testMidtrans() {
-    return this.paymentsService.testMidtrans();
-  }
-
-  // =========================
-  // XENDIT WEBHOOK ENDPOINT
-  // =========================
   @Post('webhook/xendit')
-  async xenditWebhook(
+  @Public()
+  @ApiOperation({ summary: 'Xendit payment webhook' })
+  @ApiResponse({ status: 200, description: 'Webhook diproses' })
+  xenditWebhook(
     @Headers('x-callback-token') callbackToken: string,
     @Body() body: any,
   ) {
-    return this.paymentsService.handleXenditWebhook(
-      callbackToken,
-      body,
-    );
+    return this.paymentsService.handleXenditWebhook(callbackToken, body);
   }
 
-  // =========================
-  // MIDTRANS WEBHOOK ENDPOINT
-  // =========================
   @Post('webhook/midtrans')
-  async midtransWebhook(
-    @Body() body: any,
-  ) {
+  @Public()
+  @ApiOperation({ summary: 'Midtrans payment notification webhook' })
+  @ApiResponse({ status: 200, description: 'Webhook diproses' })
+  midtransWebhook(@Body() body: any) {
     return this.paymentsService.handleMidtransWebhook(body);
-  }
-
-  // =========================
-  // PAYMENT CHECKOUT ENDPOINT
-  // =========================
-  @Post('checkout')
-  async create(@Body() createPaymentDto: CreatePaymentDto) {
-    return this.paymentsService.create(createPaymentDto);
-  }
-
-  // =========================
-  // DEFAULT CRUD ENDPOINTS
-  // =========================
-  @Get()
-  findAll() {
-    return this.paymentsService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.paymentsService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updatePaymentDto: UpdatePaymentDto,
-  ) {
-    return this.paymentsService.update(+id, updatePaymentDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.paymentsService.remove(+id);
   }
 }

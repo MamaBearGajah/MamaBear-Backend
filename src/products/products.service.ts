@@ -21,6 +21,7 @@ export class ProductsService {
       .replace(/-+/g, '-');
   }
 
+  // Tambah availableStock = stock - reservedStock ke product dan variantnya
   private withAvailableStock<T extends { stock: number; reservedStock: number; variants?: any[] }>(product: T) {
     return {
       ...product,
@@ -52,9 +53,15 @@ export class ProductsService {
       });
     }
 
+    // FIX: Tambah cache invalidation
     await this.invalidateProductCache(productId);
   }
 
+  /**
+   * Dipanggil saat order dibuat (sebelum payment).
+   * Cek available stock = stock - reservedStock, lalu increment reservedStock.
+   * Stock fisik tidak berubah sampai payment confirmed.
+   */
   async reserveStock(items: { productId: string; variantId?: string; quantity: number }[]) {
     await this.prisma.$transaction(async (tx) => {
       for (const item of items) {
@@ -97,6 +104,10 @@ export class ProductsService {
     });
   }
 
+  /**
+   * Dipanggil saat payment confirmed (paid).
+   * Kurangi stock fisik, kurangi reservedStock, tambah soldCount.
+   */
   async confirmStockDeduction(items: { productId: string; variantId?: string; quantity: number }[]) {
     await this.prisma.$transaction(async (tx) => {
       for (const item of items) {
@@ -122,6 +133,10 @@ export class ProductsService {
     });
   }
 
+  /**
+   * Dipanggil saat payment expired/failed atau order cancelled (sebelum paid).
+   * Kembalikan reservedStock saja — stock fisik tidak pernah berubah.
+   */
   async releaseReservation(items: { productId: string; variantId?: string; quantity: number }[]) {
     await this.prisma.$transaction(async (tx) => {
       for (const item of items) {
@@ -149,53 +164,26 @@ export class ProductsService {
       sortBy = 'createdAt', sortOrder = 'desc',
     } = query;
 
+    // FIX: Tambah deletedAt filter
     const where: any = { status: 'active', deletedAt: null };
 
-    // FIX: Gunakan AND supaya q filter dan price filter tidak bentrok
-    const andConditions: any[] = [];
-
-    // Search filter
     if (q) {
-      andConditions.push({
-        OR: [
-          { name: { contains: q, mode: 'insensitive' } },
-          { description: { contains: q, mode: 'insensitive' } },
-          { sku: { contains: q, mode: 'insensitive' } },
-        ],
-      });
-    }
-
-    // Price filter: pakai discountPrice jika ada, fallback ke basePrice
-    // Ini supaya filter "Rp 100k–125k" hanya loloskan produk yang harganya
-    // (setelah diskon) memang dalam range tersebut
-    if (minPrice !== undefined || maxPrice !== undefined) {
-      andConditions.push({
-        OR: [
-          // Punya discountPrice → bandingkan discountPrice
-          {
-            discountPrice: {
-              not: null,
-              ...(minPrice !== undefined && { gte: minPrice }),
-              ...(maxPrice !== undefined && { lte: maxPrice }),
-            },
-          },
-          // Tidak punya discountPrice → bandingkan basePrice
-          {
-            discountPrice: null,
-            basePrice: {
-              ...(minPrice !== undefined && { gte: minPrice }),
-              ...(maxPrice !== undefined && { lte: maxPrice }),
-            },
-          },
-        ],
-      });
-    }
-
-    if (andConditions.length > 0) {
-      where.AND = andConditions;
+      where.OR = [
+        { name: { contains: q, mode: 'insensitive' } },
+        { description: { contains: q, mode: 'insensitive' } },
+        { sku: { contains: q, mode: 'insensitive' } },
+      ];
     }
 
     if (categoryId) where.categoryId = categoryId;
+
+    if (minPrice !== undefined || maxPrice !== undefined) {
+      where.basePrice = {
+        ...(minPrice !== undefined && { gte: minPrice }),
+        ...(maxPrice !== undefined && { lte: maxPrice }),
+      };
+    }
+
     if (inStock) where.stock = { gt: 0 };
 
     const cacheKey = CacheService.keys.products(JSON.stringify(query));
@@ -211,6 +199,11 @@ export class ProductsService {
         include: {
           images: { where: { isFeatured: true }, take: 1 },
           category: { select: { id: true, name: true, slug: true } },
+          variants: {
+            where: { isActive: true },
+            select: { id: true, name: true, value: true, stock: true },
+            orderBy: { sortOrder: 'asc' as const },
+          },
         },
       }),
       this.prisma.product.count({ where }),
@@ -284,6 +277,7 @@ export class ProductsService {
     const cached = await this.cache.get(cacheKey);
     if (cached) return cached;
 
+    // FIX: findFirst dengan deletedAt filter + orderBy images [imageType, sortOrder]
     const product = await this.prisma.product.findFirst({
       where: { id, deletedAt: null },
       include: {
@@ -312,6 +306,7 @@ export class ProductsService {
     const cached = await this.cache.get(cacheKey);
     if (cached) return cached;
 
+    // FIX: findFirst dengan deletedAt filter + orderBy images [imageType, sortOrder]
     const product = await this.prisma.product.findFirst({
       where: { slug, deletedAt: null },
       include: {
@@ -352,6 +347,7 @@ export class ProductsService {
 
   async remove(id: string) {
     await this.findOne(id);
+    // FIX: Soft delete — set deletedAt, jangan hard delete
     const product = await this.prisma.product.update({
       where: { id },
       data: { deletedAt: new Date() },
@@ -359,6 +355,8 @@ export class ProductsService {
     await this.invalidateProductCache(id);
     return product;
   }
+
+  // ─── ADMIN: ALL VARIANTS ACROSS PRODUCTS ──────────────────────────────────
 
   async findAllVariants(query: { page?: number; limit?: number; productId?: string }) {
     const { page = 1, limit = 20, productId } = query;
@@ -395,6 +393,7 @@ export class ProductsService {
       meta: { page, limit, totalItems: total, totalPages: Math.ceil(total / limit) },
     };
   }
+
 
   // ─── NAME + ID ONLY (untuk dropdown create variant) ───────────────────────
 
@@ -439,6 +438,8 @@ export class ProductsService {
     await this.cache.set(cacheKey, result, 60 * 5);
     return result;
   }
+
+  // ─── PRIVATE HELPERS ──────────────────────────────────────────────────────
 
   private async invalidateProductCache(id: string) {
     await this.cache.del(CacheService.keys.product(id));

@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { UpdatePaymentDto } from './dto/update-payment.dto';
 import { XenditService } from './providers/xendit.service';
@@ -18,29 +18,25 @@ export class PaymentsService {
     private readonly mailService: MailService,
   ) {}
 
-  // =========================
-  // XENDIT PAYMENT TEST
-  // =========================
-  async testXendit() {
-    return this.xenditService.createInvoice();
-  }
+  // ─── Checkout ─────────────────────────────────────────────────────────────
 
-  // =========================
-  // MIDTRANS PAYMENT TEST
-  // =========================
-  async testMidtrans() {
-    return this.midtransService.createToken();
-  }
+  async create(dto: CreatePaymentDto) {
+    const { provider, amount, orderId } = dto;
 
-  // =========================
-  // PAYMENT CHECKOUT FLOW
-  // =========================
-  async create(createPaymentDto: CreatePaymentDto) {
-    const { provider, amount, orderId } = createPaymentDto;
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      include: { user: { select: { email: true, name: true } } },
+    });
+    if (!order) throw new NotFoundException('Order tidak ditemukan');
 
-    // XENDIT CHECKOUT
+    // ─── Xendit ───────────────────────────────────────────────────────────
     if (provider === 'xendit') {
-      const invoice = await this.xenditService.createInvoice();
+      const invoice = await this.xenditService.createInvoice({
+        externalId: `ORB-${orderId}`,
+        amount,
+        payerEmail: order.user.email,
+        description: `Pembayaran Order ${order.orderNumber}`,
+      });
 
       await this.prisma.payment.create({
         data: {
@@ -49,34 +45,45 @@ export class PaymentsService {
           amount,
           externalId: invoice.externalId,
           paymentUrl: invoice.invoiceUrl,
+          expiredAt: invoice.expiredAt ? new Date(invoice.expiredAt) : null,
         },
       });
 
-      return invoice;
+      return { paymentUrl: invoice.invoiceUrl, externalId: invoice.externalId };
     }
 
-    // MIDTRANS CHECKOUT
+    // ─── Midtrans ─────────────────────────────────────────────────────────
     if (provider === 'midtrans') {
-      const transaction = await this.midtransService.createToken();
+      const snap = await this.midtransService.createSnapToken({
+        orderId: order.orderNumber, // Midtrans pakai orderNumber supaya readable di dashboard
+        amount,
+        customerName: order.user.name,
+        customerEmail: order.user.email,
+        description: `Pembayaran Order ${order.orderNumber}`,
+      });
 
       await this.prisma.payment.create({
         data: {
           orderId,
           provider,
           amount,
-          paymentUrl: transaction.redirect_url,
+          externalId: order.orderNumber, // Midtrans webhook kirim balik order_id ini
+          paymentUrl: snap.redirectUrl,
+          metadata: { snapToken: snap.token },
         },
       });
 
-      return transaction;
+      return {
+        paymentUrl: snap.redirectUrl,
+        snapToken: snap.token, // untuk Midtrans Snap.js embed (opsional)
+      };
     }
 
-    return { message: 'Invalid payment provider' };
+    throw new NotFoundException('Payment provider tidak valid');
   }
 
-  // =========================
-  // XENDIT WEBHOOK HANDLER
-  // =========================
+  // ─── Xendit Webhook ───────────────────────────────────────────────────────
+
   async handleXenditWebhook(callbackToken: string, body: any) {
     if (callbackToken !== process.env.XENDIT_CALLBACK_TOKEN) {
       return { message: 'Invalid callback token' };
@@ -91,12 +98,15 @@ export class PaymentsService {
     if (!payment) return { message: 'Payment not found' };
     if (payment.status === 'paid') return { message: 'Payment already processed' };
 
-    const paymentStatus = status.toLowerCase();
+    const paymentStatus = status.toLowerCase() as 'paid' | 'expired' | 'failed';
 
     await this.prisma.$transaction([
       this.prisma.payment.update({
         where: { id: payment.id },
-        data: { status: paymentStatus, ...(paymentStatus === 'paid' && { paidAt: new Date() }) },
+        data: {
+          status: paymentStatus,
+          ...(paymentStatus === 'paid' && { paidAt: new Date() }),
+        },
       }),
       this.prisma.order.update({
         where: { id: payment.orderId },
@@ -113,41 +123,46 @@ export class PaymentsService {
       );
     }
 
-    return { message: 'Webhook processed' };
+    return { message: 'Xendit webhook processed' };
   }
 
-  // =========================
-  // MIDTRANS WEBHOOK HANDLER
-  // =========================
+  // ─── Midtrans Webhook ─────────────────────────────────────────────────────
+
   async handleMidtransWebhook(body: any) {
     const { order_id, status_code, gross_amount, signature_key, transaction_status } = body;
 
+    // Verifikasi signature SHA512
     const serverKey = process.env.MIDTRANS_SERVER_KEY!;
-
     const hash = crypto
       .createHash('sha512')
       .update(order_id + status_code + gross_amount + serverKey)
       .digest('hex');
 
-    if (hash !== signature_key) {
-      return { message: 'Invalid signature key' };
-    }
+    if (hash !== signature_key) return { message: 'Invalid signature key' };
 
+    // Midtrans kirim order_id = orderNumber kita
     const payment = await this.prisma.payment.findFirst({
-      where: { orderId: order_id },
+      where: { externalId: order_id },
     });
 
     if (!payment) return { message: 'Payment not found' };
     if (payment.status === 'paid') return { message: 'Payment already processed' };
 
     let paymentStatus: 'pending' | 'paid' | 'expired' = 'pending';
-    if (transaction_status === 'settlement') paymentStatus = 'paid';
-    if (transaction_status === 'expire' || transaction_status === 'cancel') paymentStatus = 'expired';
+    if (transaction_status === 'settlement' || transaction_status === 'capture') {
+      paymentStatus = 'paid';
+    }
+    if (transaction_status === 'expire' || transaction_status === 'cancel' || transaction_status === 'deny') {
+      paymentStatus = 'expired';
+    }
 
     await this.prisma.$transaction([
       this.prisma.payment.update({
         where: { id: payment.id },
-        data: { status: paymentStatus, ...(paymentStatus === 'paid' && { paidAt: new Date() }) },
+        data: {
+          status: paymentStatus,
+          ...(paymentStatus === 'paid' && { paidAt: new Date() }),
+        },
       }),
       this.prisma.order.update({
         where: { id: payment.orderId },
@@ -167,19 +182,16 @@ export class PaymentsService {
     return { message: 'Midtrans webhook processed' };
   }
 
-  // =========================
-  // PRIVATE: SEND ORDER CONFIRMATION
-  // =========================
+  // ─── Private ──────────────────────────────────────────────────────────────
+
   private async sendOrderConfirmationEmail(orderId: string) {
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },
       include: {
         user: { select: { email: true, name: true } },
         items: true,
-        payment: true,
       },
     });
-
     if (!order) return;
 
     await this.mailService.sendOrderConfirmation({
@@ -197,23 +209,12 @@ export class PaymentsService {
       total: Number(order.total),
       courier: order.courier,
       service: order.service,
-      paymentUrl: null, // sudah paid
+      paymentUrl: null,
     });
   }
 
-  findAll() {
-    return `This action returns all payments`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} payment`;
-  }
-
-  update(id: number, updatePaymentDto: UpdatePaymentDto) {
-    return `This action updates a #${id} payment`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} payment`;
-  }
+  findAll() { return `This action returns all payments`; }
+  findOne(id: number) { return `This action returns a #${id} payment`; }
+  update(id: number, updatePaymentDto: UpdatePaymentDto) { return `This action updates a #${id} payment`; }
+  remove(id: number) { return `This action removes a #${id} payment`; }
 }

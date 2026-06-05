@@ -1,29 +1,50 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Xendit } from 'xendit-node';
+import { Xendit, Invoice as XenditInvoice } from 'xendit-node';
+
+export interface CreateInvoiceOptions {
+  externalId: string;
+  amount: number;
+  payerEmail: string;
+  description?: string;
+}
 
 @Injectable()
 export class XenditService {
-    private xenditClient: Xendit;
+  private readonly logger = new Logger(XenditService.name);
+  private readonly invoiceClient: XenditInvoice;
 
-    constructor(private configService: ConfigService) {
-        this.xenditClient = new Xendit({
-        secretKey: this.configService.get<string>('XENDIT_SECRET_KEY')!,
-        });
-    }
+  constructor(private readonly config: ConfigService) {
+    const xendit = new Xendit({
+      secretKey: this.config.getOrThrow<string>('XENDIT_SECRET_KEY'),
+    });
+    this.invoiceClient = xendit.Invoice;
+  }
 
-    async createInvoice(): Promise<any> {
-        const invoiceApi = this.xenditClient.Invoice;
+  async createInvoice(opts: CreateInvoiceOptions) {
+    const frontendUrl = this.config.getOrThrow<string>('FRONTEND_URL');
 
-        const response = await invoiceApi.createInvoice({
+    try {
+      const invoice = await this.invoiceClient.createInvoice({
         data: {
-            externalId: `INV-${Date.now()}`,
-            amount: 50000,
-            payerEmail: 'customer@example.com',
-            description: 'MamaBear Order Payment',
+          externalId: opts.externalId,
+          amount: opts.amount,
+          payerEmail: opts.payerEmail,
+          description: opts.description ?? 'MamaBear Order Payment',
+          successRedirectUrl: `${frontendUrl}/payment/success`,
+          failureRedirectUrl: `${frontendUrl}/payment/failed`,
         },
-        });
+      });
 
-        return response;
+      return {
+        externalId: invoice.externalId,
+        invoiceUrl: invoice.invoiceUrl,
+        status: invoice.status,
+        expiredAt: invoice.expiryDate,
+      };
+    } catch (error) {
+      this.logger.error('Failed to create Xendit invoice', error);
+      throw new InternalServerErrorException('Gagal membuat invoice pembayaran');
     }
+  }
 }
