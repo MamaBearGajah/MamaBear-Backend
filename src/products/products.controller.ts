@@ -45,6 +45,15 @@ export class ProductsController {
     return this.productsService.findBySlug(slug);
   }
 
+  // Harus di atas @Get(':id') supaya tidak tertangkap sebagai id = "name-id"
+  @Public()
+  @Get('name-id')
+  @ApiOperation({ summary: 'Get semua nama dan ID produk — untuk dropdown create variant' })
+  @ApiResponse({ status: 200, description: 'List nama dan ID produk' })
+  findAllNameAndId(@Query() query: ProductQueryDto) {
+    return this.productsService.findAllNameAndId(query);
+  }
+
   // ─── ADMIN ────────────────────────────────────────────────────────────────
   // variants/all harus di atas :id supaya tidak tertangkap sebagai id = "variants"
 

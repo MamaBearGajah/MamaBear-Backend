@@ -4,7 +4,7 @@ import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { GetUser } from 'src/auth/decorators';
 
 @ApiTags('Orders')
 @ApiBearerAuth()
@@ -18,7 +18,7 @@ export class OrdersController {
   @ApiResponse({ status: 201, description: 'Order berhasil dibuat' })
   @ApiResponse({ status: 400, description: 'Cart kosong atau stok tidak cukup' })
   @ApiResponse({ status: 404, description: 'Alamat tidak ditemukan' })
-  create(@CurrentUser('id') userId: string, @Body() dto: CreateOrderDto) {
+  create(@GetUser('id') userId: string, @Body() dto: CreateOrderDto) {
     return this.ordersService.create(userId, dto)
   }
 
@@ -28,7 +28,7 @@ export class OrdersController {
   @ApiQuery({ name: 'limit', required: false, example: 10 })
   @ApiResponse({ status: 200, description: 'List order berhasil diambil' })
   findAll(
-    @CurrentUser('id') userId: string, 
+    @GetUser('id') userId: string, 
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number) {
       return this.ordersService.findAll(userId, page, limit)
@@ -40,7 +40,7 @@ export class OrdersController {
   @ApiResponse({ status: 200, description: 'Detail order berhasil diambil' })
   @ApiResponse({ status: 400, description: 'Akses ditolak' })
   @ApiResponse({ status: 404, description: 'Order tidak ditemukan' })
-  findOne(@CurrentUser('id') userId: string, @Param('id') orderId: string) {
+  findOne(@GetUser('id') userId: string, @Param('id') orderId: string) {
     return this.ordersService.findOne(userId, orderId)
   }
 
@@ -52,7 +52,7 @@ export class OrdersController {
   @ApiResponse({ status: 403, description: 'Akses ditolak' })
   @ApiResponse({ status: 404, description: 'Order tidak ditemukan' })
 
-  cancel(@CurrentUser('id') userId: string, @Param('id') orderId: string) {
+  cancel(@GetUser('id') userId: string, @Param('id') orderId: string) {
     return this.ordersService.cancel(userId, orderId)
   }
 }

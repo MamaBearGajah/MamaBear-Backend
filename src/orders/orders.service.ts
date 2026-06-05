@@ -11,6 +11,23 @@ export class OrdersService {
     private readonly prisma: PrismaService,
     private readonly shippingService: ShippingService) {}
 
+  // ─── Generate Order Number ───────────────────────────────────────────────────
+  private async generateOrderNumber(): Promise<string> {
+    const now = new Date();
+    const prefix = `ORB-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
+
+    // Hitung berapa order yang sudah ada hari ini
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
+
+    const countToday = await this.prisma.order.count({
+      where: { createdAt: { gte: startOfDay, lt: endOfDay } },
+    });
+
+    const seq = String(countToday + 1).padStart(4, '0');
+    return `${prefix}-${seq}`;
+  }
+
   // ─── Create Order ────────────────────────────────────────────────────────────
   async create(userId: string, dto: CreateOrderDto) {
     const cart = await this.prisma.cart.findFirst({
@@ -47,7 +64,7 @@ export class OrdersService {
 
     // Shipping
     const shippingOptions = await this.shippingService.calculateCost({
-      originCityId: process.env.WAREHOUSE_CITY_ID!, // apakah ada gudang atau gimana?
+      originCityId: process.env.WAREHOUSE_CITY_ID!,
       destinationCityId: address.cityId,
       weight: totalWeight,
       courier: dto.courier,
@@ -66,10 +83,12 @@ export class OrdersService {
     }, 0)
 
     const total = subtotal + shippingCost
+    const orderNumber = await this.generateOrderNumber()
 
     const order = await this.prisma.$transaction(async (tx) => {
       const newOrder = await tx.order.create({
         data: {
+          orderNumber,
           userId,
           addressId: dto.addressId,
           voucherId: dto.voucherId ?? null,
@@ -88,9 +107,9 @@ export class OrdersService {
         data: cart.items.map((item) => ({
           orderId: newOrder.id,
           productId: item.productId,
-          productName: item.product?.name ?? 'Unknown Product', // snapshot product name
+          productName: item.product?.name ?? 'Unknown Product',
           variantId: item.variantId ?? null,
-          variantName: item.variant ? `${item.variant.name}: ${item.variant.value}`: null,  // snapshot variant name
+          variantName: item.variant ? `${item.variant.name}: ${item.variant.value}` : null,
           quantity: item.quantity,
           price: item.variant?.basePrice ?? item.price,
         }))
