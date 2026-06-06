@@ -1,4 +1,15 @@
-import { PartialType } from '@nestjs/swagger';
-import { CreateConsultationDto } from './create-consultation.dto';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsEnum, IsNotEmpty } from 'class-validator';
 
-export class UpdateConsultationDto extends PartialType(CreateConsultationDto) {}
+enum ConsultationStatus {
+  new = 'new',
+  in_progress = 'in_progress',
+  closed = 'closed',
+}
+
+export class UpdateConsultationDto {
+  @ApiProperty({ enum: ConsultationStatus, example: ConsultationStatus.in_progress })
+  @IsEnum(ConsultationStatus)
+  @IsNotEmpty()
+  status!: ConsultationStatus;
+}
