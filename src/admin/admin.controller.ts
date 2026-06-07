@@ -1,34 +1,32 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
 import { AdminService } from './admin.service';
-import { CreateAdminDto } from './dto/create-admin.dto';
-import { UpdateAdminDto } from './dto/update-admin.dto';
 
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators';
+import { Role } from 'generated/prisma/enums';
+
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(Role.admin, Role.super_admin)
 @Controller('admin')
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
-
-  @Post()
-  create(@Body() createAdminDto: CreateAdminDto) {
-    return this.adminService.create(createAdminDto);
+  
+  @Get('customers')
+  getCustomers(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('search') search?: string,
+  ) {
+    return this.adminService.getCustomers(
+      Number(page) || 1,
+      Number(limit) || 10,
+      search,
+    );
   }
 
-  @Get()
-  findAll() {
-    return this.adminService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.adminService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAdminDto: UpdateAdminDto) {
-    return this.adminService.update(+id, updateAdminDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.adminService.remove(+id);
+  @Get('customers/:id')
+  getCustomerById(@Param('id') id: string) {
+    return this.adminService.getCustomerById(id);
   }
 }
