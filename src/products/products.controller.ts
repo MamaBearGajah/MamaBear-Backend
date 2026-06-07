@@ -89,6 +89,22 @@ export class ProductsController {
     return this.productsService.create(dto);
   }
 
+  @Post('bulk')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.admin, Role.super_admin)
+  @ApiOperation({ summary: 'Bulk update status/harga produk (admin)' })
+  bulkUpdate(
+    @Body()
+    body: {
+      productIds: string[];
+      status?: string;
+      price?: number;
+    },
+  ) {
+    return this.productsService.bulkUpdateProducts(body);
+  }
+
   @Public()
   @Get(':id')
   @ApiOperation({ summary: 'Get produk by ID (public)' })

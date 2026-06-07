@@ -61,10 +61,10 @@ export class OrdersService {
     }
 
     const allowedTransitions: Record<string, string[]> = {
-      PENDING: ['PAID'],
-      PAID: ['PROCESSING'],
-      PROCESSING: ['SHIPPED'],
-      SHIPPED: ['DELIVERED'],
+      pending: ['paid'],
+      paid: ['processing'],
+      processing: ['shipped'],
+      shipped: ['delivered'],
     };
 
     const currentStatus = String(order.status);
@@ -79,6 +79,23 @@ export class OrdersService {
       where: { id: orderId },
       data: {
         status: newStatus as any,
+      },
+    });
+  }
+
+  async updateTrackingNumber(orderId: string, trackingNumber: string) {
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+    });
+
+    if (!order) {
+      throw new NotFoundException('Order tidak ditemukan');
+    }
+
+    return this.prisma.order.update({
+      where: { id: orderId },
+      data: {
+        trackingNumber,
       },
     });
   }
