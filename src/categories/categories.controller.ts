@@ -1,6 +1,6 @@
 import {
   Controller, Get, Post, Patch, Delete,
-  Body, Param, Query, HttpCode, HttpStatus,
+  Body, Param, Query, HttpCode, HttpStatus, ParseArrayPipe,
 } from '@nestjs/common';
 import {
   ApiTags, ApiOperation, ApiResponse,
@@ -86,6 +86,18 @@ export class CategoriesController {
   @ApiResponse({ status: 403, description: 'Akses ditolak' })
   update(@Param('id') id: string, @Body() dto: UpdateCategoryDto) {
     return this.categoriesService.update(id, dto);
+  }
+
+  @Post('reorder')
+  @ApiBearerAuth()
+  @Roles(Role.admin, Role.super_admin)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Reorder kategori (admin)' })
+  reorder(
+    @Body(new ParseArrayPipe({ items: Object }))
+    items: { id: string; sortOrder: number }[],
+  ) {
+    return this.categoriesService.reorder(items);
   }
 
   @Delete(':id')

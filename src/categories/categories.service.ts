@@ -169,6 +169,24 @@ export class CategoriesService {
     return category;
   }
 
+  async reorder(items: { id: string; sortOrder: number }[]) {
+    await this.prisma.$transaction(
+      items.map((item) =>
+        this.prisma.category.update({
+          where: { id: item.id },
+          data: { sortOrder: item.sortOrder },
+        }),
+      ),
+    );
+
+    await this.invalidateCategoryCache();
+
+    return {
+      success: true,
+      updated: items.length,
+    };
+  }
+
   // ─── DELETE ───────────────────────────────────────────────────────────────
 
   async remove(id: string) {
