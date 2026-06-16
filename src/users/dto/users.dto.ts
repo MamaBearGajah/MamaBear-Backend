@@ -70,6 +70,13 @@ export class CreateAddressDto {
   @IsNotEmpty({ message: 'Alamat tidak boleh kosong' })
   address!: string;
 
+  @ApiPropertyOptional({
+    example: 'Patokan: rumah cat hijau, sebelah warung Bu Siti',
+  })
+  @IsOptional()
+  @IsString()
+  notes?: string;
+
   @ApiProperty({
     example: '501',
   })
@@ -122,6 +129,13 @@ export class UpdateAddressDto {
   @IsString()
   @IsNotEmpty()
   address?: string;
+
+  @ApiPropertyOptional({
+    example: 'Patokan: rumah cat hijau, sebelah warung Bu Siti',
+  })
+  @IsOptional()
+  @IsString()
+  notes?: string;
 
   @ApiPropertyOptional({
     example: '501',
