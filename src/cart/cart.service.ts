@@ -113,7 +113,10 @@ export class CartService {
     if (existing) {
       await this.prisma.cartItem.update({
         where: { id: existing.id },
-        data: { quantity: existing.quantity + dto.quantity },
+        data: {
+          quantity: existing.quantity + dto.quantity,
+          ...(dto.notes !== undefined && { notes: dto.notes }),
+        },
       });
     } else {
       await this.prisma.cartItem.create({
@@ -123,6 +126,7 @@ export class CartService {
           variantId: dto.variantId,
           quantity: dto.quantity,
           price,
+          notes: dto.notes,
         },
       });
     }
@@ -154,7 +158,13 @@ export class CartService {
       }
     }
 
-    await this.prisma.cartItem.update({ where: { id: itemId }, data: { quantity: dto.quantity } });
+    await this.prisma.cartItem.update({
+      where: { id: itemId },
+      data: {
+        quantity: dto.quantity,
+        ...(dto.notes !== undefined && { notes: dto.notes }),
+      },
+    });
     return this.withSubtotal(await this.getOrCreateCart(userId));
   }
 
@@ -239,7 +249,11 @@ export class CartService {
       if (existing) {
         await this.prisma.cartItem.update({
           where: { id: existing.id },
-          data: { quantity: existing.quantity + guestItem.quantity, price: effectivePrice },
+          data: {
+            quantity: existing.quantity + guestItem.quantity,
+            price: effectivePrice,
+            ...(guestItem.notes && !existing.notes && { notes: guestItem.notes }),
+          },
         });
       } else {
         await this.prisma.cartItem.create({
@@ -249,6 +263,7 @@ export class CartService {
             variantId: guestItem.variantId,
             quantity: guestItem.quantity,
             price: effectivePrice,
+            notes: guestItem.notes,
           },
         });
       }
