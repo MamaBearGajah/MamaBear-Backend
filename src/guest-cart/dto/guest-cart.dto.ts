@@ -25,6 +25,11 @@ export class GuestAddToCartDto {
   @IsInt()
   @Min(1)
   quantity!: number;
+
+  @ApiPropertyOptional({ description: 'Catatan untuk item ini, misal "Tolong bungkus kado"', example: 'Tolong bungkus kado' })
+  @IsOptional()
+  @IsString()
+  notes?: string;
 }
 
 export class GuestUpdateCartItemDto {
@@ -32,4 +37,11 @@ export class GuestUpdateCartItemDto {
   @IsInt()
   @Min(1)
   quantity!: number;
+
+  @ApiPropertyOptional({ description: 'Catatan untuk item ini, misal "Tolong bungkus kado"', example: 'Tolong bungkus kado' })
+  @IsOptional()
+  @IsString()
+  notes?: string;
 }
+
+

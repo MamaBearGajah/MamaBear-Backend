@@ -1,69 +1,91 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
-import { BlogService } from './blog.service';
+import {
+  Controller, Get, Post, Patch, Delete,
+  Body, Param, Query, UseGuards,
+  DefaultValuePipe, ParseIntPipe,
+} from '@nestjs/common';
+import {
+  ApiTags, ApiBearerAuth, ApiOperation,
+  ApiResponse, ApiParam, ApiQuery,
+} from '@nestjs/swagger';
+import { BlogService, UpdateBlogDto } from './blog.service';
 import { CreateBlogDto } from './dto/create-blog.dto';
-import { UpdateBlogDto } from './dto/update-blog.dto';
-import { BlogQueryDto } from './dto/blog-query.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { Public, GetUser, Roles } from '../auth/decorators';
 import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators';
-import { Role } from 'generated/prisma/enums';
+import { Role } from '../../generated/prisma/enums';
 
 @ApiTags('Blog')
 @Controller('blog')
 export class BlogController {
   constructor(private readonly blogService: BlogService) {}
 
-  @ApiOperation({ summary: 'Get semua post published (public, paginated)' })
-  @ApiResponse({ status: 200, description: 'List blog berhasil diambil' })
+  // ─── Public ──────────────────────────────────────────────────────────────
+
+  @Public()
   @Get()
-  findAll(@Query() query: BlogQueryDto) {
-    return this.blogService.findAll(query);
+  @ApiOperation({ summary: 'List artikel published (public, paginated)' })
+  @ApiQuery({ name: 'page', required: false, example: 1 })
+  @ApiQuery({ name: 'limit', required: false, example: 10 })
+  @ApiResponse({ status: 200, description: 'List artikel berhasil diambil' })
+  findAll(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+  ) {
+    return this.blogService.findAll(page, limit);
   }
 
-  @ApiOperation({ summary: 'Get blog post by slug (public)' })
-  @ApiParam({ name: 'slug', description: 'Blog slug' })
-  @ApiResponse({ status: 200, description: 'Blog post ditemukan' })
-  @ApiResponse({ status: 404, description: 'Blog post tidak ditemukan' })
+  @Public()
   @Get(':slug')
+  @ApiOperation({ summary: 'Detail artikel by slug (public)' })
+  @ApiParam({ name: 'slug', example: 'cara-meningkatkan-produksi-asi' })
+  @ApiResponse({ status: 200, description: 'Detail artikel berhasil diambil' })
+  @ApiResponse({ status: 404, description: 'Artikel tidak ditemukan' })
   findBySlug(@Param('slug') slug: string) {
     return this.blogService.findBySlug(slug);
   }
 
-  @ApiOperation({ summary: 'Buat blog post baru (admin)' })
-  @ApiResponse({ status: 201, description: 'Blog post berhasil dibuat' })
-  @ApiResponse({ status: 400, description: 'Validasi gagal' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  // ─── Admin ───────────────────────────────────────────────────────────────
+
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(RolesGuard)
   @Roles(Role.admin, Role.super_admin)
-  @Post()
-  create(@Body() dto: CreateBlogDto) {
-    return this.blogService.create(dto);
+  @Get('admin/all')
+  @ApiOperation({ summary: '[Admin] List semua artikel (draft + published)' })
+  @ApiQuery({ name: 'page', required: false })
+  @ApiQuery({ name: 'limit', required: false })
+  findAllAdmin(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
+  ) {
+    return this.blogService.findAllAdmin(page, limit);
   }
 
-  @ApiOperation({ summary: 'Update blog post (admin)' })
-  @ApiParam({ name: 'id', description: 'Blog post ID' })
-  @ApiResponse({ status: 200, description: 'Blog post berhasil diupdate' })
-  @ApiResponse({ status: 404, description: 'Blog post tidak ditemukan' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(RolesGuard)
   @Roles(Role.admin, Role.super_admin)
-  @Put(':id')
+  @Post()
+  @ApiOperation({ summary: '[Admin] Buat artikel baru' })
+  @ApiResponse({ status: 201, description: 'Artikel berhasil dibuat' })
+  @ApiResponse({ status: 400, description: 'Slug sudah digunakan' })
+  create(@GetUser('id') authorId: string, @Body() dto: CreateBlogDto) {
+    return this.blogService.create(authorId, dto);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(RolesGuard)
+  @Roles(Role.admin, Role.super_admin)
+  @Patch(':id')
+  @ApiOperation({ summary: '[Admin] Update artikel (termasuk publish/unpublish)' })
+  @ApiParam({ name: 'id' })
   update(@Param('id') id: string, @Body() dto: UpdateBlogDto) {
     return this.blogService.update(id, dto);
   }
 
-  @ApiOperation({ summary: 'Hapus blog post (admin)' })
-  @ApiParam({ name: 'id', description: 'Blog post ID' })
-  @ApiResponse({ status: 204, description: 'Blog post berhasil dihapus' })
-  @ApiResponse({ status: 404, description: 'Blog post tidak ditemukan' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(RolesGuard)
   @Roles(Role.admin, Role.super_admin)
   @Delete(':id')
+  @ApiOperation({ summary: '[Admin] Hapus artikel' })
+  @ApiParam({ name: 'id' })
   remove(@Param('id') id: string) {
     return this.blogService.remove(id);
   }

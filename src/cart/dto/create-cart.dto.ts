@@ -1,4 +1,4 @@
-import { IsInt, IsOptional, Min, IsUUID } from 'class-validator';
+import { IsInt, IsOptional, Min, IsUUID, IsString } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class AddToCartDto {
@@ -15,6 +15,11 @@ export class AddToCartDto {
   @IsInt()
   @Min(1)
   quantity!: number;
+
+  @ApiPropertyOptional({ description: 'Catatan untuk item ini, misal "Tolong bungkus kado"', example: 'Tolong bungkus kado' })
+  @IsOptional()
+  @IsString()
+  notes?: string;
 }
 
 export class UpdateCartItemDto {
@@ -22,9 +27,12 @@ export class UpdateCartItemDto {
   @IsInt()
   @Min(1)
   quantity!: number;
-}
 
-import { IsString } from 'class-validator';
+  @ApiPropertyOptional({ description: 'Catatan untuk item ini, misal "Tolong bungkus kado"', example: 'Tolong bungkus kado' })
+  @IsOptional()
+  @IsString()
+  notes?: string;
+}
 
 export class MergeGuestCartDto {
   @ApiProperty({ description: 'Guest session ID to merge from', example: 'guest-session-abc123' })

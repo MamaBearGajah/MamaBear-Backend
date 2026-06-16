@@ -50,6 +50,9 @@ export class CartItemDto {
   @ApiProperty({ example: 35000, description: 'Snapshot price per unit in IDR at time of adding' })
   price!: number;
 
+  @ApiPropertyOptional({ example: 'Tolong bungkus kado', nullable: true, description: 'Catatan customer untuk item ini' })
+  notes!: string | null;
+
   @ApiProperty({ type: CartProductBriefDto })
   product!: CartProductBriefDto;
 

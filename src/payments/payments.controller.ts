@@ -1,9 +1,11 @@
-import { Controller, Post, Body, Headers, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { Controller, Post, Body, Param, Headers, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { PaymentsService } from './payments.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { Public } from '../auth/decorators';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Public, Roles } from '../auth/decorators';
+import { Role } from '../../generated/prisma/enums';
 
 @ApiTags('Payments')
 @Controller('payments')
@@ -22,7 +24,26 @@ export class PaymentsController {
     return this.paymentsService.create(dto);
   }
 
-  // ─── Webhooks (Public — tidak perlu auth, verifikasi via token/signature) ──
+  // ─── Refund (Admin) ───────────────────────────────────────────────────────
+  // BARU
+
+  @Post(':orderId/refund')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.admin, Role.super_admin)
+  @ApiOperation({
+    summary: '[Admin] Proses refund order',
+    description: 'Memicu refund aktif ke Xendit/Midtrans sesuai provider yang dipakai order ini.',
+  })
+  @ApiParam({ name: 'orderId' })
+  @ApiResponse({ status: 200, description: 'Refund berhasil diajukan' })
+  @ApiResponse({ status: 400, description: 'Payment belum paid / tidak bisa di-refund' })
+  @ApiResponse({ status: 404, description: 'Order/payment tidak ditemukan' })
+  requestRefund(@Param('orderId') orderId: string, @Body('reason') reason?: string) {
+    return this.paymentsService.requestRefund(orderId, reason);
+  }
+
+  // ─── Webhooks (Public — verifikasi via token/signature) ────────────────────
 
   @Post('webhook/xendit')
   @Public()

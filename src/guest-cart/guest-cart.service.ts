@@ -115,7 +115,10 @@ export class GuestCartService {
     if (existing) {
       await this.prisma.guestCartItem.update({
         where: { id: existing.id },
-        data: { quantity: existing.quantity + dto.quantity },
+        data: {
+          quantity: existing.quantity + dto.quantity,
+          ...(dto.notes !== undefined && { notes: dto.notes }),
+        },
       });
     } else {
       await this.prisma.guestCartItem.create({
@@ -125,6 +128,7 @@ export class GuestCartService {
           variantId: dto.variantId,
           quantity: dto.quantity,
           price,
+          notes: dto.notes,
         },
       });
     }
@@ -158,7 +162,10 @@ export class GuestCartService {
 
     await this.prisma.guestCartItem.update({
       where: { id: itemId },
-      data: { quantity: dto.quantity },
+      data: {
+        quantity: dto.quantity,
+        ...(dto.notes !== undefined && { notes: dto.notes }),
+      },
     });
 
     return this.withSubtotal(await this.getOrCreate(sessionId));
@@ -188,3 +195,6 @@ export class GuestCartService {
     return { message: 'Guest cart berhasil dihapus' };
   }
 }
+
+
+

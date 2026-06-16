@@ -1,32 +1,42 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
-
-enum BlogStatus {
-  draft = 'draft',
-  published = 'published',
-}
+import {
+  IsString, IsNotEmpty, IsOptional, IsEnum, IsUrl,
+} from 'class-validator';
+import { BlogStatus } from '../../../generated/prisma/enums';
 
 export class CreateBlogDto {
-  @ApiProperty({ example: 'Tips Menyusui untuk Ibu Baru', minLength: 5, maxLength: 200 })
+  @ApiProperty({ example: 'Cara Meningkatkan Produksi ASI dengan Alami' })
   @IsString()
   @IsNotEmpty()
-  @MinLength(5)
-  @MaxLength(200)
   title!: string;
 
-  @ApiProperty({ example: 'tips-menyusui-untuk-ibu-baru' })
+  @ApiProperty({ example: 'cara-meningkatkan-produksi-asi-dengan-alami' })
   @IsString()
   @IsNotEmpty()
   slug!: string;
 
-  @ApiProperty({ example: 'Menyusui adalah...', minLength: 20 })
+  @ApiPropertyOptional({ example: 'Pelajari cara alami meningkatkan produksi ASI untuk ibu menyusui.' })
+  @IsOptional()
+  @IsString()
+  excerpt?: string;
+
+  @ApiPropertyOptional({ example: 'https://res.cloudinary.com/.../blog-cover.jpg' })
+  @IsOptional()
+  @IsString()
+  coverImage?: string;
+
+  @ApiPropertyOptional({ description: 'Cloudinary public_id untuk delete gambar cover' })
+  @IsOptional()
+  @IsString()
+  coverPublicId?: string;
+
+  @ApiProperty({ example: '<p>Isi artikel dalam HTML atau Markdown...</p>' })
   @IsString()
   @IsNotEmpty()
-  @MinLength(20)
   content!: string;
 
-  @ApiPropertyOptional({ enum: BlogStatus, example: BlogStatus.draft })
-  @IsEnum(BlogStatus)
+  @ApiPropertyOptional({ enum: BlogStatus, default: BlogStatus.draft })
   @IsOptional()
+  @IsEnum(BlogStatus)
   status?: BlogStatus;
 }

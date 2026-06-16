@@ -1,34 +1,29 @@
-import { IsNotEmpty, IsOptional, IsString, IsUUID } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
 
 export class CreateOrderDto {
-    @ApiProperty({ example: 'uuid-address', description: 'ID address pengiriman' })
-    @IsUUID()
-    @IsNotEmpty()
-    addressId!: string
+  @ApiProperty({ example: 'uuid-alamat', description: 'ID alamat pengiriman' })
+  @IsString()
+  @IsNotEmpty()
+  addressId!: string;
 
-    @ApiProperty({ example: 'JNE', description: 'Kode kurir' })
-    @IsString()
-    @IsNotEmpty()
-    courier!: string
-    
-    @ApiProperty({ example: 'REG', description: 'Kode service kurir' })
-    @IsString()
-    @IsNotEmpty()
-    service!: string
+  @ApiProperty({ example: 'jne', description: 'Kode kurir (jne, jnt, sicepat, dll)' })
+  @IsString()
+  @IsNotEmpty()
+  courier!: string;
 
-    @ApiProperty({ example: 'bank-transfer', description: 'Metode pembayaran' })
-    @IsString()
-    @IsNotEmpty()
-    paymentMethod!: string
+  @ApiProperty({ example: 'REG', description: 'Kode layanan pengiriman' })
+  @IsString()
+  @IsNotEmpty()
+  service!: string;
 
-    @ApiPropertyOptional({ example: 'Tolong dibungkus rapi', description: 'Catatan order' })    
-    @IsOptional()
-    @IsNotEmpty()
-    notes?: string
+  @ApiPropertyOptional({ example: 'uuid-voucher', description: 'ID voucher (opsional)' })
+  @IsOptional()
+  @IsString()
+  voucherId?: string;
 
-    @ApiPropertyOptional({ example: 'uuid-voucher', description: 'ID voucher (opsional)' })
-    @IsOptional()
-    @IsUUID()
-    voucherId?: string
+  @ApiPropertyOptional({ example: 'Tolong dibungkus kado ya', description: 'Catatan order' })
+  @IsOptional()
+  @IsString()
+  notes?: string;
 }
