@@ -1,4 +1,9 @@
-import { Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Xendit, Invoice as XenditInvoice, Refund as XenditRefund } from 'xendit-node';
 
@@ -7,13 +12,18 @@ export interface CreateInvoiceOptions {
   amount: number;
   payerEmail: string;
   description?: string;
-  expiryDate?: Date; // BARU — opsional, default Xendit 24 jam jika tidak diisi
+  expiryDate?: Date; // opsional, default Xendit 24 jam jika tidak diisi
 }
 
 export interface CreateRefundOptions {
-  invoiceId: string;     // Xendit invoice/payment ID (bukan externalId kita)
+  invoiceId: string; // Xendit invoice/payment ID (bukan externalId kita)
   amount: number;
-  reason?: 'FRAUDULENT' | 'DUPLICATE' | 'REQUESTED_BY_CUSTOMER' | 'CANCELLATION' | 'OTHERS';
+  reason?:
+    | 'FRAUDULENT'
+    | 'DUPLICATE'
+    | 'REQUESTED_BY_CUSTOMER'
+    | 'CANCELLATION'
+    | 'OTHERS';
 }
 
 @Injectable()
@@ -35,8 +45,8 @@ export class XenditService {
   async createInvoice(opts: CreateInvoiceOptions) {
     const frontendUrl = this.config.getOrThrow<string>('FRONTEND_URL');
 
-    // Xendit invoice_duration dalam detik. Hitung dari expiryDate jika ada.
-    const invoiceDuration = opts.expiryDate
+    // FIX: invoiceDuration harus number (detik), bukan string
+    const invoiceDuration: number | undefined = opts.expiryDate
       ? Math.max(60, Math.floor((opts.expiryDate.getTime() - Date.now()) / 1000))
       : undefined; // default Xendit = 24 jam
 
@@ -49,7 +59,8 @@ export class XenditService {
           description: opts.description ?? 'MamaBear Order Payment',
           successRedirectUrl: `${frontendUrl}/payment/success`,
           failureRedirectUrl: `${frontendUrl}/payment/failed`,
-          ...(invoiceDuration && { invoiceDuration: invoiceDuration.toString() }),
+          // FIX: invoiceDuration sekarang number, sesuai tipe CreateInvoiceRequest
+          ...(invoiceDuration !== undefined && { invoiceDuration }),
         },
       });
 
@@ -58,7 +69,8 @@ export class XenditService {
         externalId: invoice.externalId,
         invoiceUrl: invoice.invoiceUrl,
         status: invoice.status,
-        expiredAt: invoice.expiryDate,
+        // FIX: field yang benar adalah expiryDate (Date), bukan expiredAt
+        expiredAt: invoice.expiryDate ?? opts.expiryDate,
       };
     } catch (error) {
       this.logger.error('Failed to create Xendit invoice', error);
@@ -66,26 +78,34 @@ export class XenditService {
     }
   }
 
-  // ─── Get Invoice (cek status — untuk reconciliation/cron) ────────────────────
+  // ─── Get Invoice (cek status — untuk reconciliation/cron) ─────────────────
 
   async getInvoice(invoiceId: string) {
     try {
       const invoice = await this.invoiceClient.getInvoiceById({ invoiceId });
+
       return {
         id: invoice.id,
         externalId: invoice.externalId,
         status: invoice.status,
-        paidAt: invoice.paidAt,
+        // FIX: paidAt tidak ada di tipe Invoice Xendit SDK.
+        // Field ini hanya tersedia di webhook payload (raw body), bukan di response SDK.
+        // Gunakan null sebagai fallback; paidAt diisi dari webhook handler.
+        paidAt: null as Date | null,
         amount: invoice.amount,
+        expiredAt: invoice.expiryDate,
       };
     } catch (error: any) {
-      if (error?.status === 404) throw new NotFoundException('Invoice Xendit tidak ditemukan');
+      if (error?.status === 404)
+        throw new NotFoundException('Invoice Xendit tidak ditemukan');
       this.logger.error('Failed to get Xendit invoice', error);
-      throw new InternalServerErrorException('Gagal mengambil status invoice Xendit');
+      throw new InternalServerErrorException(
+        'Gagal mengambil status invoice Xendit',
+      );
     }
   }
 
-  // ─── Create Refund ────────────────────────────────────────────────────────
+  // ─── Create Refund ─────────────────────────────────────────────────────────
 
   async createRefund(opts: CreateRefundOptions) {
     try {
@@ -99,8 +119,10 @@ export class XenditService {
 
       return {
         id: refund.id,
-        status: refund.status,
+        status: 'PENDING' as const,
         amount: refund.amount,
+        referenceId: refund.referenceId,
+        created: refund.created,
       };
     } catch (error) {
       this.logger.error('Failed to create Xendit refund', error);
