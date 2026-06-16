@@ -1,4 +1,3 @@
-// src/membership/dto/redeem-points.dto.ts
 import { ApiProperty } from '@nestjs/swagger';
 import { IsInt, Min } from 'class-validator';
 

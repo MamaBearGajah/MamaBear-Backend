@@ -1,5 +1,3 @@
-// src/voucher/voucher.controller.ts
-
 import {
   Controller,
   Get,

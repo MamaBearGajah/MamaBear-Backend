@@ -1,5 +1,3 @@
-// src/voucher/dto/create-voucher.dto.ts
-
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsEnum,

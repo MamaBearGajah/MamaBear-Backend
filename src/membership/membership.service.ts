@@ -1,5 +1,3 @@
-// src/membership/membership.service.ts
-
 import {
   BadRequestException,
   Injectable,

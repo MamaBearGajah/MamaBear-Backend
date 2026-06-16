@@ -1,5 +1,3 @@
-// src/voucher/dto/validate-voucher.dto.ts
-
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, MinLength } from 'class-validator';
 

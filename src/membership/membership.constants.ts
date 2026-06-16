@@ -1,5 +1,3 @@
-// src/membership/membership.constants.ts
-
 import { MembershipTier } from '../../generated/prisma/enums';
 
 /**

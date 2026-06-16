@@ -1,5 +1,3 @@
-// src/membership/membership.controller.ts
-
 import {
   Controller,
   Get,
