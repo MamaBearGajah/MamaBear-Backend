@@ -116,6 +116,7 @@ model User {
   resetTokenExp  DateTime?
 
   addresses           Address[]
+  wishlists           Wishlist[]
   orders              Order[]
   cart                Cart?
   membership          Membership?
@@ -225,6 +226,7 @@ model Product {
   reviews        ProductReview[]
   guestCartItems GuestCartItem[]
   bundleItems    BundleItem[]     // relasi ke hampers bundle
+  wishlists      Wishlist[]
 
   @@index([soldCount(sort: Desc)])
   @@index([status, soldCount(sort: Desc)])
@@ -639,4 +641,17 @@ model SearchAnalytic {
   @@unique([query])
   @@index([count(sort: Desc)])
   @@index([query])
+}
+
+model Wishlist {
+  id        String   @id @default(uuid())
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@index([userId])
 }

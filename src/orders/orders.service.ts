@@ -61,6 +61,8 @@ export class OrdersService {
 
     const totalWeight = cart.items.reduce((sum, item) => sum + (item.product?.weight ?? 0) * item.quantity, 0);
 
+    // ── Shipping cost ─────────────────────────────────────────────────────────
+    // shippingService.calculateCost() return flat array: [{ service, cost, etd }]
     const shippingOptions = await this.shippingService.calculateCost({
       originCityId: process.env.WAREHOUSE_CITY_ID!,
       destinationCityId: address.cityId,
@@ -68,10 +70,11 @@ export class OrdersService {
       courier: dto.courier,
     });
 
-    const selectedService = shippingOptions.flatMap((o: any) => o.cost).find((c: any) => c.service === dto.service);
+    const selectedService = shippingOptions.find((o: any) => o.service === dto.service);
     if (!selectedService) throw new BadRequestException('Shipping service not available');
 
-    const shippingCost: number = selectedService.cost[0].value;
+    const shippingCost: number = selectedService.cost;
+
     const subtotal = cart.items.reduce((sum, item) => {
       return sum + Number(item.variant?.basePrice ?? item.price ?? 0) * item.quantity;
     }, 0);
@@ -92,8 +95,8 @@ export class OrdersService {
 
     // ── Deadline timestamps ──────────────────────────────────────────────────
     const now = new Date();
-    const paymentDeadline = new Date(now.getTime() + 2 * 60 * 60 * 1000);  // +2 jam
-    const cancelDeadline = new Date(now.getTime() + 30 * 60 * 1000);       // +30 menit
+    const paymentDeadline = new Date(now.getTime() + 2 * 60 * 60 * 1000); // +2 jam
+    const cancelDeadline = new Date(now.getTime() + 30 * 60 * 1000); // +30 menit
 
     const order = await this.prisma.$transaction(async (tx) => {
       if (resolvedVoucherId) {
