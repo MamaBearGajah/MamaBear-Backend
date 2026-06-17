@@ -12,18 +12,13 @@ export interface CreateInvoiceOptions {
   amount: number;
   payerEmail: string;
   description?: string;
-  expiryDate?: Date; // opsional, default Xendit 24 jam jika tidak diisi
+  expiryDate?: Date;
 }
 
 export interface CreateRefundOptions {
-  invoiceId: string; // Xendit invoice/payment ID (bukan externalId kita)
+  invoiceId: string;
   amount: number;
-  reason?:
-    | 'FRAUDULENT'
-    | 'DUPLICATE'
-    | 'REQUESTED_BY_CUSTOMER'
-    | 'CANCELLATION'
-    | 'OTHERS';
+  reason?: 'FRAUDULENT' | 'DUPLICATE' | 'REQUESTED_BY_CUSTOMER' | 'CANCELLATION' | 'OTHERS';
 }
 
 @Injectable()
@@ -40,15 +35,12 @@ export class XenditService {
     this.refundClient = xendit.Refund;
   }
 
-  // ─── Create Invoice ────────────────────────────────────────────────────────
-
   async createInvoice(opts: CreateInvoiceOptions) {
     const frontendUrl = this.config.getOrThrow<string>('FRONTEND_URL');
 
-    // FIX: invoiceDuration harus number (detik), bukan string
     const invoiceDuration: number | undefined = opts.expiryDate
       ? Math.max(60, Math.floor((opts.expiryDate.getTime() - Date.now()) / 1000))
-      : undefined; // default Xendit = 24 jam
+      : undefined;
 
     try {
       const invoice = await this.invoiceClient.createInvoice({
@@ -59,7 +51,6 @@ export class XenditService {
           description: opts.description ?? 'MamaBear Order Payment',
           successRedirectUrl: `${frontendUrl}/payment/success`,
           failureRedirectUrl: `${frontendUrl}/payment/failed`,
-          // FIX: invoiceDuration sekarang number, sesuai tipe CreateInvoiceRequest
           ...(invoiceDuration !== undefined && { invoiceDuration }),
         },
       });
@@ -69,7 +60,6 @@ export class XenditService {
         externalId: invoice.externalId,
         invoiceUrl: invoice.invoiceUrl,
         status: invoice.status,
-        // FIX: field yang benar adalah expiryDate (Date), bukan expiredAt
         expiredAt: invoice.expiryDate ?? opts.expiryDate,
       };
     } catch (error) {
@@ -77,8 +67,6 @@ export class XenditService {
       throw new InternalServerErrorException('Gagal membuat invoice pembayaran');
     }
   }
-
-  // ─── Get Invoice (cek status — untuk reconciliation/cron) ─────────────────
 
   async getInvoice(invoiceId: string) {
     try {
@@ -88,24 +76,16 @@ export class XenditService {
         id: invoice.id,
         externalId: invoice.externalId,
         status: invoice.status,
-        // FIX: paidAt tidak ada di tipe Invoice Xendit SDK.
-        // Field ini hanya tersedia di webhook payload (raw body), bukan di response SDK.
-        // Gunakan null sebagai fallback; paidAt diisi dari webhook handler.
         paidAt: null as Date | null,
         amount: invoice.amount,
         expiredAt: invoice.expiryDate,
       };
     } catch (error: any) {
-      if (error?.status === 404)
-        throw new NotFoundException('Invoice Xendit tidak ditemukan');
+      if (error?.status === 404) throw new NotFoundException('Invoice Xendit tidak ditemukan');
       this.logger.error('Failed to get Xendit invoice', error);
-      throw new InternalServerErrorException(
-        'Gagal mengambil status invoice Xendit',
-      );
+      throw new InternalServerErrorException('Gagal mengambil status invoice Xendit');
     }
   }
-
-  // ─── Create Refund ─────────────────────────────────────────────────────────
 
   async createRefund(opts: CreateRefundOptions) {
     try {
