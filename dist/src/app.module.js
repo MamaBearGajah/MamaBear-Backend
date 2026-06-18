@@ -40,6 +40,7 @@ const guest_cart_module_1 = require("./guest-cart/guest-cart.module");
 const banner_module_1 = require("./banner/banner.module");
 const voucher_module_1 = require("./voucher/voucher.module");
 const bundle_module_1 = require("./bundle/bundle.module");
+const wishlist_module_1 = require("./wishlist/wishlist.module");
 const reports_module_1 = require("./reports/reports.module");
 let AppModule = class AppModule {
 };
@@ -73,6 +74,7 @@ exports.AppModule = AppModule = __decorate([
             banner_module_1.BannerModule,
             voucher_module_1.VoucherModule,
             bundle_module_1.BundleModule,
+            wishlist_module_1.WishlistModule,
             reports_module_1.ReportsModule
         ],
         controllers: [app_controller_1.AppController],
