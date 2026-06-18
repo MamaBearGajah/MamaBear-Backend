@@ -74,10 +74,8 @@ async function resetAndRecreateMedia(
   variants: any[],
   images: any[],
 ) {
-  // Hapus lama
   await prisma.productImage.deleteMany({ where: { productId } });
   await prisma.productVariant.deleteMany({ where: { productId } });
-  // Buat ulang dengan data terbaru
   for (const v of variants) {
     await prisma.productVariant.create({ data: { ...v, productId } });
   }
@@ -126,7 +124,7 @@ Keunggulan Mamabear AlmonMix:
 - Meningkatkan mood untuk membantu mengurangi risiko baby blues`,
       basePrice: 80000,
       discountPrice: 40000,
-      weight: 200,
+      weight: 200, // in grams
       stock: 700,
       soldCount: 312,
       status: ProductStatus.active,
@@ -135,19 +133,19 @@ Keunggulan Mamabear AlmonMix:
   });
 
   await resetAndRecreateMedia(prisma, almonMix.id, [
-    { name: "Rasa", value: "Cokelat",        basePrice: 80000, discountPrice: 40000, priceAdjustment: 40000, stock: 100, imageUrl: IMG.almonVariant.cokelat,       isActive: true },
-    { name: "Rasa", value: "Choco Hazelnut", basePrice: 80000, discountPrice: 40000, priceAdjustment: 40000, stock: 100, imageUrl: IMG.almonVariant.chocoHazelnut, isActive: true },
-    { name: "Rasa", value: "Matcha",         basePrice: 80000, discountPrice: 40000, priceAdjustment: 40000, stock: 100, imageUrl: IMG.almonVariant.matcha,        isActive: true },
-    { name: "Rasa", value: "Vanilla",        basePrice: 80000, discountPrice: 40000, priceAdjustment: 40000, stock: 100, imageUrl: IMG.almonVariant.vanilla,       isActive: true },
-    { name: "Rasa", value: "Coffee Latte",   basePrice: 80000, discountPrice: 40000, priceAdjustment: 40000, stock: 100, imageUrl: IMG.almonVariant.coffeeLatte,   isActive: true },
-    { name: "Rasa", value: "Strawberry",     basePrice: 80000, discountPrice: 40000, priceAdjustment: 40000, stock: 100, imageUrl: IMG.almonVariant.strawberry,    isActive: true },
-    { name: "Rasa", value: "Caramel",        basePrice: 80000, discountPrice: 40000, priceAdjustment: 40000, stock: 100, imageUrl: IMG.almonVariant.caramel,       isActive: true },
+    { name: "Rasa", value: "Cokelat",        basePrice: 80000, discountPrice: 40000, priceAdjustment: 40000, stock: 100, sortOrder: 0, imageUrl: IMG.almonVariant.cokelat,       isActive: true },
+    { name: "Rasa", value: "Choco Hazelnut", basePrice: 80000, discountPrice: 40000, priceAdjustment: 40000, stock: 100, sortOrder: 1, imageUrl: IMG.almonVariant.chocoHazelnut, isActive: true },
+    { name: "Rasa", value: "Matcha",         basePrice: 80000, discountPrice: 40000, priceAdjustment: 40000, stock: 100, sortOrder: 2, imageUrl: IMG.almonVariant.matcha,        isActive: true },
+    { name: "Rasa", value: "Vanilla",        basePrice: 80000, discountPrice: 40000, priceAdjustment: 40000, stock: 100, sortOrder: 3, imageUrl: IMG.almonVariant.vanilla,       isActive: true },
+    { name: "Rasa", value: "Coffee Latte",   basePrice: 80000, discountPrice: 40000, priceAdjustment: 40000, stock: 100, sortOrder: 4, imageUrl: IMG.almonVariant.coffeeLatte,   isActive: true },
+    { name: "Rasa", value: "Strawberry",     basePrice: 80000, discountPrice: 40000, priceAdjustment: 40000, stock: 100, sortOrder: 5, imageUrl: IMG.almonVariant.strawberry,    isActive: true },
+    { name: "Rasa", value: "Caramel",        basePrice: 80000, discountPrice: 40000, priceAdjustment: 40000, stock: 100, sortOrder: 6, imageUrl: IMG.almonVariant.caramel,       isActive: true },
   ], [
-    { imageUrl: IMG.almon.main,        publicId: "Copy_of_PDP_-_AlmonMix_01_yam9or", altText: "MamaBear AlmonMix",                                    imageType: ImageType.main,        sortOrder: 0, isFeatured: true  },
-    { imageUrl: IMG.almon.comparison,  publicId: "Copy_of_PDP_-_AlmonMix_03_bt1huz", altText: "Perbandingan AlmonMix vs Brand Lain",                  imageType: ImageType.other,       sortOrder: 1, isFeatured: false },
-    { imageUrl: IMG.almon.nutrition,   publicId: "Copy_of_PDP_-_AlmonMix_04_eh0b1z", altText: "AlmonMix Nutrition Fact",                              imageType: ImageType.nutrition,   sortOrder: 2, isFeatured: false },
-    { imageUrl: IMG.almon.ingredients, publicId: "Copy_of_PDP_-_AlmonMix_02_x6n9wr", altText: "AlmonMix Komposisi Ingredients",                       imageType: ImageType.ingredients, sortOrder: 3, isFeatured: false },
-    { imageUrl: IMG.almon.serve,       publicId: "Copy_of_PDP_-_AlmonMix_05_zwop0e", altText: "AlmonMix Cara Penyajian",                              imageType: ImageType.usage,       sortOrder: 4, isFeatured: false },
+    { imageUrl: IMG.almon.main,        publicId: "Copy_of_PDP_-_AlmonMix_01_yam9or", altText: "MamaBear AlmonMix",                  imageType: ImageType.main,        sortOrder: 0, isFeatured: true  },
+    { imageUrl: IMG.almon.comparison,  publicId: "Copy_of_PDP_-_AlmonMix_03_bt1huz", altText: "Perbandingan AlmonMix vs Brand Lain", imageType: ImageType.other,       sortOrder: 1, isFeatured: false },
+    { imageUrl: IMG.almon.nutrition,   publicId: "Copy_of_PDP_-_AlmonMix_04_eh0b1z", altText: "AlmonMix Nutrition Fact",             imageType: ImageType.nutrition,   sortOrder: 2, isFeatured: false },
+    { imageUrl: IMG.almon.ingredients, publicId: "Copy_of_PDP_-_AlmonMix_02_x6n9wr", altText: "AlmonMix Komposisi Ingredients",      imageType: ImageType.ingredients, sortOrder: 3, isFeatured: false },
+    { imageUrl: IMG.almon.serve,       publicId: "Copy_of_PDP_-_AlmonMix_05_zwop0e", altText: "AlmonMix Cara Penyajian",             imageType: ImageType.usage,       sortOrder: 4, isFeatured: false },
   ]);
 
   // ─── ZoyaMix ──────────────────────────────────────────────────────────────
@@ -180,7 +178,7 @@ Keunggulan Mamabear ZoyaMix:
 *Catatan: mengandung produk turunan sapi.`,
       basePrice: 80000,
       discountPrice: 38000,
-      weight: 250,
+      weight: 250, // in grams
       stock: 100,
       soldCount: 198,
       status: ProductStatus.active,
@@ -189,13 +187,13 @@ Keunggulan Mamabear ZoyaMix:
   });
 
   await resetAndRecreateMedia(prisma, zoyaMix.id, [
-    { name: "Rasa", value: "Cokelat", basePrice: 80000, discountPrice: 38000, priceAdjustment: 42000, stock: 100, imageUrl: IMG.zoyaVariant.cokelat, isActive: true },
+    { name: "Rasa", value: "Cokelat", basePrice: 80000, discountPrice: 38000, priceAdjustment: 42000, stock: 100, sortOrder: 0, imageUrl: IMG.zoyaVariant.cokelat, isActive: true },
   ], [
-    { imageUrl: IMG.zoya.main,        publicId: "PDP_-_ZoyaMix_01_mhnoas", altText: "MamaBear ZoyaMix",                       imageType: ImageType.main,        sortOrder: 0, isFeatured: true  },
-    { imageUrl: IMG.zoya.comparison,  publicId: "PDP_-_ZoyaMix_05_ev54ed", altText: "Perbandingan ZoyaMix vs Brand Lain",     imageType: ImageType.other,       sortOrder: 1, isFeatured: false },
-    { imageUrl: IMG.zoya.nutrition,   publicId: "PDP_-_ZoyaMix_06_sxz3ib", altText: "ZoyaMix Nutrition Fact",                 imageType: ImageType.nutrition,   sortOrder: 2, isFeatured: false },
-    { imageUrl: IMG.zoya.ingredients, publicId: "PDP_-_ZoyaMix_04_eik2c6", altText: "ZoyaMix Komposisi Ingredients",          imageType: ImageType.ingredients, sortOrder: 3, isFeatured: false },
-    { imageUrl: IMG.zoya.serve,       publicId: "PDP_-_ZoyaMix_07_kgocgg", altText: "ZoyaMix Cara Penyajian",                 imageType: ImageType.usage,       sortOrder: 4, isFeatured: false },
+    { imageUrl: IMG.zoya.main,        publicId: "PDP_-_ZoyaMix_01_mhnoas", altText: "MamaBear ZoyaMix",                   imageType: ImageType.main,        sortOrder: 0, isFeatured: true  },
+    { imageUrl: IMG.zoya.comparison,  publicId: "PDP_-_ZoyaMix_05_ev54ed", altText: "Perbandingan ZoyaMix vs Brand Lain", imageType: ImageType.other,       sortOrder: 1, isFeatured: false },
+    { imageUrl: IMG.zoya.nutrition,   publicId: "PDP_-_ZoyaMix_06_sxz3ib", altText: "ZoyaMix Nutrition Fact",             imageType: ImageType.nutrition,   sortOrder: 2, isFeatured: false },
+    { imageUrl: IMG.zoya.ingredients, publicId: "PDP_-_ZoyaMix_04_eik2c6", altText: "ZoyaMix Komposisi Ingredients",      imageType: ImageType.ingredients, sortOrder: 3, isFeatured: false },
+    { imageUrl: IMG.zoya.serve,       publicId: "PDP_-_ZoyaMix_07_kgocgg", altText: "ZoyaMix Cara Penyajian",             imageType: ImageType.usage,       sortOrder: 4, isFeatured: false },
   ]);
 
   // ─── Teh Pelancar ASI ─────────────────────────────────────────────────────
@@ -235,7 +233,7 @@ Keunggulan Mamabear Teh Pelancar ASI:
 *Catatan: tidak untuk ibu hamil.`,
       basePrice: 65000,
       discountPrice: 40000,
-      weight: 100,
+      weight: 100, // in grams
       stock: 400,
       soldCount: 274,
       status: ProductStatus.active,
@@ -244,14 +242,14 @@ Keunggulan Mamabear Teh Pelancar ASI:
   });
 
   await resetAndRecreateMedia(prisma, tehPelancar.id, [
-    { name: "Isi", value: "Strawberry 20 Sachet", basePrice: 65000, discountPrice: 40000, priceAdjustment: 25000, stock: 100, imageUrl: IMG.tehVariant.strawberry20Sach, isActive: true },
-    { name: "Isi", value: "Strawberry 10 Sachet", basePrice: 65000, discountPrice: 40000, priceAdjustment: 25000, stock: 100, imageUrl: IMG.tehVariant.strawberry10Sach, isActive: true },
-    { name: "Isi", value: "Strawberry 5 Sachet",  basePrice: 65000, discountPrice: 40000, priceAdjustment: 25000, stock: 100, imageUrl: IMG.tehVariant.strawberry5Sach,  isActive: true },
-    { name: "Isi", value: "Blueberry",             basePrice: 65000, discountPrice: 40000, priceAdjustment: 25000, stock: 100, imageUrl: IMG.tehVariant.blueberry,        isActive: true },
+    { name: "Isi", value: "Strawberry 20 Sachet", basePrice: 65000, discountPrice: 40000, priceAdjustment: 25000, stock: 100, sortOrder: 0, imageUrl: IMG.tehVariant.strawberry20Sach, isActive: true },
+    { name: "Isi", value: "Strawberry 10 Sachet", basePrice: 65000, discountPrice: 40000, priceAdjustment: 25000, stock: 100, sortOrder: 1, imageUrl: IMG.tehVariant.strawberry10Sach, isActive: true },
+    { name: "Isi", value: "Strawberry 5 Sachet",  basePrice: 65000, discountPrice: 40000, priceAdjustment: 25000, stock: 100, sortOrder: 2, imageUrl: IMG.tehVariant.strawberry5Sach,  isActive: true },
+    { name: "Isi", value: "Blueberry",             basePrice: 65000, discountPrice: 40000, priceAdjustment: 25000, stock: 100, sortOrder: 3, imageUrl: IMG.tehVariant.blueberry,        isActive: true },
   ], [
-    { imageUrl: IMG.teh.main,        publicId: "PDP_-_Lactation_Tea_01_xwadr5", altText: "MamaBear Teh Pelancar ASI",                               imageType: ImageType.main,        sortOrder: 0, isFeatured: true  },
-    { imageUrl: IMG.teh.comparison,  publicId: "PDP_-_Lactation_Tea_03_mfojv8", altText: "Perbandingan Teh Pelancar ASI vs Brand Lain",             imageType: ImageType.other,       sortOrder: 1, isFeatured: false },
-    { imageUrl: IMG.teh.ingredients, publicId: "PDP_-_Lactation_Tea_02_v0dddg", altText: "Teh Pelancar ASI Komposisi Ingredients",                  imageType: ImageType.ingredients, sortOrder: 2, isFeatured: false },
+    { imageUrl: IMG.teh.main,        publicId: "PDP_-_Lactation_Tea_01_xwadr5", altText: "MamaBear Teh Pelancar ASI",                    imageType: ImageType.main,        sortOrder: 0, isFeatured: true  },
+    { imageUrl: IMG.teh.comparison,  publicId: "PDP_-_Lactation_Tea_03_mfojv8", altText: "Perbandingan Teh Pelancar ASI vs Brand Lain",  imageType: ImageType.other,       sortOrder: 1, isFeatured: false },
+    { imageUrl: IMG.teh.ingredients, publicId: "PDP_-_Lactation_Tea_02_v0dddg", altText: "Teh Pelancar ASI Komposisi Ingredients",       imageType: ImageType.ingredients, sortOrder: 2, isFeatured: false },
   ]);
 
   // ─── Kukis Almond Oat ─────────────────────────────────────────────────────
@@ -283,7 +281,7 @@ Aman dikonsumsi ibu hamil & menyusui, anak-anak, dewasa, & orang tua.
 *Varian Choconut BEBAS produk turunan susu sapi & TANPA TELUR`,
       basePrice: 80000,
       discountPrice: 40000,
-      weight: 150,
+      weight: 150, // in grams
       stock: 300,
       soldCount: 156,
       status: ProductStatus.active,
@@ -292,14 +290,14 @@ Aman dikonsumsi ibu hamil & menyusui, anak-anak, dewasa, & orang tua.
   });
 
   await resetAndRecreateMedia(prisma, kukis.id, [
-    { name: "Rasa", value: "Choco Nut",       basePrice: 80000, discountPrice: 40000, priceAdjustment: 40000, stock: 100, imageUrl: IMG.kukisVariant.chocoNut,     isActive: true },
-    { name: "Rasa", value: "Choco Chip",      basePrice: 80000, discountPrice: 54000, priceAdjustment: 26000, stock: 100, imageUrl: IMG.kukisVariant.chocoChip,    isActive: true },
-    { name: "Rasa", value: "Cookies & Cream", basePrice: 80000, discountPrice: 54000, priceAdjustment: 26000, stock: 100, imageUrl: IMG.kukisVariant.cookiesCream, isActive: true },
+    { name: "Rasa", value: "Choco Nut",       basePrice: 80000, discountPrice: 40000, priceAdjustment: 40000, stock: 100, sortOrder: 0, imageUrl: IMG.kukisVariant.chocoNut,     isActive: true },
+    { name: "Rasa", value: "Choco Chip",      basePrice: 80000, discountPrice: 54000, priceAdjustment: 26000, stock: 100, sortOrder: 1, imageUrl: IMG.kukisVariant.chocoChip,    isActive: true },
+    { name: "Rasa", value: "Cookies & Cream", basePrice: 80000, discountPrice: 54000, priceAdjustment: 26000, stock: 100, sortOrder: 2, imageUrl: IMG.kukisVariant.cookiesCream, isActive: true },
   ], [
-    { imageUrl: IMG.kukis.main,        publicId: "Cover_Product_MamaBear_Cookie_Bites_Kukis_Almond_Oat_zlp0ht", altText: "MamaBear Kukis Almond Oat",                     imageType: ImageType.main,        sortOrder: 0, isFeatured: true  },
-    { imageUrl: IMG.kukis.comparison,  publicId: "PDP_-_Almond_Oat_Cookies_Cream_04_azwmin", altText: "Perbandingan Kukis Almond Oat vs Brand Lain",   imageType: ImageType.other,       sortOrder: 1, isFeatured: false },
-    { imageUrl: IMG.kukis.ingredients, publicId: "PDP_-_Kookie_Bites_Choco_Nut_04_n0pgrd", altText: "Kukis Almond Oat Komposisi Ingredients",        imageType: ImageType.ingredients, sortOrder: 2, isFeatured: false },
-    { imageUrl: IMG.kukis.nutrition,   publicId: "PDP_-_Kookie_Bites_Choco_Nut_02_wrcljb", altText: "Kukis Almond Oat Nutrition Fact",               imageType: ImageType.nutrition,   sortOrder: 3, isFeatured: false },
+    { imageUrl: IMG.kukis.main,        publicId: "Cover_Product_MamaBear_Cookie_Bites_Kukis_Almond_Oat_zlp0ht", altText: "MamaBear Kukis Almond Oat",                  imageType: ImageType.main,        sortOrder: 0, isFeatured: true  },
+    { imageUrl: IMG.kukis.comparison,  publicId: "PDP_-_Almond_Oat_Cookies_Cream_04_azwmin",                    altText: "Perbandingan Kukis Almond Oat vs Brand Lain", imageType: ImageType.other,       sortOrder: 1, isFeatured: false },
+    { imageUrl: IMG.kukis.ingredients, publicId: "PDP_-_Kookie_Bites_Choco_Nut_04_n0pgrd",                      altText: "Kukis Almond Oat Komposisi Ingredients",     imageType: ImageType.ingredients, sortOrder: 2, isFeatured: false },
+    { imageUrl: IMG.kukis.nutrition,   publicId: "PDP_-_Kookie_Bites_Choco_Nut_02_wrcljb",                      altText: "Kukis Almond Oat Nutrition Fact",            imageType: ImageType.nutrition,   sortOrder: 3, isFeatured: false },
   ]);
 
   // ─── Kapsul ASI Booster ───────────────────────────────────────────────────
@@ -329,7 +327,7 @@ Anjuran pemakaian: Konsumsi 2-3x sehari, 1 kapsul setelah makan.
 *Tidak untuk Ibu hamil`,
       basePrice: 100000,
       discountPrice: 61900,
-      weight: 100,
+      weight: 100, // in grams
       stock: 100,
       soldCount: 89,
       status: ProductStatus.active,
@@ -338,7 +336,7 @@ Anjuran pemakaian: Konsumsi 2-3x sehari, 1 kapsul setelah makan.
   });
 
   await resetAndRecreateMedia(prisma, kapsul.id, [
-    { name: "Isi", value: "30 kapsul", basePrice: 100000, discountPrice: 61900, priceAdjustment: 38100, stock: 100, imageUrl: IMG.kapsulVariant.kapsul30, isActive: true },
+    { name: "Isi", value: "30 kapsul", basePrice: 100000, discountPrice: 61900, priceAdjustment: 38100, stock: 100, sortOrder: 0, imageUrl: IMG.kapsulVariant.kapsul30, isActive: true },
   ], [
     { imageUrl: IMG.kapsul.main,        publicId: "MP_-_Cover_Kapsul_Bahasa_Inggris-01_ymbcky", altText: "MamaBear Kapsul ASI Booster",                    imageType: ImageType.main,        sortOrder: 0, isFeatured: true  },
     { imageUrl: IMG.kapsul.momsChoice,  publicId: "MP_-_Cover_Kapsul_Bahasa_Inggris-02_ys6dsx", altText: "Alasan Ibu Memilih MamaBear Kapsul ASI Booster", imageType: ImageType.other,       sortOrder: 1, isFeatured: false },

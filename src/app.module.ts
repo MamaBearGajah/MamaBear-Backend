@@ -27,6 +27,10 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { UsersModule } from './users/users.module';
 import { CustomThrottlerGuard } from './common/guards/throttler.guard';
 import { ReviewsModule } from './products/reviews/reviews.module';
+import { GuestCartModule } from './guest-cart/guest-cart.module';
+import { BannerModule } from './banner/banner.module';
+import { VoucherModule } from './voucher/voucher.module';
+import { BundleModule } from './bundle/bundle.module';
 
 @Module({
   imports: [
@@ -52,6 +56,10 @@ import { ReviewsModule } from './products/reviews/reviews.module';
     HealthModule,
     UsersModule,
     ReviewsModule,
+    GuestCartModule,
+    BannerModule,
+    VoucherModule,
+    BundleModule,
   ],
   controllers: [AppController],
   providers: [

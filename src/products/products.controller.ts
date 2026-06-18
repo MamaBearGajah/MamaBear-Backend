@@ -1,6 +1,7 @@
 import {
   Controller, Get, Post, Patch, Delete,
-  Body, Param, Query, UseGuards,
+  Body, Param, Query,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags, ApiOperation, ApiResponse,
@@ -10,10 +11,10 @@ import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductQueryDto } from './dto/product-query.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
 import { Public, Roles } from '../auth/decorators';
 import { Role } from 'generated/prisma/enums';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
 
 @ApiTags('Products')
 @Controller('products')
@@ -32,14 +33,6 @@ export class ProductsController {
   }
 
   @Public()
-  @Get('filter')
-  @ApiOperation({ summary: 'Filter produk dengan query params (public) — alias dari GET /products' })
-  @ApiResponse({ status: 200, description: 'List produk hasil filter' })
-  filter(@Query() query: ProductQueryDto) {
-    return this.productsService.filter(query);
-  }
-
-  @Public()
   @Get('best-sellers')
   @ApiOperation({ summary: 'Get best seller products (public)' })
   @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Default 10' })
@@ -55,14 +48,22 @@ export class ProductsController {
     return this.productsService.findBySlug(slug);
   }
 
-  // ─── ADMIN ────────────────────────────────────────────────────────────────
-  // ✅ variants/all harus di atas :id supaya tidak tertangkap sebagai id = "variants"
+  // Harus di atas @Get(':id') supaya tidak tertangkap sebagai id = "name-id"
+  @Public()
+  @Get('name-id')
+  @ApiOperation({ summary: 'Get semua nama dan ID produk — untuk dropdown create variant' })
+  @ApiResponse({ status: 200, description: 'List nama dan ID produk' })
+  findAllNameAndId(@Query() query: ProductQueryDto) {
+    return this.productsService.findAllNameAndId(query);
+  }
 
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  // ─── ADMIN ────────────────────────────────────────────────────────────────
+  // variants/all harus di atas :id supaya tidak tertangkap sebagai id = "variants"
+
   @Roles(Role.admin, Role.super_admin)
+  @ApiBearerAuth()
   @Get('variants/all')
-  @ApiOperation({ summary: 'Get SEMUA varian lintas produk (admin) — include productName + categoryName' })
+  @ApiOperation({ summary: 'Get SEMUA varian lintas produk (admin)' })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiQuery({ name: 'productId', required: false })
@@ -78,10 +79,9 @@ export class ProductsController {
     });
   }
 
-  @Post()
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.admin, Role.super_admin)
+  @ApiBearerAuth()
+  @Post()
   @ApiOperation({ summary: 'Buat produk baru (admin)' })
   @ApiResponse({ status: 201, description: 'Produk berhasil dibuat' })
   @ApiResponse({ status: 400, description: 'Slug atau SKU sudah digunakan' })
@@ -91,7 +91,8 @@ export class ProductsController {
 
   @Post('bulk')
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard
+  )
   @Roles(Role.admin, Role.super_admin)
   @ApiOperation({ summary: 'Bulk update status/harga produk (admin)' })
   bulkUpdate(
@@ -113,10 +114,9 @@ export class ProductsController {
     return this.productsService.findOne(id);
   }
 
-  @Patch(':id')
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.admin, Role.super_admin)
+  @ApiBearerAuth()
+  @Patch(':id')
   @ApiOperation({ summary: 'Update produk (admin)' })
   @ApiParam({ name: 'id' })
   @ApiResponse({ status: 200, description: 'Produk berhasil diupdate' })
@@ -125,11 +125,10 @@ export class ProductsController {
     return this.productsService.update(id, dto);
   }
 
-  @Delete(':id')
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.admin, Role.super_admin)
-  @ApiOperation({ summary: 'Hapus produk (admin)' })
+  @ApiBearerAuth()
+  @Delete(':id')
+  @ApiOperation({ summary: 'Hapus produk — soft delete (admin)' })
   @ApiParam({ name: 'id' })
   @ApiResponse({ status: 200, description: 'Produk berhasil dihapus' })
   @ApiResponse({ status: 404, description: 'Produk tidak ditemukan' })

@@ -6,6 +6,14 @@ function daysAgo(days: number): Date {
   return d;
 }
 
+function generateOrderNumber(createdAt: Date, index: number): string {
+  const y = createdAt.getFullYear();
+  const m = String(createdAt.getMonth() + 1).padStart(2, "0");
+  const d = String(createdAt.getDate()).padStart(2, "0");
+  const seq = String(index).padStart(4, "0");
+  return `ORB-${y}${m}${d}-${seq}`;
+}
+
 type User = { id: string };
 type Address = { id: string };
 type Product = { id: string };
@@ -69,6 +77,19 @@ export async function seedOrders(
     { rating: 5, review: "Kapsul paling praktis! Minum 2-3x sehari tanpa repot menyeduh. Bayi lebih puas menyusu." },
   ];
 
+  // Pre-fetch product names untuk dipakai di OrderItem
+  const productNameMap = new Map<string, string>();
+  const allProductIds = [almonMix.id, zoyaMix.id, tehPelancar.id, kukis.id, kapsul.id];
+  const productRecords = await prisma.product.findMany({
+    where: { id: { in: allProductIds } },
+    select: { id: true, name: true },
+  });
+  for (const p of productRecords) {
+    productNameMap.set(p.id, p.name);
+  }
+
+  let orderIndex = 1;
+
   async function createMockOrder(opts: {
     userId: string;
     addressId: string;
@@ -80,9 +101,11 @@ export async function seedOrders(
     const shippingCost = 15000;
     const subtotal = opts.lines.reduce((sum, l) => sum + l.price * l.quantity, 0);
     const total = subtotal + shippingCost;
+    const orderNumber = generateOrderNumber(opts.createdAt, orderIndex++);
 
     const order = await prisma.order.create({
       data: {
+        orderNumber,
         userId: opts.userId,
         addressId: opts.addressId,
         status: OrderStatus.delivered,
@@ -94,8 +117,12 @@ export async function seedOrders(
         updatedAt: opts.createdAt,
         items: {
           create: opts.lines.map((l) => ({
-            productId: l.productId, quantity: l.quantity, price: l.price,
-            createdAt: opts.createdAt, updatedAt: opts.createdAt,
+            productId: l.productId,
+            productName: productNameMap.get(l.productId) ?? '',
+            quantity: l.quantity,
+            price: l.price,
+            createdAt: opts.createdAt,
+            updatedAt: opts.createdAt,
           })),
         },
         payment: {
@@ -158,8 +185,6 @@ export async function seedOrders(
   await createMockOrder({ userId: c[9].id, addressId: a[9].id, createdAt: daysAgo(2),  trackingNumber: "JNE0001234579", lines: [{ productId: zoyaMix.id, price: 38000, quantity: 5 }, { productId: almonMix.id, price: 40000, quantity: 4 }], reviewData: [null, null] });
 
   // ─── Sync avgRating & reviewCount ke semua produk ─────────────────────────
-
-  const allProductIds = [almonMix.id, zoyaMix.id, tehPelancar.id, kukis.id, kapsul.id];
 
   for (const productId of allProductIds) {
     const result = await prisma.productReview.aggregate({
