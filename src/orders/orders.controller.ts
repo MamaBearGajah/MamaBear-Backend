@@ -23,7 +23,7 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
-import { GetUser, Public, Roles } from './../auth/decorators';
+import { GetUser, Public, Roles } from '../auth/decorators';
 import { Role, OrderStatus } from '../../generated/prisma/enums';
 
 @ApiTags('Orders')
@@ -37,6 +37,8 @@ export class OrdersController {
   @Post()
   @ApiOperation({ summary: 'Buat order dari cart aktif' })
   @ApiResponse({ status: 201, description: 'Order berhasil dibuat' })
+  @ApiResponse({ status: 400, description: 'Cart kosong / stok tidak cukup / shipping tidak tersedia' })
+  @ApiResponse({ status: 404, description: 'Address tidak ditemukan' })
   create(@GetUser('id') userId: string, @Body() dto: CreateOrderDto) {
     return this.ordersService.create(userId, dto);
   }
@@ -46,6 +48,7 @@ export class OrdersController {
   @ApiOperation({ summary: 'List order milik user yang sedang login' })
   @ApiQuery({ name: 'page', required: false, example: 1 })
   @ApiQuery({ name: 'limit', required: false, example: 10 })
+  @ApiResponse({ status: 200, description: 'List order berhasil diambil' })
   findAll(
     @GetUser('id') userId: string,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
@@ -114,9 +117,10 @@ export class OrdersController {
   @Patch(':id/status')
   @UseGuards(RolesGuard)
   @Roles(Role.admin, Role.super_admin)
-  @ApiOperation({ summary: '[Admin] Update status order' })
+  @ApiOperation({ summary: '[Admin] Update status order (beserta tracking number & catatan)' })
   @ApiParam({ name: 'id', description: 'Order ID' })
   @ApiResponse({ status: 200, description: 'Status order berhasil diupdate' })
+  @ApiResponse({ status: 404, description: 'Order tidak ditemukan' })
   updateStatus(@Param('id') orderId: string, @Body() dto: UpdateOrderDto) {
     return this.ordersService.updateStatus(orderId, dto);
   }
@@ -124,8 +128,10 @@ export class OrdersController {
   // ─── Cancel Order (user) ──────────────────────────────────────────────────
   @Post(':id/cancel')
   @ApiOperation({
-    summary: 'Cancel order',
-    description: 'Hanya bisa dalam 30 menit setelah order dibuat. Lewat batas waktu → hubungi CS.',
+    summary: 'Cancel order (user)',
+    description:
+      'Hanya bisa dalam 30 menit setelah order dibuat dan status masih pending. ' +
+      'Lewat batas waktu → hubungi CS.',
   })
   @ApiParam({ name: 'id', description: 'Order ID' })
   @ApiResponse({ status: 200, description: 'Order berhasil dicancel' })
