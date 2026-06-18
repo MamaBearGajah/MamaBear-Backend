@@ -119,32 +119,34 @@ let ReviewsService = class ReviewsService {
         const existing = await this.prisma.productReviewHelpful.findUnique({
             where: { reviewId_userId: { reviewId, userId } },
         });
-        if (existing && existing.isHelpful === isHelpful) {
-            await this.prisma.productReviewHelpful.delete({
+        return this.prisma.$transaction(async (tx) => {
+            if (existing && existing.isHelpful === isHelpful) {
+                await tx.productReviewHelpful.delete({
+                    where: { reviewId_userId: { reviewId, userId } },
+                });
+                const count = await tx.productReviewHelpful.count({
+                    where: { reviewId, isHelpful: true },
+                });
+                await tx.productReview.update({
+                    where: { id: reviewId },
+                    data: { helpfulCount: count },
+                });
+                return { message: 'Helpful vote dihapus', helpfulCount: count };
+            }
+            await tx.productReviewHelpful.upsert({
                 where: { reviewId_userId: { reviewId, userId } },
+                create: { reviewId, userId, isHelpful },
+                update: { isHelpful },
             });
-            const count = await this.prisma.productReviewHelpful.count({
+            const count = await tx.productReviewHelpful.count({
                 where: { reviewId, isHelpful: true },
             });
-            await this.prisma.productReview.update({
+            await tx.productReview.update({
                 where: { id: reviewId },
                 data: { helpfulCount: count },
             });
-            return { message: 'Helpful vote dihapus' };
-        }
-        await this.prisma.productReviewHelpful.upsert({
-            where: { reviewId_userId: { reviewId, userId } },
-            create: { reviewId, userId, isHelpful },
-            update: { isHelpful },
+            return { message: 'Helpful vote berhasil direcord', isHelpful, helpfulCount: count };
         });
-        const count = await this.prisma.productReviewHelpful.count({
-            where: { reviewId, isHelpful: true },
-        });
-        await this.prisma.productReview.update({
-            where: { id: reviewId },
-            data: { helpfulCount: count },
-        });
-        return { message: 'Helpful vote berhasil direcord', isHelpful };
     }
     async getRatingSummary(productId) {
         const product = await this.prisma.product.findUnique({ where: { id: productId } });

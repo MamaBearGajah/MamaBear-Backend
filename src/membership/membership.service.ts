@@ -192,6 +192,113 @@ export class MembershipService {
     };
   }
 
+  /**
+   * Daily login check-in.
+   * - 5 point per hari
+   * - Bonus 20 point setiap 7 hari login berturut-turut
+   * - Hanya bisa diklaim 1x per hari (00:00 WIB)
+   */
+  async dailyLoginCheckIn(userId: string) {
+    const membership = await this.getOrCreate(userId);
+
+    const now = new Date();
+
+    // Ambil awal hari ini (UTC+7 / WIB) — pakai UTC untuk konsistensi DB
+    const todayStart = new Date(now);
+    todayStart.setUTCHours(0, 0, 0, 0);
+
+    // Cek apakah sudah check-in hari ini
+    if (
+      membership.lastDailyLoginAt &&
+      membership.lastDailyLoginAt >= todayStart
+    ) {
+      const nextCheckIn = new Date(todayStart);
+      nextCheckIn.setUTCDate(nextCheckIn.getUTCDate() + 1);
+
+      return {
+        alreadyClaimed: true,
+        message: 'Kamu sudah check-in hari ini. Kembali lagi besok!',
+        nextCheckIn,
+        currentPoints: membership.points,
+      };
+    }
+
+    // Hitung streak
+    const yesterdayStart = new Date(todayStart);
+    yesterdayStart.setUTCDate(yesterdayStart.getUTCDate() - 1);
+
+    const isConsecutive =
+      membership.lastDailyLoginAt !== null &&
+      membership.lastDailyLoginAt >= yesterdayStart;
+
+    // Hitung streak count dari history transaksi
+    const recentLoginTransactions = await this.prisma.pointTransaction.count({
+      where: {
+        userId,
+        type: 'daily_login',
+        createdAt: { gte: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000) },
+      },
+    });
+
+    // Streak count (termasuk hari ini)
+    const streakCount = isConsecutive ? recentLoginTransactions + 1 : 1;
+    const isStreakBonus = streakCount > 0 && streakCount % 7 === 0;
+
+    const basePoints = 5;          // DAILY_LOGIN_POINTS
+    const bonusPoints = isStreakBonus ? 20 : 0; // STREAK_BONUS_POINTS
+    const totalPoints = basePoints + bonusPoints;
+
+    await this.prisma.$transaction(async (tx) => {
+      // Update membership: tambah point & set lastDailyLoginAt
+      await tx.membership.update({
+        where: { userId },
+        data: {
+          points: { increment: totalPoints },
+          lastDailyLoginAt: now,
+        },
+      });
+
+      // Catat transaksi point
+      await tx.pointTransaction.create({
+        data: {
+          userId,
+          points: basePoints,
+          type: 'daily_login',
+          description: `Daily check-in (hari ke-${streakCount})`,
+        },
+      });
+
+      // Catat bonus streak (jika ada)
+      if (isStreakBonus) {
+        await tx.pointTransaction.create({
+          data: {
+            userId,
+            points: bonusPoints,
+            type: 'bonus',
+            description: `Bonus streak ${streakCount} hari berturut-turut!`,
+          },
+        });
+      }
+    });
+
+    this.logger.log(
+      `Daily check-in user ${userId}: +${totalPoints} pts (streak ${streakCount}d${isStreakBonus ? ', BONUS!' : ''})`,
+    );
+
+    return {
+      alreadyClaimed: false,
+      message: isStreakBonus
+        ? `🎉 Streak ${streakCount} hari! +${totalPoints} point (termasuk bonus streak ${bonusPoints} point).`
+        : `Check-in berhasil! +${basePoints} point. Streak: ${streakCount} hari.`,
+      pointsEarned: totalPoints,
+      basePoints,
+      bonusPoints,
+      streakCount,
+      isStreakBonus,
+      currentPoints: membership.points + totalPoints,
+    };
+  }
+
   // ─── Get Point History ────────────────────────────────────────────────────
 
   async getPointHistory(userId: string, page = 1, limit = 20) {

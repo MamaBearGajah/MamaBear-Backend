@@ -33,6 +33,7 @@ import { VoucherModule } from './voucher/voucher.module';
 import { BundleModule } from './bundle/bundle.module';
 import { WishlistModule } from './wishlist/wishlist.module';
 import { ReportsModule } from './reports/reports.module';
+import { PromotionModule } from './promotion/promotion.module';
 
 @Module({
   imports: [
@@ -63,7 +64,8 @@ import { ReportsModule } from './reports/reports.module';
     VoucherModule,
     BundleModule,
     WishlistModule,
-    ReportsModule
+    ReportsModule,
+    PromotionModule,
   ],
   controllers: [AppController],
   providers: [

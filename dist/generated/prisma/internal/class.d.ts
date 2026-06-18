@@ -114,5 +114,14 @@ export interface PrismaClient<in LogOpts extends Prisma.LogLevel = never, in out
     get wishlist(): Prisma.WishlistDelegate<ExtArgs, {
         omit: OmitOpts;
     }>;
+    get promotionLanding(): Prisma.PromotionLandingDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
+    get promotionSection(): Prisma.PromotionSectionDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
+    get promotionBenefit(): Prisma.PromotionBenefitDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
 }
 export declare function getPrismaClientClass(): PrismaClientConstructor;

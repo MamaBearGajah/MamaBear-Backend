@@ -14,17 +14,17 @@ export const TIER_THRESHOLDS: Record<MembershipTier, number> = {
 /**
  * Konversi: setiap Rp POINT_RATE rupiah spent → 1 point
  */
-export const POINT_RATE = 10_000; // Rp 10.000 = 1 point
+export const POINT_RATE = 1_000; // Rp 1.000 = 1 point
 
 /**
- * Konversi: setiap POINT_TO_RUPIAH point → Rp 1.000 potongan harga
+ * Konversi: setiap POINT_TO_RUPIAH point → Rp 100 potongan harga
  */
-export const POINT_TO_RUPIAH = 1_000; // 1 point = Rp 1.000
+export const POINT_TO_RUPIAH = 100; // 1 point = Rp 100
 
 /**
  * Point minimum untuk redeem.
  */
-export const MIN_REDEEM_POINTS = 10; // minimal 10 point = Rp 10.000
+export const MIN_REDEEM_POINTS = 100; // minimal 100 point = Rp 10.000
 
 /**
  * Voucher ongkir gratis per tier (dalam rupiah).

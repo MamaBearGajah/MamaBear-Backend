@@ -79,3 +79,9 @@ export declare const PointTransactionType: {
     readonly bonus: "bonus";
 };
 export type PointTransactionType = (typeof PointTransactionType)[keyof typeof PointTransactionType];
+export declare const PromotionStatus: {
+    readonly draft: "draft";
+    readonly active: "active";
+    readonly ended: "ended";
+};
+export type PromotionStatus = (typeof PromotionStatus)[keyof typeof PromotionStatus];

@@ -34,3 +34,6 @@ export type Faq = Prisma.FaqModel;
 export type Consultation = Prisma.ConsultationModel;
 export type SearchAnalytic = Prisma.SearchAnalyticModel;
 export type Wishlist = Prisma.WishlistModel;
+export type PromotionLanding = Prisma.PromotionLandingModel;
+export type PromotionSection = Prisma.PromotionSectionModel;
+export type PromotionBenefit = Prisma.PromotionBenefitModel;

@@ -17,6 +17,7 @@ export declare class BannerService {
         imageUrl: string;
         altText: string | null;
         title: string | null;
+        extraText: string | null;
         desc: string | null;
         isActive: boolean;
         sortOrder: number;
@@ -32,6 +33,7 @@ export declare class BannerService {
         imageUrl: string;
         altText: string | null;
         title: string | null;
+        extraText: string | null;
         desc: string | null;
         isActive: boolean;
         sortOrder: number;
@@ -47,6 +49,7 @@ export declare class BannerService {
         imageUrl: string;
         altText: string | null;
         title: string | null;
+        extraText: string | null;
         desc: string | null;
         isActive: boolean;
         sortOrder: number;
@@ -62,6 +65,7 @@ export declare class BannerService {
         imageUrl: string;
         altText: string | null;
         title: string | null;
+        extraText: string | null;
         desc: string | null;
         isActive: boolean;
         sortOrder: number;

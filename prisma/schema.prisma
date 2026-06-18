@@ -69,7 +69,6 @@ enum VoucherType {
   free_shipping
 }
 
-// BARU: sumber voucher
 enum VoucherSource {
   manual        // dibuat admin manual
   point_redeem  // hasil redeem point member
@@ -90,6 +89,12 @@ enum PointTransactionType {
   expired
   refund
   bonus
+}
+
+enum PromotionStatus {
+  draft
+  active
+  ended
 }
 
 // ─── User & Address ──────────────────────────────────────────────────────────
@@ -161,7 +166,8 @@ model Banner {
   altText   String?
   label     String?          // badge/chip kecil, misal "NEW" atau "SALE"
   title     String?
-  desc      String?
+  extraText String?          // teks tambahan kecil di bawah title, misal "Diskon 20% untuk semua produk!"
+  desc      String?          // deskripsi lebih panjang, bisa untuk SEO
   path      String?          // URL tujuan klik banner, misal "/products?category=kapsul"
   isActive  Boolean  @default(true)
   sortOrder Int      @default(0)
@@ -653,4 +659,55 @@ model Wishlist {
 
   @@unique([userId, productId])
   @@index([userId])
+}
+
+model PromotionLanding {
+  id          String          @id @default(uuid())
+  title       String                             // e.g. "Mother's Day Special"
+  slug        String          @unique            // e.g. "mothers-day-2025"
+  subtitle    String?                            // sub-headline
+  description String?                            // deskripsi section hero
+  badgeText   String?                            // e.g. "Mother's Day Special • 1 - 31 May"
+  startDate   DateTime?
+  endDate     DateTime?
+  status      PromotionStatus @default(draft)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  // Hero bundle override (opsional — jika null, sistem auto-pilih bundle discountPrice tertinggi)
+  heroBundleId String?
+
+  sections    PromotionSection[]
+  benefits    PromotionBenefit[]
+
+  @@index([status])
+  @@index([slug])
+}
+
+model PromotionSection {
+  id          String   @id @default(uuid())
+  promotionId String
+  title       String
+  subtitle    String?
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  promotion PromotionLanding @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+
+  @@index([promotionId, sortOrder])
+}
+
+model PromotionBenefit {
+  id          String   @id @default(uuid())
+  promotionId String
+  icon        String?  // emoji atau icon name
+  title       String
+  description String
+  sortOrder   Int      @default(0)
+
+  promotion PromotionLanding @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+
+  @@index([promotionId])
 }
