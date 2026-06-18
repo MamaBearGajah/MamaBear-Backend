@@ -60,9 +60,11 @@ export declare class ReviewsController {
     }>;
     toggleHelpful(reviewId: string, dto: HelpfulVoteDto, userId: string): Promise<{
         message: string;
+        helpfulCount: number;
         isHelpful?: undefined;
     } | {
         message: string;
         isHelpful: boolean;
+        helpfulCount: number;
     }>;
 }

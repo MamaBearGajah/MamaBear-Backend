@@ -1,7 +1,7 @@
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateVoucherDto } from './dto/create-voucher.dto';
-import { UpdateVoucherDto } from './dto/validate-voucher.dto';
 import { Voucher, VoucherType } from '../../generated/prisma/client';
+import { UpdateVoucherDto } from './dto/update-voucher.dto';
 export interface ApplyVoucherResult {
     voucher: Voucher;
     discountAmount: number;

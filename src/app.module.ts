@@ -31,7 +31,9 @@ import { GuestCartModule } from './guest-cart/guest-cart.module';
 import { BannerModule } from './banner/banner.module';
 import { VoucherModule } from './voucher/voucher.module';
 import { BundleModule } from './bundle/bundle.module';
+import { WishlistModule } from './wishlist/wishlist.module';
 import { ReportsModule } from './reports/reports.module';
+import { PromotionModule } from './promotion/promotion.module';
 
 @Module({
   imports: [
@@ -61,7 +63,9 @@ import { ReportsModule } from './reports/reports.module';
     BannerModule,
     VoucherModule,
     BundleModule,
-    ReportsModule
+    WishlistModule,
+    ReportsModule,
+    PromotionModule,
   ],
   controllers: [AppController],
   providers: [

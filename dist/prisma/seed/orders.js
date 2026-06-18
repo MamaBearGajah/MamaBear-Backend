@@ -70,6 +70,7 @@ async function seedOrders(prisma, { customers, addresses, products }) {
         productNameMap.set(p.id, p.name);
     }
     let orderIndex = 1;
+    const createdReviews = [];
     async function createMockOrder(opts) {
         const shippingCost = 15000;
         const subtotal = opts.lines.reduce((sum, l) => sum + l.price * l.quantity, 0);
@@ -114,7 +115,7 @@ async function seedOrders(prisma, { customers, addresses, products }) {
             if (!rd)
                 continue;
             const reviewDate = new Date(opts.createdAt.getTime() + 3 * 24 * 60 * 60 * 1000);
-            await prisma.productReview.create({
+            const review = await prisma.productReview.create({
                 data: {
                     productId: opts.lines[i].productId,
                     userId: opts.userId,
@@ -122,11 +123,12 @@ async function seedOrders(prisma, { customers, addresses, products }) {
                     rating: rd.rating,
                     review: rd.review,
                     isVerifiedPurchase: true,
-                    helpfulCount: Math.floor(Math.random() * 15),
+                    helpfulCount: 0,
                     createdAt: reviewDate,
                     updatedAt: reviewDate,
                 },
             });
+            createdReviews.push({ reviewId: review.id, authorUserId: opts.userId });
         }
         return order;
     }
@@ -152,6 +154,40 @@ async function seedOrders(prisma, { customers, addresses, products }) {
     await createMockOrder({ userId: c[7].id, addressId: a[7].id, createdAt: daysAgo(6), trackingNumber: "JNE0001234577", lines: [{ productId: tehPelancar.id, price: 40000, quantity: 4 }, { productId: kukis.id, price: 40000, quantity: 4 }], reviewData: [reviewsTeh[9], reviewsKukis[4]] });
     await createMockOrder({ userId: c[8].id, addressId: a[8].id, createdAt: daysAgo(4), trackingNumber: "JNE0001234578", lines: [{ productId: almonMix.id, price: 40000, quantity: 6 }], reviewData: [reviewsAlmonMix[9]] });
     await createMockOrder({ userId: c[9].id, addressId: a[9].id, createdAt: daysAgo(2), trackingNumber: "JNE0001234579", lines: [{ productId: zoyaMix.id, price: 38000, quantity: 5 }, { productId: almonMix.id, price: 40000, quantity: 4 }], reviewData: [null, null] });
+    const allCustomerIds = customers.map((cu) => cu.id);
+    const helpfulWeights = [8, 7, 6, 8, 9, 5, 7, 3, 8, 6];
+    const tehWeights = [9, 8, 5, 7, 4, 8, 6, 4, 7, 2];
+    const zoyaWeights = [6, 4, 7, 3, 5];
+    const kukisWeights = [7, 4, 8, 3, 6];
+    const kapsulWeights = [8, 7, 4, 6];
+    const allWeights = [
+        ...helpfulWeights,
+        ...tehWeights,
+        ...zoyaWeights,
+        ...kukisWeights,
+        ...kapsulWeights,
+    ];
+    for (let i = 0; i < createdReviews.length; i++) {
+        const { reviewId, authorUserId } = createdReviews[i];
+        const eligibleVoters = allCustomerIds.filter((id) => id !== authorUserId);
+        const targetVotes = Math.min(allWeights[i] ?? 3, eligibleVoters.length);
+        const shuffled = [...eligibleVoters].sort(() => Math.random() - 0.5);
+        const voters = shuffled.slice(0, targetVotes);
+        for (const voterId of voters) {
+            await prisma.productReviewHelpful.create({
+                data: {
+                    reviewId,
+                    userId: voterId,
+                    isHelpful: true,
+                },
+            });
+        }
+        await prisma.productReview.update({
+            where: { id: reviewId },
+            data: { helpfulCount: voters.length },
+        });
+    }
+    console.log(`✅ Helpful votes seeded untuk ${createdReviews.length} reviews`);
     for (const productId of allProductIds) {
         const result = await prisma.productReview.aggregate({
             where: { productId },
@@ -166,6 +202,6 @@ async function seedOrders(prisma, { customers, addresses, products }) {
             },
         });
     }
-    console.log("✅ Orders, payments, reviews & avgRating seeded");
+    console.log("✅ Orders, payments, reviews, helpful votes & avgRating seeded");
 }
 //# sourceMappingURL=orders.js.map
