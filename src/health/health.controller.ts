@@ -1,34 +1,28 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { HealthService } from './health.service';
-import { CreateHealthDto } from './dto/create-health.dto';
-import { UpdateHealthDto } from './dto/update-health.dto';
+import { Public } from 'src/auth/decorators';
 
+@ApiTags('Health')
 @Controller('health')
 export class HealthController {
   constructor(private readonly healthService: HealthService) {}
 
-  @Post()
-  create(@Body() createHealthDto: CreateHealthDto) {
-    return this.healthService.create(createHealthDto);
-  }
-
+  @Public()
+  @ApiOperation({ summary: 'Check overall system health' })
+  @ApiResponse({ status: 200, description: 'System healthy' })
+  @ApiResponse({ status: 503, description: 'System unhealthy' })
   @Get()
-  findAll() {
-    return this.healthService.findAll();
+  check() {
+    return this.healthService.check();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.healthService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateHealthDto: UpdateHealthDto) {
-    return this.healthService.update(+id, updateHealthDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.healthService.remove(+id);
+  @Public()
+  @ApiOperation({ summary: 'Check database connection' })
+  @ApiResponse({ status: 200, description: 'Database connected' })
+  @ApiResponse({ status: 503, description: 'Database unreachable' })
+  @Get('db')
+  checkDatabase() {
+    return this.healthService.checkDatabase();
   }
 }

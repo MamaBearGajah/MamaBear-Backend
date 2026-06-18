@@ -1,8 +1,11 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { PrismaModule } from './prisma/prisma.module';
+import { RedisCacheModule } from './cache/cache.module';
 import { AuthModule } from './auth/auth.module';
 import { ProductsModule } from './products/products.module';
 import { CategoriesModule } from './categories/categories.module';
@@ -19,14 +22,22 @@ import { ChatbotModule } from './chatbot/chatbot.module';
 import { MembershipModule } from './membership/membership.module';
 import { MediaModule } from './media/media.module';
 import { HealthModule } from './health/health.module';
-import { APP_GUARD } from '@nestjs/core';
 import { RolesGuard } from './auth/guards/roles.guard';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
+import { UsersModule } from './users/users.module';
+import { CustomThrottlerGuard } from './common/guards/throttler.guard';
+import { ReviewsModule } from './products/reviews/reviews.module';
+import { GuestCartModule } from './guest-cart/guest-cart.module';
+import { BannerModule } from './banner/banner.module';
+import { VoucherModule } from './voucher/voucher.module';
+import { BundleModule } from './bundle/bundle.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 60 }]),
+    RedisCacheModule,
+    PrismaModule,
     AuthModule,
     ProductsModule,
     CategoriesModule,
@@ -43,10 +54,17 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
     MembershipModule,
     MediaModule,
     HealthModule,
+    UsersModule,
+    ReviewsModule,
+    GuestCartModule,
+    BannerModule,
+    VoucherModule,
+    BundleModule,
   ],
   controllers: [AppController],
   providers: [
     AppService,
+    { provide: APP_GUARD, useClass: CustomThrottlerGuard },
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
   ],

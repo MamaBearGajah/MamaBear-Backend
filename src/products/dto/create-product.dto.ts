@@ -1,64 +1,98 @@
-import { Type } from "class-transformer";
-import { IsArray, IsBoolean, IsEnum, IsNotEmpty, isNumber, IsNumber, IsOptional, IsString, Min, MinLength, ValidateNested } from "class-validator";
-import { CreateVariantDto } from "./create-variant.dto";
-import { CreateImageDto } from "./create-image.dto";
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
+import {
+  IsArray,
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  MaxLength,
+  Min,
+  MinLength,
+  ValidateNested,
+} from 'class-validator';
+import { CreateVariantDto } from './create-variant.dto';
+import { CreateImageDto } from './create-image.dto';
 
 enum ProductStatus {
-    active = 'active',
-    inactive = 'inactive',
-    draft = 'draft',
+  active = 'active',
+  inactive = 'inactive',
+  draft = 'draft',
 }
 
 export class CreateProductDto {
-    @IsString()
-    @IsNotEmpty()
-    @MinLength(2)
-    name!: string
+  @ApiProperty({ example: 'Baju Bayi Lucu', minLength: 2 })
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(2)
+  name!: string;
 
-    @IsString()
-    @IsNotEmpty()
-    slug: string
+  @ApiProperty({ example: 'baju-bayi-lucu' })
+  @IsString()
+  @IsNotEmpty()
+  slug!: string;
 
-    @IsString()
-    @IsOptional()
-    description?: string
-    
-    @IsNumber()
-    @IsNotEmpty()
-    @Min(0)
-    basePrice!: number
+  @ApiPropertyOptional({ example: 'Baju bayi bahan katun lembut' })
+  @IsString()
+  @IsOptional()
+  @MaxLength(5000)
+  description?: string;
 
-    @IsNumber()
-    @IsOptional()
-    discountPrice?: number
+  @ApiProperty({ example: 50000, minimum: 0 })
+  @IsNumber()
+  @IsNotEmpty()
+  @Min(0)
+  basePrice!: number;
 
-    @IsNumber()
-    @Min(1)
-    weight: number
-    
-    @IsString()
-    sku: string
+  @ApiPropertyOptional({ example: 45000 })
+  @IsNumber()
+  @IsOptional()
+  @Min(0)
+  discountPrice?: number;
 
-    @IsNumber()
-    stock: number
+  @ApiProperty({ example: 200, description: 'Berat dalam gram' })
+  @IsNumber()
+  @Min(1)
+  weight!: number;
 
-    @IsString()
-    mainImage: string
+  @ApiProperty({ example: 'SKU-001' })
+  @IsString()
+  @MinLength(3)
+  @MaxLength(50)
+  sku!: string;
 
-    @IsEnum(ProductStatus)
-    status: ProductStatus
-    
-    @IsString()
-    @IsOptional()
-    categoryId?: string
+  @ApiProperty({ example: 100 })
+  @IsNumber()
+  @Min(0)
+  stock!: number;
 
-    @IsArray()
-    @ValidateNested({ each: true })
-    @Type(() => CreateImageDto)
-    images?: CreateImageDto[]
+  @ApiProperty({ example: 'https://example.com/image.jpg' })
+  @IsString()
+  mainImage!: string;
 
-    @IsArray()
-    @ValidateNested({ each: true })
-    @Type(() => CreateVariantDto)
-    variants?: CreateVariantDto[]
+  @ApiProperty({ enum: ProductStatus, example: ProductStatus.active })
+  @IsEnum(ProductStatus)
+  status!: ProductStatus;
+
+  @ApiPropertyOptional({ example: 'cat-uuid-123' })
+  @IsString()
+  @IsOptional()
+  categoryId?: string;
+
+  // FIX: tambah @IsOptional() sebelum @IsArray()
+  // Tanpa ini, kalau field tidak dikirim, class-validator tetap validasi → "must be an array"
+  @ApiPropertyOptional({ type: [CreateImageDto] })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateImageDto)
+  images?: CreateImageDto[];
+
+  @ApiPropertyOptional({ type: [CreateVariantDto] })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateVariantDto)
+  variants?: CreateVariantDto[];
 }

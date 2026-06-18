@@ -1,11 +1,6 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider     = "prisma-client"
+  output       = "../generated/prisma"
   moduleFormat = "cjs"
 }
 
@@ -13,163 +8,370 @@ datasource db {
   provider = "postgresql"
 }
 
-enum Role { 
-  customer 
-  admin 
-  super_admin 
+// ─── Enums ───────────────────────────────────────────────────────────────────
+
+enum Role {
+  customer
+  admin
+  super_admin
 }
 
-enum OrderStatus { 
-  pending 
-  paid 
-  processing 
-  shipped 
-  delivered 
-  cancelled 
+enum OrderStatus {
+  pending
+  paid
+  processing
+  shipped
+  delivered
+  cancelled
 }
 
-enum PaymentStatus { 
-  pending 
-  paid 
-  failed 
-  expired 
-  refunded 
+enum PaymentStatus {
+  pending
+  paid
+  failed
+  expired
+  refunded
 }
 
-enum ProductStatus { 
-  active 
-  inactive 
-  draft 
+enum ProductStatus {
+  active
+  inactive
+  draft
 }
 
-enum ConsultationStatus { 
-  new 
-  in_progress 
-  closed 
+enum ConsultationStatus {
+  new
+  in_progress
+  closed
 }
 
-enum BlogStatus { 
-  draft 
-  published 
+enum BlogStatus {
+  draft
+  published
 }
 
-enum PaymentProvider { 
-  xendit 
-  midtrans 
+enum PaymentProvider {
+  xendit
+  midtrans
 }
+
+enum ImageType {
+  main
+  nutrition
+  ingredients
+  usage
+  other
+}
+
+enum VoucherType {
+  percentage
+  fixed
+  free_shipping
+}
+
+// BARU: sumber voucher
+enum VoucherSource {
+  manual        // dibuat admin manual
+  point_redeem  // hasil redeem point member
+  tier_benefit  // bonus naik tier (ongkir)
+}
+
+enum MembershipTier {
+  bronze
+  silver
+  gold
+  platinum
+}
+
+enum PointTransactionType {
+  purchase
+  daily_login
+  redeem
+  expired
+  refund
+  bonus
+}
+
+// ─── User & Address ──────────────────────────────────────────────────────────
 
 model User {
   id           String    @id @default(uuid())
   name         String
   email        String    @unique
-  phone        String?
+  phone        String?   @unique
   password     String
   role         Role      @default(customer)
   isVerified   Boolean   @default(false)
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
-  refreshToken    String?
-  verifyToken     String?
-  verifyTokenExp  DateTime?
-  resetToken      String?
-  resetTokenExp   DateTime?
+  deletedAt    DateTime?
+  bannedAt     DateTime?
+  banReason    String?
 
-  addresses    Address[]
-  orders       Order[]
-  cart         Cart?
-  membership   Membership?
+  refreshToken   String?
+  verifyToken    String?
+  verifyTokenExp DateTime?
+  resetToken     String?
+  resetTokenExp  DateTime?
+
+  addresses           Address[]
+  wishlists           Wishlist[]
+  orders              Order[]
+  cart                Cart?
+  membership          Membership?
+  reviews             ProductReview[]
+  reviewHelpfuls      ProductReviewHelpful[]
+  blogPosts           BlogPost[]
+  pointTransactions   PointTransaction[]
+  consultationReplies Consultation[]
+  vouchers            Voucher[]              @relation("UserVouchers")
+
+  @@index([email])
+  @@index([createdAt])
+  @@index([deletedAt])
 }
 
 model Address {
-  id            String   @id @default(uuid())
-  userId        String
-  label         String?
-  receiverName  String
-  phone         String
-  address       String
-  cityId        String
-  provinceId    String
-  postalCode    String
-  isDefault     Boolean  @default(false)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  user          User     @relation(fields: [userId], references: [id])
-  orders        Order[]
+  id           String   @id @default(uuid())
+  userId       String
+  label        String?
+  receiverName String
+  phone        String
+  address      String
+  notes        String?  // catatan alamat, misal "Patokan: rumah cat hijau sebelah warung"
+  cityId       String
+  provinceId   String
+  postalCode   String
+  isDefault    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user   User    @relation(fields: [userId], references: [id])
+  orders Order[]
+
+  @@index([userId, isDefault])
 }
 
+// ─── Banner ──────────────────────────────────────────────────────────────────
+// BARU
+
+model Banner {
+  id        String   @id @default(uuid())
+  imageUrl  String
+  altText   String?
+  label     String?          // badge/chip kecil, misal "NEW" atau "SALE"
+  title     String?
+  desc      String?
+  path      String?          // URL tujuan klik banner, misal "/products?category=kapsul"
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  startDate DateTime?
+  endDate   DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive, sortOrder])
+}
+
+// ─── Category ────────────────────────────────────────────────────────────────
+
+model Category {
+  id          String   @id @default(uuid())
+  parentId    String?
+  name        String
+  slug        String   @unique
+  description String?
+  imageUrl    String?
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  parent   Category?  @relation("CategoryChildren", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryChildren")
+  products Product[]
+}
+
+// ─── Product ─────────────────────────────────────────────────────────────────
+
 model Product {
-  id            String         @id @default(uuid())
+  id            String        @id @default(uuid())
   categoryId    String?
   name          String
-  slug          String         @unique
+  slug          String        @unique
   description   String?
+  notes         String?       // catatan tambahan produk (misal: "Tidak untuk ibu hamil")
   basePrice     Decimal
   discountPrice Decimal?
-  weight        Int
-  sku           String         @unique
-  stock         Int            @default(0)
-  mainImage     String?
-  status        ProductStatus  @default(draft)
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  category      Category?      @relation(fields: [categoryId], references: [id])
-  images        ProductImage[]
-  variants      ProductVariant[]
-  cartItems     CartItem[]
-  orderItems    OrderItem[]
+  weight        Int           // in grams
+  sku           String        @unique
+  stock         Int           @default(0)
+  reservedStock Int           @default(0)
+  soldCount     Int           @default(0)
+  status        ProductStatus @default(draft)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  avgRating   Decimal? @db.Decimal(3, 2)
+  reviewCount Int      @default(0)
+
+  deletedAt DateTime?
+
+  category       Category?        @relation(fields: [categoryId], references: [id])
+  images         ProductImage[]
+  variants       ProductVariant[]
+  cartItems      CartItem[]
+  orderItems     OrderItem[]
+  reviews        ProductReview[]
+  guestCartItems GuestCartItem[]
+  bundleItems    BundleItem[]     // relasi ke hampers bundle
+  wishlists      Wishlist[]
+
+  @@index([soldCount(sort: Desc)])
+  @@index([status, soldCount(sort: Desc)])
+  @@index([categoryId, status])
+  @@index([slug])
+  @@index([avgRating(sort: Desc)])
+  @@index([deletedAt])
 }
 
 model ProductImage {
-  id         String   @id @default(uuid())
+  id         String    @id @default(uuid())
   productId  String
   imageUrl   String
+  publicId   String?
   altText    String?
-  sortOrder  Int      @default(0)
-  isFeatured Boolean  @default(false)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  imageType  ImageType @default(main)
+  sortOrder  Int       @default(0)
+  isFeatured Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 model ProductVariant {
   id              String   @id @default(uuid())
   productId       String
-  name            String   // isi: "Cokelat", "Matcha", dll
+  name            String
   value           String
-  imageUrl        String?
+  basePrice       Decimal
+  discountPrice   Decimal?
   priceAdjustment Decimal  @default(0)
   stock           Int      @default(0)
-  sku             String?
+  reservedStock   Int      @default(0)
+  weight          Int?
+  imageUrl        String?
+  altText         String?
+  sku             String?  @unique
   isActive        Boolean  @default(true)
+  sortOrder       Int      @default(0)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
-  product         Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  product        Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  cartItems      CartItem[]
+  orderItems     OrderItem[]
+  guestCartItems GuestCartItem[]
 }
 
-model Category {
-  id          String     @id @default(uuid())
-  parentId    String?
-  name        String
-  slug        String     @unique
-  description String?
-  imageUrl    String?
-  sortOrder   Int        @default(0)
-  isActive    Boolean    @default(true)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  parent      Category?  @relation("CategoryChildren", fields: [parentId], references: [id])
-  children    Category[] @relation("CategoryChildren")
-  products    Product[]
+// ─── Bundle / Hampers ────────────────────────────────────────────────────────
+// BARU
+
+model Bundle {
+  id            String   @id @default(uuid())
+  name          String
+  slug          String   @unique
+  description   String?
+  imageUrl      String?
+  publicId      String?
+  bundlePrice   Decimal            // harga bundle (biasanya lebih murah dari total satuan)
+  discountPrice Decimal?
+  isActive      Boolean  @default(true)
+  stock         Int      @default(0)
+  soldCount     Int      @default(0)
+  sortOrder     Int      @default(0)
+  startDate     DateTime?
+  endDate       DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  items      BundleItem[]
+  orderItems OrderItem[]          // bundle juga bisa di-order
+  order      Order[]
+
+  @@index([isActive])
+  @@index([slug])
 }
+
+model BundleItem {
+  id        String  @id @default(uuid())
+  bundleId  String
+  productId String
+  quantity  Int     @default(1)
+
+  bundle  Bundle  @relation(fields: [bundleId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@unique([bundleId, productId])
+}
+
+// ─── Review ──────────────────────────────────────────────────────────────────
+
+model ProductReview {
+  id                 String   @id @default(uuid())
+  productId          String
+  userId             String
+  orderId            String
+  rating             Int?
+  review             String?
+  isVerifiedPurchase Boolean  @default(true)
+  helpfulCount       Int      @default(0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  product  Product               @relation(fields: [productId], references: [id])
+  user     User                  @relation(fields: [userId], references: [id])
+  order    Order                 @relation(fields: [orderId], references: [id])
+  helpfuls ProductReviewHelpful[]
+  images   ProductReviewImage[]
+
+  @@unique([userId, productId, orderId])
+}
+
+model ProductReviewHelpful {
+  id        String   @id @default(uuid())
+  reviewId  String
+  userId    String
+  isHelpful Boolean
+  createdAt DateTime @default(now())
+
+  review ProductReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  user   User          @relation(fields: [userId], references: [id])
+
+  @@unique([reviewId, userId])
+}
+
+model ProductReviewImage {
+  id        String   @id @default(uuid())
+  reviewId  String
+  imageUrl  String
+  createdAt DateTime @default(now())
+
+  review ProductReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+}
+
+// ─── Cart ────────────────────────────────────────────────────────────────────
 
 model Cart {
-  id        String     @id @default(uuid())
-  userId    String     @unique
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  user      User       @relation(fields: [userId], references: [id])
-  items     CartItem[]
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user  User       @relation(fields: [userId], references: [id])
+  items CartItem[]
 }
 
 model CartItem {
@@ -179,77 +381,230 @@ model CartItem {
   variantId String?
   quantity  Int
   price     Decimal
+  notes     String?  // catatan customer untuk item ini, misal "Tolong bungkus kado"
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  product   Product  @relation(fields: [productId], references: [id])
+
+  cart    Cart            @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product Product         @relation(fields: [productId], references: [id])
+  variant ProductVariant? @relation(fields: [variantId], references: [id])
 }
 
 model GuestCart {
-  id        String          @id @default(uuid())
+  id        String    @id @default(uuid())
   sessionId String
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
-  items     GuestCartItem[]
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  items GuestCartItem[]
+
+  @@index([sessionId])
 }
 
 model GuestCartItem {
-  id          String    @id @default(uuid())
+  id          String   @id @default(uuid())
   guestCartId String
   productId   String
   variantId   String?
   quantity    Int
   price       Decimal
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  guestCart   GuestCart @relation(fields: [guestCartId], references: [id], onDelete: Cascade)
+  notes       String?  // catatan customer untuk item ini (dibawa saat merge ke CartItem)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  guestCart GuestCart       @relation(fields: [guestCartId], references: [id], onDelete: Cascade)
+  product   Product         @relation(fields: [productId], references: [id])
+  variant   ProductVariant? @relation(fields: [variantId], references: [id])
 }
 
+// ─── Voucher ─────────────────────────────────────────────────────────────────
+
+model Voucher {
+  id          String        @id @default(uuid())
+  code        String        @unique
+  type        VoucherType
+  source      VoucherSource @default(manual)       // BARU
+  value       Decimal
+  minPurchase Decimal       @default(0)
+  maxDiscount Decimal?
+  usageLimit  Int?
+  usedCount   Int           @default(0)
+  isActive    Boolean       @default(true)
+  startDate   DateTime?
+  endDate     DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  ownerId     String?                              // voucher personal
+  owner       User?         @relation("UserVouchers", fields: [ownerId], references: [id])
+
+  orders Order[]
+
+  @@index([code])
+  @@index([isActive, startDate, endDate])
+  @@index([ownerId])
+}
+
+// ─── Order & Payment ─────────────────────────────────────────────────────────
+
 model Order {
-  id             String        @id @default(uuid())
-  userId         String
-  addressId      String
-  status         OrderStatus   @default(pending)
-  paymentStatus  PaymentStatus @default(pending)
-  total          Decimal
-  shippingCost   Decimal
-  courier        String
-  service        String
-  trackingNumber String?
-  notes          String?
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  user           User          @relation(fields: [userId], references: [id])
-  address        Address       @relation(fields: [addressId], references: [id])
-  items          OrderItem[]
-  payment        Payment?
+  id                String        @id @default(uuid())
+  orderNumber       String        @unique
+  userId            String
+  addressId         String
+  voucherId         String?
+  bundleId          String?       // order bisa berupa bundle
+  status            OrderStatus   @default(pending)
+  paymentStatus     PaymentStatus @default(pending)
+  subtotal          Decimal
+  discountAmount    Decimal       @default(0)
+  shippingCost      Decimal
+  total             Decimal
+  courier           String
+  service           String
+  shippingProvider  String?
+  trackingNumber    String?
+  estimatedDelivery DateTime?
+  deliveredAt       DateTime?
+  cancelledAt       DateTime?
+  cancelReason      String?
+  notes             String?
+
+  // deadline pembayaran & batas cancel user
+  paymentDeadline   DateTime?     // +2 jam dari created (diisi saat order dibuat)
+  cancelDeadline    DateTime?     // +30 menit dari created (diisi saat order dibuat)
+
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  user          User                 @relation(fields: [userId], references: [id])
+  address       Address              @relation(fields: [addressId], references: [id])
+  voucher       Voucher?             @relation(fields: [voucherId], references: [id])
+  bundle        Bundle?              @relation(fields: [bundleId], references: [id])
+  items         OrderItem[]
+  payment       Payment?
+  reviews       ProductReview[]
+  statusHistory OrderStatusHistory[]
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([orderNumber])
+  @@index([status])
+  @@index([paymentStatus])
+  @@index([paymentDeadline])  // untuk cron job expired payment
 }
 
 model OrderItem {
-  id        String   @id @default(uuid())
+  id          String   @id @default(uuid())
+  orderId     String
+  productId   String
+  productName String
+  variantId   String?
+  variantName String?
+  quantity    Int
+  price       Decimal
+  notes       String?  // catatan customer untuk item ini (disalin dari CartItem.notes saat checkout)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  bundleId    String?        // BARU: jika item berasal dari bundle
+  bundle      Bundle?        @relation(fields: [bundleId], references: [id])
+
+  order   Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product         @relation(fields: [productId], references: [id])
+  variant ProductVariant? @relation(fields: [variantId], references: [id])
+}
+
+model OrderStatusHistory {
+  id        String      @id @default(uuid())
   orderId   String
-  productId String
-  variantId String?
-  quantity  Int
-  price     Decimal
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product   Product  @relation(fields: [productId], references: [id])
+  status    OrderStatus
+  note      String?
+  createdAt DateTime    @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId, createdAt])
 }
 
 model Payment {
-  id         String          @id @default(uuid())
-  orderId    String          @unique
-  provider   PaymentProvider
-  status     PaymentStatus   @default(pending)
-  amount     Decimal
-  paymentUrl String?
-  paidAt     DateTime?
-  createdAt  DateTime        @default(now())
-  updatedAt  DateTime        @updatedAt
-  order      Order           @relation(fields: [orderId], references: [id])
+  id            String          @id @default(uuid())
+  orderId       String          @unique
+  provider      PaymentProvider
+  status        PaymentStatus   @default(pending)
+  amount        Decimal
+  externalId    String?         @unique
+  paymentMethod String?
+  paymentUrl    String?
+  expiredAt     DateTime?
+  paidAt        DateTime?
+  refundedAt    DateTime?       // untuk tracking refund
+  refundReason  String?
+  metadata      Json?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  order Order @relation(fields: [orderId], references: [id])
+
+  @@index([externalId])
 }
+
+// ─── Membership & Points ─────────────────────────────────────────────────────
+
+model Membership {
+  userId           String         @id
+  tier             MembershipTier @default(bronze)
+  points           Int            @default(0)
+  totalSpent       Decimal        @default(0)
+  pointsExpiredAt  DateTime?
+  lastDailyLoginAt DateTime?
+  lastTierUpAt     DateTime?      // kapan terakhir naik tier
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model PointTransaction {
+  id          String               @id @default(uuid())
+  userId      String
+  points      Int
+  type        PointTransactionType
+  referenceId String?
+  description String?
+  expiredAt   DateTime?
+  createdAt   DateTime             @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([type])
+}
+
+// ─── Blog ────────────────────────────────────────────────────────────────────
+
+model BlogPost {
+  id          String     @id @default(uuid())
+  authorId    String?
+  title       String
+  slug        String     @unique
+  excerpt     String?
+  coverImage  String?
+  coverPublicId String?  // cloudinary public_id untuk delete
+  content     String
+  status      BlogStatus @default(draft)
+  viewCount   Int        @default(0)
+  publishedAt DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  author User? @relation(fields: [authorId], references: [id])
+
+  @@index([status, publishedAt(sort: Desc)])
+  @@index([slug])
+}
+
+// ─── Misc ────────────────────────────────────────────────────────────────────
 
 model Faq {
   id        String   @id @default(uuid())
@@ -260,33 +615,43 @@ model Faq {
   updatedAt DateTime @updatedAt
 }
 
-model BlogPost {
-  id          String     @id @default(uuid())
-  title       String
-  slug        String     @unique
-  content     String
-  status      BlogStatus @default(draft)
-  publishedAt DateTime?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-}
-
 model Consultation {
-  id        String               @id @default(uuid())
-  name      String
-  email     String
-  phone     String?
-  message   String
-  status    ConsultationStatus   @default(new)
-  createdAt DateTime             @default(now())
-  updatedAt DateTime             @updatedAt
+  id          String             @id @default(uuid())
+  name        String
+  email       String
+  phone       String?            @unique
+  message     String
+  status      ConsultationStatus @default(new)
+  respondedBy String?
+  response    String?
+  respondedAt DateTime?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  admin User? @relation(fields: [respondedBy], references: [id])
 }
 
-model Membership {
-  userId           String   @id
-  points           Int      @default(0)
-  lastDailyLoginAt DateTime?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  user             User     @relation(fields: [userId], references: [id])
+model SearchAnalytic {
+  id        String   @id @default(uuid())
+  query     String
+  count     Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([query])
+  @@index([count(sort: Desc)])
+  @@index([query])
+}
+
+model Wishlist {
+  id        String   @id @default(uuid())
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@index([userId])
 }
