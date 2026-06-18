@@ -116,6 +116,7 @@ model User {
   resetTokenExp  DateTime?
 
   addresses           Address[]
+  wishlists           Wishlist[]
   orders              Order[]
   cart                Cart?
   membership          Membership?
@@ -153,7 +154,6 @@ model Address {
 }
 
 // ─── Banner ──────────────────────────────────────────────────────────────────
-// BARU
 
 model Banner {
   id        String   @id @default(uuid())
@@ -165,8 +165,8 @@ model Banner {
   path      String?          // URL tujuan klik banner, misal "/products?category=kapsul"
   isActive  Boolean  @default(true)
   sortOrder Int      @default(0)
-  startDate DateTime?
-  endDate   DateTime?
+  startDate DateTime? @db.Timestamptz
+  endDate   DateTime? @db.Timestamptz
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -225,6 +225,7 @@ model Product {
   reviews        ProductReview[]
   guestCartItems GuestCartItem[]
   bundleItems    BundleItem[]     // relasi ke hampers bundle
+  wishlists      Wishlist[]
 
   @@index([soldCount(sort: Desc)])
   @@index([status, soldCount(sort: Desc)])
@@ -639,4 +640,17 @@ model SearchAnalytic {
   @@unique([query])
   @@index([count(sort: Desc)])
   @@index([query])
+}
+
+model Wishlist {
+  id        String   @id @default(uuid())
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@index([userId])
 }

@@ -64,6 +64,8 @@ export class OrdersService {
       0,
     );
 
+    // ── Shipping cost ─────────────────────────────────────────────────────────
+    // shippingService.calculateCost() return flat array: [{ service, cost, etd }]
     const shippingOptions = await this.shippingService.calculateCost({
       originCityId: process.env.WAREHOUSE_CITY_ID!,
       destinationCityId: address.cityId,
@@ -76,7 +78,8 @@ export class OrdersService {
       .find((c: any) => c.service === dto.service);
     if (!selectedService) throw new BadRequestException('Shipping service not available');
 
-    const shippingCost: number = selectedService.cost[0].value;
+    const shippingCost: number = selectedService.cost;
+
     const subtotal = cart.items.reduce((sum, item) => {
       return sum + Number(item.variant?.basePrice ?? item.price ?? 0) * item.quantity;
     }, 0);
