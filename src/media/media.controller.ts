@@ -1,142 +1,145 @@
 import {
-  Body,
   Controller,
-  Delete,
   Post,
+  Delete,
+  Body,
+  Param,
   UploadedFile,
   UploadedFiles,
   UseInterceptors,
-  BadRequestException,
-  Param,
   HttpCode,
   HttpStatus,
+  BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
-import { memoryStorage } from 'multer';
 import {
   ApiTags,
+  ApiBearerAuth,
   ApiOperation,
+  ApiResponse,
   ApiConsumes,
   ApiBody,
-  ApiBearerAuth,
-  ApiResponse,
-  ApiParam,
 } from '@nestjs/swagger';
-import { Roles } from 'src/auth/decorators';
-import { Role } from 'generated/prisma/enums';
+import { memoryStorage } from 'multer';
 import { MediaService } from './media.service';
 import { SignUploadDto } from './dto/sign-upload.dto';
+import { Public } from '../auth/decorators';
 
 const MULTER_OPTIONS = {
   storage: memoryStorage(),
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
 };
 
 @ApiTags('Media')
-@ApiBearerAuth()
-@Roles(Role.admin, Role.super_admin)
 @Controller('media')
 export class MediaController {
   constructor(private readonly mediaService: MediaService) {}
 
-  // ─── Generate Signed URL ─────────────────────────────────────────────────
+  // ─── Signed URL (Direct Upload ke Cloudinary) ──────────────────────────────
+  // Frontend pakai ini untuk upload langsung ke Cloudinary tanpa lewat server
 
   @Post('sign')
+  @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Generate Cloudinary signed URL untuk upload langsung dari frontend' })
+  @ApiOperation({
+    summary: 'Generate signed URL untuk upload langsung ke Cloudinary',
+    description:
+      'Kembalikan uploadUrl, signature, timestamp, apiKey, folder. ' +
+      'Frontend upload file langsung ke Cloudinary pakai data ini.',
+  })
   @ApiResponse({ status: 200, description: 'Signed URL berhasil dibuat' })
   @ApiResponse({ status: 400, description: 'Tipe file tidak diizinkan' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 403, description: 'Akses ditolak' })
-  async sign(@Body() dto: SignUploadDto) {
-    const data = await this.mediaService.generateSignedUrl(dto);
-    return { success: true, data };
+  signUpload(@Body() dto: SignUploadDto) {
+    return this.mediaService.generateSignedUrl(dto);
   }
 
-  // ─── Single Upload ────────────────────────────────────────────────────────
+  // ─── Direct Upload (lewat server → Cloudinary) ─────────────────────────────
+  // Fallback jika signed URL tidak bisa dipakai (CORS, dll)
 
   @Post('upload')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Upload satu gambar ke Cloudinary (max 5MB, jpeg/png/webp)' })
+  @ApiBearerAuth()
+  @UseInterceptors(FileInterceptor('file', MULTER_OPTIONS))
   @ApiConsumes('multipart/form-data')
+  @ApiOperation({ summary: 'Upload satu file gambar via server ke Cloudinary' })
   @ApiBody({
     schema: {
       type: 'object',
-      required: ['file', 'folder'],
       properties: {
-        file:   { type: 'string', format: 'binary', description: 'File gambar (jpeg/png/webp, max 5MB)' },
+        file: { type: 'string', format: 'binary' },
         folder: { type: 'string', example: 'products' },
       },
+      required: ['file'],
     },
   })
-  @ApiResponse({ status: 200, description: 'Upload berhasil, returns imageUrl dan publicId' })
-  @ApiResponse({ status: 400, description: 'File tidak valid atau folder kosong' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 403, description: 'Akses ditolak' })
-  @UseInterceptors(FileInterceptor('file', MULTER_OPTIONS))
-  async upload(
+  @ApiResponse({ status: 201, description: 'Upload berhasil, kembalikan imageUrl + publicId' })
+  @ApiResponse({ status: 400, description: 'File tidak valid atau melebihi 5MB' })
+  async uploadFile(
     @UploadedFile() file: Express.Multer.File,
-    @Body('folder') folder: string,
+    @Body('folder') folder = 'uploads',
   ) {
-    if (!file)   throw new BadRequestException('File is required.');
-    if (!folder) throw new BadRequestException('Folder is required.');
-
-    const data = await this.mediaService.uploadFile(file, folder);
-    return { success: true, data };
+    if (!file) throw new BadRequestException('File tidak ditemukan');
+    return this.mediaService.uploadFile(file, folder);
   }
 
-  // ─── Multiple Upload ──────────────────────────────────────────────────────
+  // ─── Multiple Upload ────────────────────────────────────────────────────────
 
   @Post('upload/multiple')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Upload beberapa gambar sekaligus ke Cloudinary (max 10 file, masing-masing max 5MB)' })
+  @ApiBearerAuth()
+  @UseInterceptors(FilesInterceptor('files', 10, MULTER_OPTIONS))
   @ApiConsumes('multipart/form-data')
+  @ApiOperation({ summary: 'Upload beberapa file gambar sekaligus (maks 10)' })
   @ApiBody({
     schema: {
       type: 'object',
-      required: ['files', 'folder'],
       properties: {
-        files:  {
+        files: {
           type: 'array',
           items: { type: 'string', format: 'binary' },
-          description: 'File gambar (max 10)',
         },
         folder: { type: 'string', example: 'products' },
       },
+      required: ['files'],
     },
   })
-  @ApiResponse({ status: 200, description: 'Semua file berhasil diupload' })
-  @ApiResponse({ status: 400, description: 'File tidak valid atau folder kosong' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 403, description: 'Akses ditolak' })
-  @UseInterceptors(FilesInterceptor('files', 10, MULTER_OPTIONS))
+  @ApiResponse({ status: 201, description: 'Upload berhasil' })
   async uploadMultiple(
     @UploadedFiles() files: Express.Multer.File[],
-    @Body('folder') folder: string,
+    @Body('folder') folder = 'uploads',
   ) {
-    if (!files || files.length === 0) throw new BadRequestException('Minimal satu file diperlukan.');
-    if (!folder) throw new BadRequestException('Folder is required.');
-
-    const data = await this.mediaService.uploadMultipleFiles(files, folder);
-    return { success: true, data };
+    if (!files?.length) throw new BadRequestException('Tidak ada file yang dikirim');
+    return this.mediaService.uploadMultipleFiles(files, folder);
   }
 
-  // ─── Delete Image ─────────────────────────────────────────────────────────
+  // ─── Delete ─────────────────────────────────────────────────────────────────
 
   @Delete(':publicId')
+  @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Hapus gambar dari Cloudinary berdasarkan publicId' })
-  @ApiParam({
-    name: 'publicId',
-    description: 'Cloudinary public ID — jika mengandung slash, encode dulu (e.g. products%2Fabc123)',
+  @ApiOperation({ summary: 'Hapus file dari Cloudinary berdasarkan publicId' })
+  @ApiResponse({ status: 200, description: 'File berhasil dihapus' })
+  @ApiResponse({ status: 400, description: 'Gagal menghapus file' })
+  deleteFile(@Param('publicId') publicId: string) {
+    return this.mediaService.deleteFile(publicId);
+  }
+
+  // ─── Blog Cover Image Upload ────────────────────────────────────────────────
+  // Dedicated endpoint untuk blog agar folder terpisah
+
+  @Post('blog/upload')
+  @ApiBearerAuth()
+  @UseInterceptors(FileInterceptor('file', MULTER_OPTIONS))
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({ summary: 'Upload cover image untuk blog post' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: { file: { type: 'string', format: 'binary' } },
+      required: ['file'],
+    },
   })
-  @ApiResponse({ status: 200, description: 'Gambar berhasil dihapus' })
-  @ApiResponse({ status: 400, description: 'Gagal menghapus gambar' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 403, description: 'Akses ditolak' })
-  async deleteImage(@Param('publicId') publicId: string) {
-    const decodedId = decodeURIComponent(publicId);
-    const data = await this.mediaService.deleteFile(decodedId);
-    return { success: true, data };
+  @ApiResponse({ status: 201, description: 'Upload berhasil' })
+  async uploadBlogImage(@UploadedFile() file: Express.Multer.File) {
+    if (!file) throw new BadRequestException('File tidak ditemukan');
+    return this.mediaService.uploadFile(file, 'blog');
   }
 }

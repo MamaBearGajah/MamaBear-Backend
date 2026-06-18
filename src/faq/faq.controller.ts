@@ -5,7 +5,7 @@ import { CreateFaqDto } from './dto/create-faq.dto';
 import { UpdateFaqDto } from './dto/update-faq.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators';
+import { Public, Roles } from '../auth/decorators';
 import { Role } from 'generated/prisma/enums';
 
 @ApiTags('FAQ')
@@ -16,6 +16,7 @@ export class FaqController {
   @ApiOperation({ summary: 'Get semua FAQ aktif (public)' })
   @ApiResponse({ status: 200, description: 'List FAQ berhasil diambil' })
   @Get()
+  @Public()
   findAll() {
     return this.faqService.findAll();
   }
@@ -25,6 +26,7 @@ export class FaqController {
   @ApiResponse({ status: 200, description: 'FAQ ditemukan' })
   @ApiResponse({ status: 404, description: 'FAQ tidak ditemukan' })
   @Get(':id')
+  @Public()
   findOne(@Param('id') id: string) {
     return this.faqService.findOne(id);
   }
