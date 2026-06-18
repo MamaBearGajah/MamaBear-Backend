@@ -13,6 +13,7 @@ import { ShippingService } from '../shipping/shipping.service';
 import { MailService } from '../mail/mail.service';
 import { MembershipService } from '../membership/membership.service';
 import { VoucherService } from '../voucher/voucher.service';
+import { createObjectCsvStringifier } from 'csv-writer';
 
 @Injectable()
 export class OrdersService {
@@ -463,5 +464,64 @@ export class OrdersService {
       where: { id: orderId },
       data: { trackingNumber },
     });
+  }
+
+  // ─── Export Orders to CSV (Admin) ─────────────────────────────────────────
+  async exportOrdersToCsv(): Promise<string> {
+    const orders = await this.prisma.order.findMany({
+      orderBy: { createdAt: 'desc' },
+      include: {
+        user:    { select: { name: true, email: true } },
+        address: { select: { receiverName: true, phone: true, cityId: true, provinceId: true } },
+        payment: { select: { provider: true, status: true } },
+        _count:  { select: { items: true } },
+      },
+    });
+ 
+    const csvStringifier = createObjectCsvStringifier({
+      header: [
+        { id: 'orderNumber',    title: 'ORDER_NUMBER' },
+        { id: 'createdAt',      title: 'DATE' },
+        { id: 'customerName',   title: 'CUSTOMER_NAME' },
+        { id: 'customerEmail',  title: 'CUSTOMER_EMAIL' },
+        { id: 'recipient',      title: 'RECIPIENT' },
+        { id: 'phone',          title: 'PHONE' },
+        { id: 'cityId',         title: 'CITY_ID' },
+        { id: 'provinceId',     title: 'PROVINCE_ID' },
+        { id: 'status',         title: 'STATUS' },
+        { id: 'paymentStatus',  title: 'PAYMENT_STATUS' },
+        { id: 'paymentProvider',title: 'PAYMENT_PROVIDER' },
+        { id: 'courier',        title: 'COURIER' },
+        { id: 'service',        title: 'SERVICE' },
+        { id: 'trackingNumber', title: 'TRACKING_NUMBER' },
+        { id: 'itemCount',      title: 'ITEM_COUNT' },
+        { id: 'subtotal',       title: 'SUBTOTAL' },
+        { id: 'shippingCost',   title: 'SHIPPING_COST' },
+        { id: 'total',          title: 'TOTAL' },
+      ],
+    });
+ 
+    const records = orders.map((o) => ({
+      orderNumber:     o.orderNumber,
+      createdAt:       o.createdAt.toISOString().slice(0, 19).replace('T', ' '),
+      customerName:    o.user.name,
+      customerEmail:   o.user.email,
+      recipient:       o.address.receiverName,   // ← FIX: recipientName → receiverName
+      phone:           o.address.phone,
+      cityId:          o.address.cityId,          // ← FIX: city/province tidak ada, pakai cityId/provinceId
+      provinceId:      o.address.provinceId,
+      status:          o.status,
+      paymentStatus:   o.paymentStatus,
+      paymentProvider: o.payment?.provider ?? '',
+      courier:         o.courier,
+      service:         o.service,
+      trackingNumber:  o.trackingNumber ?? '',
+      itemCount:       o._count.items,
+      subtotal:        Number(o.subtotal).toFixed(0),
+      shippingCost:    Number(o.shippingCost).toFixed(0),
+      total:           Number(o.total).toFixed(0),
+    }));
+ 
+    return csvStringifier.getHeaderString() + csvStringifier.stringifyRecords(records);
   }
 }

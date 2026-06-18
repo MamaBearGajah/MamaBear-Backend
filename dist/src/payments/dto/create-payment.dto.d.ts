@@ -1,5 +1,5 @@
 export declare class CreatePaymentDto {
     orderId: string;
-    provider: 'xendit' | 'midtrans';
+    provider: 'xendit';
     amount: number;
 }

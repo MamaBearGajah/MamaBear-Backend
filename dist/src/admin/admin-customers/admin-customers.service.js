@@ -41,6 +41,12 @@ let AdminCustomersService = class AdminCustomersService {
                     name: true,
                     email: true,
                     createdAt: true,
+                    _count: {
+                        select: { orders: true },
+                    },
+                    orders: {
+                        select: { total: true },
+                    },
                 },
             }),
             this.prisma.user.count({ where }),
@@ -54,6 +60,49 @@ let AdminCustomersService = class AdminCustomersService {
                 currentPage: page,
             },
         };
+    }
+    async findById(id) {
+        const user = await this.prisma.user.findUnique({
+            where: { id },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                phone: true,
+                isVerified: true,
+                createdAt: true,
+                addresses: {
+                    select: {
+                        id: true,
+                        label: true,
+                        receiverName: true,
+                        phone: true,
+                        address: true,
+                        cityId: true,
+                        provinceId: true,
+                        postalCode: true,
+                        isDefault: true,
+                    },
+                },
+                orders: {
+                    orderBy: { createdAt: 'desc' },
+                    take: 20,
+                    select: {
+                        id: true,
+                        orderNumber: true,
+                        status: true,
+                        paymentStatus: true,
+                        total: true,
+                        createdAt: true,
+                        _count: { select: { items: true } },
+                    },
+                },
+                _count: { select: { orders: true } },
+            },
+        });
+        if (!user)
+            throw new common_1.NotFoundException(`Customer dengan id ${id} tidak ditemukan`);
+        return user;
     }
 };
 exports.AdminCustomersService = AdminCustomersService;

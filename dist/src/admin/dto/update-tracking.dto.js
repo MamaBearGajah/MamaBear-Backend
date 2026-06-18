@@ -9,30 +9,24 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CreatePaymentDto = void 0;
+exports.UpdateTrackingDto = void 0;
 const swagger_1 = require("@nestjs/swagger");
 const class_validator_1 = require("class-validator");
-class CreatePaymentDto {
-    orderId;
-    provider;
-    amount;
+class UpdateTrackingDto {
+    trackingNumber;
+    note;
 }
-exports.CreatePaymentDto = CreatePaymentDto;
+exports.UpdateTrackingDto = UpdateTrackingDto;
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 'uuid-order-id', description: 'ID order yang akan dibayar' }),
-    (0, class_validator_1.IsUUID)(),
+    (0, swagger_1.ApiProperty)({ example: 'JNE123456789', description: 'Nomor resi pengiriman' }),
+    (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
-], CreatePaymentDto.prototype, "orderId", void 0);
+], UpdateTrackingDto.prototype, "trackingNumber", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ enum: ['xendit'], description: 'Payment gateway — hanya Xendit' }),
-    (0, class_validator_1.IsEnum)(['xendit']),
+    (0, swagger_1.ApiPropertyOptional)({ example: 'Dikirim via JNE REG', description: 'Catatan opsional' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
-], CreatePaymentDto.prototype, "provider", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({ example: 55000, description: 'Total amount dalam Rupiah (min. Rp 1.000)' }),
-    (0, class_validator_1.IsNumber)(),
-    (0, class_validator_1.Min)(1000),
-    __metadata("design:type", Number)
-], CreatePaymentDto.prototype, "amount", void 0);
-//# sourceMappingURL=create-payment.dto.js.map
+], UpdateTrackingDto.prototype, "note", void 0);
+//# sourceMappingURL=update-tracking.dto.js.map
