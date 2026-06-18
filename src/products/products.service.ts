@@ -356,6 +356,44 @@ export class ProductsService {
     return product;
   }
 
+  async bulkUpdateProducts(body: {
+    productIds: string[];
+    status?: string;
+    price?: number;
+  }) {
+    const { productIds, status, price } = body;
+
+    if (!productIds?.length) {
+      throw new BadRequestException('productIds wajib diisi');
+    }
+
+    const data: any = {};
+
+    if (status) {
+      data.status = status;
+    }
+
+    if (price !== undefined) {
+      data.basePrice = price;
+    }
+
+    const result = await this.prisma.product.updateMany({
+      where: {
+        id: {
+          in: productIds,
+        },
+      },
+      data,
+    });
+
+    await this.cache.delByPattern('products:*');
+
+    return {
+      success: true,
+      updated: result.count,
+    };
+  }
+
   // ─── ADMIN: ALL VARIANTS ACROSS PRODUCTS ──────────────────────────────────
 
   async findAllVariants(query: { page?: number; limit?: number; productId?: string }) {

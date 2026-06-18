@@ -10,5 +10,6 @@ import { VoucherModule } from '../voucher/voucher.module';
   imports: [ShippingModule, MailModule, MembershipModule, VoucherModule],
   controllers: [OrdersController],
   providers: [OrdersService],
+  exports: [OrdersService],
 })
 export class OrdersModule {}

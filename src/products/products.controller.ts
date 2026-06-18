@@ -1,6 +1,7 @@
 import {
   Controller, Get, Post, Patch, Delete,
   Body, Param, Query,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags, ApiOperation, ApiResponse,
@@ -12,6 +13,8 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductQueryDto } from './dto/product-query.dto';
 import { Public, Roles } from '../auth/decorators';
 import { Role } from 'generated/prisma/enums';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
 
 @ApiTags('Products')
 @Controller('products')
@@ -84,6 +87,23 @@ export class ProductsController {
   @ApiResponse({ status: 400, description: 'Slug atau SKU sudah digunakan' })
   create(@Body() dto: CreateProductDto) {
     return this.productsService.create(dto);
+  }
+
+  @Post('bulk')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard
+  )
+  @Roles(Role.admin, Role.super_admin)
+  @ApiOperation({ summary: 'Bulk update status/harga produk (admin)' })
+  bulkUpdate(
+    @Body()
+    body: {
+      productIds: string[];
+      status?: string;
+      price?: number;
+    },
+  ) {
+    return this.productsService.bulkUpdateProducts(body);
   }
 
   @Public()
