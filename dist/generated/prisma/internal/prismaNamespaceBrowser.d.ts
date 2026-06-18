@@ -39,6 +39,9 @@ export declare const ModelName: {
     readonly Consultation: "Consultation";
     readonly SearchAnalytic: "SearchAnalytic";
     readonly Wishlist: "Wishlist";
+    readonly PromotionLanding: "PromotionLanding";
+    readonly PromotionSection: "PromotionSection";
+    readonly PromotionBenefit: "PromotionBenefit";
 };
 export type ModelName = (typeof ModelName)[keyof typeof ModelName];
 export declare const TransactionIsolationLevel: {
@@ -90,6 +93,7 @@ export declare const BannerScalarFieldEnum: {
     readonly altText: "altText";
     readonly label: "label";
     readonly title: "title";
+    readonly extraText: "extraText";
     readonly desc: "desc";
     readonly path: "path";
     readonly isActive: "isActive";
@@ -425,6 +429,41 @@ export declare const WishlistScalarFieldEnum: {
     readonly createdAt: "createdAt";
 };
 export type WishlistScalarFieldEnum = (typeof WishlistScalarFieldEnum)[keyof typeof WishlistScalarFieldEnum];
+export declare const PromotionLandingScalarFieldEnum: {
+    readonly id: "id";
+    readonly title: "title";
+    readonly slug: "slug";
+    readonly subtitle: "subtitle";
+    readonly description: "description";
+    readonly badgeText: "badgeText";
+    readonly startDate: "startDate";
+    readonly endDate: "endDate";
+    readonly status: "status";
+    readonly createdAt: "createdAt";
+    readonly updatedAt: "updatedAt";
+    readonly heroBundleId: "heroBundleId";
+};
+export type PromotionLandingScalarFieldEnum = (typeof PromotionLandingScalarFieldEnum)[keyof typeof PromotionLandingScalarFieldEnum];
+export declare const PromotionSectionScalarFieldEnum: {
+    readonly id: "id";
+    readonly promotionId: "promotionId";
+    readonly title: "title";
+    readonly subtitle: "subtitle";
+    readonly sortOrder: "sortOrder";
+    readonly isActive: "isActive";
+    readonly createdAt: "createdAt";
+    readonly updatedAt: "updatedAt";
+};
+export type PromotionSectionScalarFieldEnum = (typeof PromotionSectionScalarFieldEnum)[keyof typeof PromotionSectionScalarFieldEnum];
+export declare const PromotionBenefitScalarFieldEnum: {
+    readonly id: "id";
+    readonly promotionId: "promotionId";
+    readonly icon: "icon";
+    readonly title: "title";
+    readonly description: "description";
+    readonly sortOrder: "sortOrder";
+};
+export type PromotionBenefitScalarFieldEnum = (typeof PromotionBenefitScalarFieldEnum)[keyof typeof PromotionBenefitScalarFieldEnum];
 export declare const SortOrder: {
     readonly asc: "asc";
     readonly desc: "desc";

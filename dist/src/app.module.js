@@ -42,6 +42,7 @@ const voucher_module_1 = require("./voucher/voucher.module");
 const bundle_module_1 = require("./bundle/bundle.module");
 const wishlist_module_1 = require("./wishlist/wishlist.module");
 const reports_module_1 = require("./reports/reports.module");
+const promotion_module_1 = require("./promotion/promotion.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -75,7 +76,8 @@ exports.AppModule = AppModule = __decorate([
             voucher_module_1.VoucherModule,
             bundle_module_1.BundleModule,
             wishlist_module_1.WishlistModule,
-            reports_module_1.ReportsModule
+            reports_module_1.ReportsModule,
+            promotion_module_1.PromotionModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [

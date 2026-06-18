@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PointTransactionType = exports.MembershipTier = exports.VoucherSource = exports.VoucherType = exports.ImageType = exports.PaymentProvider = exports.BlogStatus = exports.ConsultationStatus = exports.ProductStatus = exports.PaymentStatus = exports.OrderStatus = exports.Role = void 0;
+exports.PromotionStatus = exports.PointTransactionType = exports.MembershipTier = exports.VoucherSource = exports.VoucherType = exports.ImageType = exports.PaymentProvider = exports.BlogStatus = exports.ConsultationStatus = exports.ProductStatus = exports.PaymentStatus = exports.OrderStatus = exports.Role = void 0;
 exports.Role = {
     customer: 'customer',
     admin: 'admin',
@@ -69,5 +69,10 @@ exports.PointTransactionType = {
     expired: 'expired',
     refund: 'refund',
     bonus: 'bonus'
+};
+exports.PromotionStatus = {
+    draft: 'draft',
+    active: 'active',
+    ended: 'ended'
 };
 //# sourceMappingURL=enums.js.map

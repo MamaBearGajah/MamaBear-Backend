@@ -1,6 +1,6 @@
 import { VoucherService } from './voucher.service';
 import { CreateVoucherDto } from './dto/create-voucher.dto';
-import { UpdateVoucherDto, ValidateVoucherDto } from './dto/validate-voucher.dto';
+import { ValidateVoucherDto } from './dto/validate-voucher.dto';
 export declare class VoucherController {
     private readonly voucherService;
     constructor(voucherService: VoucherService);
@@ -21,7 +21,7 @@ export declare class VoucherController {
         usedCount: number;
         ownerId: string | null;
     }[]>;
-    validateVoucher(userId: string, dto: ValidateVoucherDto): Promise<{
+    validate(dto: ValidateVoucherDto, userId: string): Promise<{
         valid: boolean;
         voucher: {
             id: string;
@@ -91,7 +91,7 @@ export declare class VoucherController {
         usedCount: number;
         ownerId: string | null;
     }>;
-    update(id: string, dto: UpdateVoucherDto): Promise<{
+    update(id: string, dto: CreateVoucherDto): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
