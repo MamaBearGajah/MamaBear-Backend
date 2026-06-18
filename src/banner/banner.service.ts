@@ -1,23 +1,28 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CacheService } from '../cache/cache.service';
 import { CreateBannerDto } from './dto/create-banner.dto';
 import { UpdateBannerDto } from './dto/update-banner.dto';
 
 const CACHE_KEY = 'banners:active';
-const CACHE_TTL = 300; // 5 menit
+const CACHE_TTL = 60; // detik — diperpendek dari 300 agar banner time-based tidak stale
 
 @Injectable()
 export class BannerService {
+  private readonly logger = new Logger(BannerService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly cache: CacheService,
   ) {}
 
-  // ─── Public: Get Active Banners ──────────────────────────────────────────
   async getActiveBanners() {
-    const cached = await this.cache.get<any[]>(CACHE_KEY);
-    if (cached) return cached;
+    try {
+      const cached = await this.cache.get<any[]>(CACHE_KEY);
+      if (cached) return cached;
+    } catch {
+      // Redis down — lanjut query DB
+    }
 
     const now = new Date();
     const banners = await this.prisma.banner.findMany({
@@ -29,11 +34,15 @@ export class BannerService {
       orderBy: { sortOrder: 'asc' },
     });
 
-    await this.cache.set(CACHE_KEY, banners, CACHE_TTL);
+    try {
+      await this.cache.set(CACHE_KEY, banners, CACHE_TTL);
+    } catch {
+      // Redis down — tidak masalah, next request akan query DB lagi
+    }
+
     return banners;
   }
 
-  // ─── Admin: CRUD ─────────────────────────────────────────────────────────
   async create(dto: CreateBannerDto) {
     const banner = await this.prisma.banner.create({
       data: {
@@ -49,12 +58,14 @@ export class BannerService {
         endDate: dto.endDate ? new Date(dto.endDate) : undefined,
       },
     });
-    await this.cache.del(CACHE_KEY);
+    await this.invalidateCache();
     return banner;
   }
 
   async findAll() {
-    return this.prisma.banner.findMany({ orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }] });
+    return this.prisma.banner.findMany({
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
+    });
   }
 
   async findOne(id: string) {
@@ -76,18 +87,30 @@ export class BannerService {
         ...(dto.path !== undefined && { path: dto.path }),
         ...(dto.isActive !== undefined && { isActive: dto.isActive }),
         ...(dto.sortOrder !== undefined && { sortOrder: dto.sortOrder }),
-        ...(dto.startDate !== undefined && { startDate: dto.startDate ? new Date(dto.startDate) : null }),
-        ...(dto.endDate !== undefined && { endDate: dto.endDate ? new Date(dto.endDate) : null }),
+        ...(dto.startDate !== undefined && {
+          startDate: dto.startDate ? new Date(dto.startDate) : null,
+        }),
+        ...(dto.endDate !== undefined && {
+          endDate: dto.endDate ? new Date(dto.endDate) : null,
+        }),
       },
     });
-    await this.cache.del(CACHE_KEY);
+    await this.invalidateCache();
     return banner;
   }
 
   async remove(id: string) {
     await this.findOne(id);
     await this.prisma.banner.delete({ where: { id } });
-    await this.cache.del(CACHE_KEY);
+    await this.invalidateCache();
     return { message: 'Banner berhasil dihapus' };
+  }
+
+  private async invalidateCache() {
+    try {
+      await this.cache.del(CACHE_KEY);
+    } catch (err) {
+      this.logger.warn(`Gagal invalidate cache banner: ${err}`);
+    }
   }
 }

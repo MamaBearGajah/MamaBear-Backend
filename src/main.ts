@@ -53,4 +53,5 @@ async function bootstrap() {
   console.log(`🌐 Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:3001'}`);
   console.log(`=======================================================`);
 }
+process.env.TZ = 'Asia/Jakarta';
 bootstrap();
