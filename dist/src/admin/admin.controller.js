@@ -32,9 +32,6 @@ let AdminController = class AdminController {
     getCustomers(page, limit, search) {
         return this.adminCustomersService.findAll({ page, limit, search });
     }
-    getCustomerById(id) {
-        return this.adminCustomersService.findAll({ page: 1, limit: 1, search: id });
-    }
     getOrders(page, limit, status, q) {
         return this.ordersService.findAllAdmin(status, q ?? '', page, limit);
     }
@@ -58,18 +55,8 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], AdminController.prototype, "getCustomers", null);
 __decorate([
-    (0, common_1.Get)('customers/:id'),
-    (0, swagger_1.ApiOperation)({ summary: '[Admin] Detail customer by ID' }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: 'Detail customer berhasil diambil' }),
-    (0, swagger_1.ApiResponse)({ status: 404, description: 'Customer tidak ditemukan' }),
-    __param(0, (0, common_1.Param)('id')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", void 0)
-], AdminController.prototype, "getCustomerById", null);
-__decorate([
     (0, common_1.Get)('orders'),
-    (0, swagger_1.ApiOperation)({ summary: '[Admin] List semua order — gunakan GET /orders/admin untuk fitur lengkap' }),
+    (0, swagger_1.ApiOperation)({ summary: '[Admin] List semua order' }),
     (0, swagger_1.ApiQuery)({ name: 'page', required: false, example: 1 }),
     (0, swagger_1.ApiQuery)({ name: 'limit', required: false, example: 10 }),
     (0, swagger_1.ApiQuery)({ name: 'status', required: false, enum: enums_1.OrderStatus }),
@@ -85,7 +72,7 @@ __decorate([
 ], AdminController.prototype, "getOrders", null);
 __decorate([
     (0, common_1.Patch)('orders/:id/status'),
-    (0, swagger_1.ApiOperation)({ summary: '[Admin] Update status order — gunakan PATCH /orders/:id/status untuk fitur lengkap' }),
+    (0, swagger_1.ApiOperation)({ summary: '[Admin] Update status order' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Status order berhasil diupdate' }),
     (0, swagger_1.ApiResponse)({ status: 404, description: 'Order tidak ditemukan' }),
     __param(0, (0, common_1.Param)('id')),

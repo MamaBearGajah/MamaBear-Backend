@@ -25,15 +25,11 @@ import { UpdateOrderDto } from '../orders/dto/update-order.dto';
 @Controller('admin')
 export class AdminController {
   constructor(
-    // Gunakan AdminCustomersService (bukan AdminService lama yang sudah tidak ada)
     private readonly adminCustomersService: AdminCustomersService,
-    // Gunakan OrdersService langsung — method findAllAdmin & updateStatus sudah ada di sana
     private readonly ordersService: OrdersService,
   ) {}
 
   // ─── Customers ─────────────────────────────────────────────────────────────
-  // Endpoint ini sudah ada di AdminCustomersController (GET /admin/customers).
-  // Dipertahankan di sini hanya untuk backward compat.
   @Get('customers')
   @ApiOperation({ summary: '[Admin] List customers dengan pagination & search' })
   @ApiQuery({ name: 'page', required: false, example: 1 })
@@ -48,19 +44,11 @@ export class AdminController {
     return this.adminCustomersService.findAll({ page, limit, search });
   }
 
-  @Get('customers/:id')
-  @ApiOperation({ summary: '[Admin] Detail customer by ID' })
-  @ApiResponse({ status: 200, description: 'Detail customer berhasil diambil' })
-  @ApiResponse({ status: 404, description: 'Customer tidak ditemukan' })
-  getCustomerById(@Param('id') id: string) {
-    return this.adminCustomersService.findAll({ page: 1, limit: 1, search: id });
-  }
+  // ← HAPUS getCustomerById() dari sini — sudah ditangani AdminCustomersController
 
   // ─── Orders ────────────────────────────────────────────────────────────────
-  // Endpoint ini sudah ada di OrdersController (GET /orders/admin).
-  // Dipertahankan di sini hanya untuk backward compat.
   @Get('orders')
-  @ApiOperation({ summary: '[Admin] List semua order — gunakan GET /orders/admin untuk fitur lengkap' })
+  @ApiOperation({ summary: '[Admin] List semua order' })
   @ApiQuery({ name: 'page', required: false, example: 1 })
   @ApiQuery({ name: 'limit', required: false, example: 10 })
   @ApiQuery({ name: 'status', required: false, enum: OrderStatus })
@@ -77,7 +65,7 @@ export class AdminController {
 
   // ─── Update Order Status ───────────────────────────────────────────────────
   @Patch('orders/:id/status')
-  @ApiOperation({ summary: '[Admin] Update status order — gunakan PATCH /orders/:id/status untuk fitur lengkap' })
+  @ApiOperation({ summary: '[Admin] Update status order' })
   @ApiResponse({ status: 200, description: 'Status order berhasil diupdate' })
   @ApiResponse({ status: 404, description: 'Order tidak ditemukan' })
   updateOrderStatus(

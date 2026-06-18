@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AdminProductsService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../../prisma/prisma.service");
+const enums_1 = require("../../../generated/prisma/enums");
 const csv_writer_1 = require("csv-writer");
 const node_stream_1 = require("node:stream");
 const csv_parser_1 = __importDefault(require("csv-parser"));
@@ -26,23 +27,39 @@ let AdminProductsService = class AdminProductsService {
     async exportProductsToCsv() {
         const products = await this.prisma.product.findMany({
             orderBy: { createdAt: 'desc' },
+            include: { _count: { select: { variants: true } } },
         });
         const csvStringifier = (0, csv_writer_1.createObjectCsvStringifier)({
             header: [
                 { id: 'id', title: 'ID' },
                 { id: 'name', title: 'NAME' },
                 { id: 'slug', title: 'SLUG' },
-                { id: 'price', title: 'PRICE' },
+                { id: 'sku', title: 'SKU' },
+                { id: 'basePrice', title: 'BASE_PRICE' },
+                { id: 'discountPrice', title: 'DISCOUNT_PRICE' },
                 { id: 'stock', title: 'STOCK' },
+                { id: 'weight', title: 'WEIGHT' },
+                { id: 'status', title: 'STATUS' },
+                { id: 'variants', title: 'VARIANT_COUNT' },
                 { id: 'description', title: 'DESCRIPTION' },
-            ]
+                { id: 'createdAt', title: 'CREATED_AT' },
+            ],
         });
-        const headerString = csvStringifier.getHeaderString();
-        const recordString = csvStringifier.stringifyRecords(products.map((p) => ({
-            ...p,
-            price: p.basePrice ? p.basePrice.toString : '0',
-        })));
-        return headerString + recordString;
+        const records = products.map((p) => ({
+            id: p.id,
+            name: p.name,
+            slug: p.slug,
+            sku: p.sku ?? '',
+            basePrice: Number(p.basePrice).toFixed(0),
+            discountPrice: p.discountPrice ? Number(p.discountPrice).toFixed(0) : '',
+            stock: p.stock,
+            weight: p.weight,
+            status: p.status,
+            variants: p._count.variants,
+            description: (p.description ?? '').replace(/\n/g, ' '),
+            createdAt: p.createdAt.toISOString().slice(0, 10),
+        }));
+        return csvStringifier.getHeaderString() + csvStringifier.stringifyRecords(records);
     }
     async importProductsFromCsv(fileBuffer) {
         const results = [];
@@ -62,24 +79,19 @@ let AdminProductsService = class AdminProductsService {
             const rowNumber = i + 1;
             if (!row.name || !row.slug || !row.basePrice || !row.stock) {
                 failedCount++;
-                errors.push({
-                    row: rowNumber,
-                    reason: 'Missing required fields (name, slug, price, or stock)'
-                });
+                errors.push({ row: rowNumber, reason: 'Missing required fields (name, slug, basePrice, or stock)' });
                 continue;
             }
             try {
-                const existingProduct = await this.prisma.product.findUnique({
-                    where: { slug: row.slug },
-                });
+                const existingProduct = await this.prisma.product.findUnique({ where: { slug: row.slug } });
                 if (existingProduct) {
-                    failedCount;
-                    errors.push({
-                        row: rowNumber,
-                        reason: `Duplicate product skipped. Slug "${row.slug}" already exists.`,
-                    });
+                    failedCount++;
+                    errors.push({ row: rowNumber, reason: `Duplicate skipped. Slug "${row.slug}" already exists.` });
                     continue;
                 }
+                const status = Object.values(enums_1.ProductStatus).includes(row.status)
+                    ? row.status
+                    : enums_1.ProductStatus.draft;
                 await this.prisma.product.create({
                     data: {
                         name: row.name,
@@ -89,22 +101,36 @@ let AdminProductsService = class AdminProductsService {
                         description: row.description || null,
                         weight: row.weight ? parseInt(row.weight, 10) : 0,
                         sku: row.sku || `SKU-${Date.now()}-${rowNumber}`,
+                        status,
                     },
                 });
                 importedCount++;
             }
             catch (error) {
                 failedCount++;
-                errors.push({
-                    row: rowNumber,
-                    reason: error.message || 'Internal database saving error',
-                });
+                errors.push({ row: rowNumber, reason: error.message || 'Internal database error' });
             }
         }
+        return { imported: importedCount, failed: failedCount, errors };
+    }
+    async bulkUpdateProducts(dto) {
+        const { ids, data } = dto;
+        const found = await this.prisma.product.findMany({
+            where: { id: { in: ids } },
+            select: { id: true },
+        });
+        const foundIds = found.map((p) => p.id);
+        const notFound = ids.filter((id) => !foundIds.includes(id));
+        const result = await this.prisma.product.updateMany({
+            where: { id: { in: foundIds } },
+            data: {
+                ...(data.status !== undefined && { status: data.status }),
+                ...(data.basePrice !== undefined && { basePrice: data.basePrice }),
+            },
+        });
         return {
-            imported: importedCount,
-            failed: failedCount,
-            errors: errors,
+            updated: result.count,
+            notFound: notFound.length > 0 ? notFound : undefined,
         };
     }
 };

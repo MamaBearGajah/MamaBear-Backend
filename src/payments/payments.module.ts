@@ -11,7 +11,7 @@ import { MailModule } from '../mail/mail.module';
   providers: [
     PaymentsService,
     XenditService,
-    MidtransService,
+    // MidtransService, // Untuk sementara Midtrans belum dipakai, jadi tidak di-inject ke service manapun. Nanti kalau mau pakai tinggal uncomment dan inject ke PaymentsService
   ],
 })
 export class PaymentsModule {}

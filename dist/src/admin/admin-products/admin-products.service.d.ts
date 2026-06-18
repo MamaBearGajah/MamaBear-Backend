@@ -1,4 +1,5 @@
 import { PrismaService } from '../../prisma/prisma.service';
+import { ProductStatus } from '../../../generated/prisma/enums';
 export declare class AdminProductsService {
     private prisma;
     constructor(prisma: PrismaService);
@@ -10,5 +11,15 @@ export declare class AdminProductsService {
             row: number;
             reason: string;
         }[];
+    }>;
+    bulkUpdateProducts(dto: {
+        ids: string[];
+        data: {
+            status?: ProductStatus;
+            basePrice?: number;
+        };
+    }): Promise<{
+        updated: number;
+        notFound: string[] | undefined;
     }>;
 }
