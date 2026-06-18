@@ -59,7 +59,10 @@ export class OrdersService {
     const address = await this.prisma.address.findFirst({ where: { id: dto.addressId, userId } });
     if (!address) throw new NotFoundException('Address not found');
 
-    const totalWeight = cart.items.reduce((sum, item) => sum + (item.product?.weight ?? 0) * item.quantity, 0);
+    const totalWeight = cart.items.reduce(
+      (sum, item) => sum + (item.product?.weight ?? 0) * item.quantity,
+      0,
+    );
 
     // ── Shipping cost ─────────────────────────────────────────────────────────
     // shippingService.calculateCost() return flat array: [{ service, cost, etd }]
@@ -70,7 +73,9 @@ export class OrdersService {
       courier: dto.courier,
     });
 
-    const selectedService = shippingOptions.find((o: any) => o.service === dto.service);
+    const selectedService = shippingOptions
+      .flatMap((o: any) => o.cost)
+      .find((c: any) => c.service === dto.service);
     if (!selectedService) throw new BadRequestException('Shipping service not available');
 
     const shippingCost: number = selectedService.cost;
@@ -95,14 +100,14 @@ export class OrdersService {
 
     // ── Deadline timestamps ──────────────────────────────────────────────────
     const now = new Date();
-    const paymentDeadline = new Date(now.getTime() + 2 * 60 * 60 * 1000); // +2 jam
-    const cancelDeadline = new Date(now.getTime() + 30 * 60 * 1000); // +30 menit
+    const paymentDeadline = new Date(now.getTime() + 2 * 60 * 60 * 1000);  // +2 jam
+    const cancelDeadline  = new Date(now.getTime() + 30 * 60 * 1000);      // +30 menit
 
     const order = await this.prisma.$transaction(async (tx) => {
       if (resolvedVoucherId) {
         const applied = await this.voucherService.applyVoucher(tx, resolvedVoucherId, subtotal, shippingCost);
-        discountAmount = applied.discountAmount;
-        finalShippingCost = applied.finalShippingCost;
+        discountAmount      = applied.discountAmount;
+        finalShippingCost   = applied.finalShippingCost;
       }
 
       const newOrder = await tx.order.create({
@@ -114,10 +119,10 @@ export class OrdersService {
           courier: dto.courier,
           service: dto.service,
           notes: dto.notes ?? null,
-          subtotal: new Prisma.Decimal(subtotal),
+          subtotal:       new Prisma.Decimal(subtotal),
           discountAmount: new Prisma.Decimal(discountAmount),
-          shippingCost: new Prisma.Decimal(finalShippingCost),
-          total: new Prisma.Decimal(total),
+          shippingCost:   new Prisma.Decimal(finalShippingCost),
+          total:          new Prisma.Decimal(total),
           status: 'pending',
           paymentStatus: 'pending',
           paymentDeadline,
@@ -127,14 +132,14 @@ export class OrdersService {
 
       await tx.orderItem.createMany({
         data: cart.items.map((item) => ({
-          orderId: newOrder.id,
-          productId: item.productId,
+          orderId:     newOrder.id,
+          productId:   item.productId,
           productName: item.product?.name ?? 'Unknown Product',
-          variantId: item.variantId ?? null,
+          variantId:   item.variantId ?? null,
           variantName: item.variant ? `${item.variant.name}: ${item.variant.value}` : null,
-          quantity: item.quantity,
-          price: item.variant?.basePrice ?? item.price,
-          notes: item.notes ?? null,
+          quantity:    item.quantity,
+          price:       item.variant?.basePrice ?? item.price,
+          notes:       item.notes ?? null,
         })),
       });
 
@@ -142,6 +147,7 @@ export class OrdersService {
         data: { orderId: newOrder.id, status: 'pending', note: 'Order created successfully' },
       });
 
+      // Kurangi stok varian
       for (const item of cart.items) {
         if (item.variantId) {
           await tx.productVariant.update({
@@ -151,6 +157,7 @@ export class OrdersService {
         }
       }
 
+      // Update soldCount produk
       const productSoldMap = cart.items.reduce<Record<string, number>>((acc, item) => {
         acc[item.productId] = (acc[item.productId] ?? 0) + item.quantity;
         return acc;
@@ -220,12 +227,7 @@ export class OrdersService {
 
     return {
       data: orders,
-      meta: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-      },
+      meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
     };
   }
 
@@ -242,7 +244,14 @@ export class OrdersService {
         items: {
           include: {
             variant: true,
-            product: { select: { id: true, name: true, slug: true, images: { where: { isFeatured: true }, take: 1 } } },
+            product: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+                images: { where: { isFeatured: true }, take: 1 },
+              },
+            },
           },
         },
         address: true,
@@ -272,7 +281,14 @@ export class OrdersService {
         items: {
           include: {
             variant: true,
-            product: { select: { id: true, name: true, slug: true, images: { where: { isFeatured: true }, take: 1 } } },
+            product: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+                images: { where: { isFeatured: true }, take: 1 },
+              },
+            },
           },
         },
         address: true,
@@ -302,14 +318,16 @@ export class OrdersService {
       data: {
         status,
         ...(dto.trackingNumber && { trackingNumber: dto.trackingNumber }),
-        ...(status === OrderStatus.delivered && { deliveredAt: new Date() }),
-        ...(status === OrderStatus.cancelled && { cancelledAt: new Date(), cancelReason: dto.note }),
+        ...(status === OrderStatus.delivered  && { deliveredAt: new Date() }),
+        ...(status === OrderStatus.cancelled  && { cancelledAt: new Date(), cancelReason: dto.note }),
       },
     });
 
-    await this.prisma.orderStatusHistory.create({ data: { orderId, status, note: dto.note ?? null } });
+    await this.prisma.orderStatusHistory.create({
+      data: { orderId, status, note: dto.note ?? null },
+    });
 
-    // Proses membership saat delivered
+    // Proses membership poin saat delivered
     if (status === OrderStatus.delivered) {
       this.membershipService
         .processPurchase(order.userId, Number(order.total), orderId)
@@ -356,6 +374,7 @@ export class OrdersService {
         data: { orderId, status: 'cancelled', note: 'Order cancelled by user' },
       });
 
+      // Kembalikan stok varian
       for (const item of order.items) {
         if (item.variantId) {
           await tx.productVariant.update({
@@ -365,12 +384,16 @@ export class OrdersService {
         }
       }
 
+      // Kurangi soldCount produk
       const productSoldMap = order.items.reduce<Record<string, number>>((acc, item) => {
         acc[item.productId] = (acc[item.productId] ?? 0) + item.quantity;
         return acc;
       }, {});
       for (const [productId, qty] of Object.entries(productSoldMap)) {
-        await tx.product.update({ where: { id: productId }, data: { soldCount: { decrement: qty } } });
+        await tx.product.update({
+          where: { id: productId },
+          data: { soldCount: { decrement: qty } },
+        });
       }
 
       return cancelled;
@@ -402,5 +425,43 @@ export class OrdersService {
     });
     if (!order) throw new NotFoundException('Order tidak ditemukan');
     return order;
+  }
+
+  // ─── Get Admin Orders (legacy helper — kept for backward compat) ──────────
+  // Gunakan findAllAdmin() untuk fitur lengkap (search, orderNumber, dll).
+  async getAdminOrders(page = 1, limit = 10, status?: string, paymentStatus?: string) {
+    const skip = (page - 1) * limit;
+    const where: any = {};
+
+    if (status) where.status = status;
+    if (paymentStatus) where.payment = { status: paymentStatus };
+
+    const [orders, total] = await Promise.all([
+      this.prisma.order.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: { user: true, payment: true, items: true },
+      }),
+      this.prisma.order.count({ where }),
+    ]);
+
+    return {
+      data: orders,
+      meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    };
+  }
+
+  // ─── Update Tracking Number (legacy helper) ───────────────────────────────
+  // Gunakan updateStatus() dengan dto.trackingNumber untuk flow lengkap.
+  async updateTrackingNumber(orderId: string, trackingNumber: string) {
+    const order = await this.prisma.order.findUnique({ where: { id: orderId } });
+    if (!order) throw new NotFoundException('Order tidak ditemukan');
+
+    return this.prisma.order.update({
+      where: { id: orderId },
+      data: { trackingNumber },
+    });
   }
 }

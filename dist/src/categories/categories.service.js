@@ -161,6 +161,17 @@ let CategoriesService = class CategoriesService {
         await this.invalidateCategoryCache(id);
         return category;
     }
+    async reorder(items) {
+        await this.prisma.$transaction(items.map((item) => this.prisma.category.update({
+            where: { id: item.id },
+            data: { sortOrder: item.sortOrder },
+        })));
+        await this.invalidateCategoryCache();
+        return {
+            success: true,
+            updated: items.length,
+        };
+    }
     async remove(id) {
         const category = await this.prisma.category.findUnique({
             where: { id },

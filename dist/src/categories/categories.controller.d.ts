@@ -38,6 +38,13 @@ export declare class CategoriesController {
         slug: string;
         description: string | null;
     }>;
+    reorder(items: {
+        id: string;
+        sortOrder: number;
+    }[]): Promise<{
+        success: boolean;
+        updated: number;
+    }>;
     remove(id: string): Promise<{
         id: string;
         name: string;

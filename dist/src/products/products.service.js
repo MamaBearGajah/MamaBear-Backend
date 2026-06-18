@@ -302,6 +302,32 @@ let ProductsService = class ProductsService {
         await this.invalidateProductCache(id);
         return product;
     }
+    async bulkUpdateProducts(body) {
+        const { productIds, status, price } = body;
+        if (!productIds?.length) {
+            throw new common_1.BadRequestException('productIds wajib diisi');
+        }
+        const data = {};
+        if (status) {
+            data.status = status;
+        }
+        if (price !== undefined) {
+            data.basePrice = price;
+        }
+        const result = await this.prisma.product.updateMany({
+            where: {
+                id: {
+                    in: productIds,
+                },
+            },
+            data,
+        });
+        await this.cache.delByPattern('products:*');
+        return {
+            success: true,
+            updated: result.count,
+        };
+    }
     async findAllVariants(query) {
         const { page = 1, limit = 20, productId } = query;
         const where = { ...(productId && { productId }) };

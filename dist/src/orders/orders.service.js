@@ -67,7 +67,9 @@ let OrdersService = OrdersService_1 = class OrdersService {
             weight: totalWeight,
             courier: dto.courier,
         });
-        const selectedService = shippingOptions.find((o) => o.service === dto.service);
+        const selectedService = shippingOptions
+            .flatMap((o) => o.cost)
+            .find((c) => c.service === dto.service);
         if (!selectedService)
             throw new common_1.BadRequestException('Shipping service not available');
         const shippingCost = selectedService.cost;
@@ -195,12 +197,7 @@ let OrdersService = OrdersService_1 = class OrdersService {
         ]);
         return {
             data: orders,
-            meta: {
-                total,
-                page,
-                limit,
-                totalPages: Math.ceil(total / limit),
-            },
+            meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
         };
     }
     async findOne(userId, orderId) {
@@ -214,7 +211,14 @@ let OrdersService = OrdersService_1 = class OrdersService {
                 items: {
                     include: {
                         variant: true,
-                        product: { select: { id: true, name: true, slug: true, images: { where: { isFeatured: true }, take: 1 } } },
+                        product: {
+                            select: {
+                                id: true,
+                                name: true,
+                                slug: true,
+                                images: { where: { isFeatured: true }, take: 1 },
+                            },
+                        },
                     },
                 },
                 address: true,
@@ -239,7 +243,14 @@ let OrdersService = OrdersService_1 = class OrdersService {
                 items: {
                     include: {
                         variant: true,
-                        product: { select: { id: true, name: true, slug: true, images: { where: { isFeatured: true }, take: 1 } } },
+                        product: {
+                            select: {
+                                id: true,
+                                name: true,
+                                slug: true,
+                                images: { where: { isFeatured: true }, take: 1 },
+                            },
+                        },
                     },
                 },
                 address: true,
@@ -270,7 +281,9 @@ let OrdersService = OrdersService_1 = class OrdersService {
                 ...(status === client_1.OrderStatus.cancelled && { cancelledAt: new Date(), cancelReason: dto.note }),
             },
         });
-        await this.prisma.orderStatusHistory.create({ data: { orderId, status, note: dto.note ?? null } });
+        await this.prisma.orderStatusHistory.create({
+            data: { orderId, status, note: dto.note ?? null },
+        });
         if (status === client_1.OrderStatus.delivered) {
             this.membershipService
                 .processPurchase(order.userId, Number(order.total), orderId)
@@ -318,7 +331,10 @@ let OrdersService = OrdersService_1 = class OrdersService {
                 return acc;
             }, {});
             for (const [productId, qty] of Object.entries(productSoldMap)) {
-                await tx.product.update({ where: { id: productId }, data: { soldCount: { decrement: qty } } });
+                await tx.product.update({
+                    where: { id: productId },
+                    data: { soldCount: { decrement: qty } },
+                });
             }
             return cancelled;
         });
@@ -348,6 +364,37 @@ let OrdersService = OrdersService_1 = class OrdersService {
         if (!order)
             throw new common_1.NotFoundException('Order tidak ditemukan');
         return order;
+    }
+    async getAdminOrders(page = 1, limit = 10, status, paymentStatus) {
+        const skip = (page - 1) * limit;
+        const where = {};
+        if (status)
+            where.status = status;
+        if (paymentStatus)
+            where.payment = { status: paymentStatus };
+        const [orders, total] = await Promise.all([
+            this.prisma.order.findMany({
+                where,
+                skip,
+                take: limit,
+                orderBy: { createdAt: 'desc' },
+                include: { user: true, payment: true, items: true },
+            }),
+            this.prisma.order.count({ where }),
+        ]);
+        return {
+            data: orders,
+            meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
+        };
+    }
+    async updateTrackingNumber(orderId, trackingNumber) {
+        const order = await this.prisma.order.findUnique({ where: { id: orderId } });
+        if (!order)
+            throw new common_1.NotFoundException('Order tidak ditemukan');
+        return this.prisma.order.update({
+            where: { id: orderId },
+            data: { trackingNumber },
+        });
     }
 };
 exports.OrdersService = OrdersService;

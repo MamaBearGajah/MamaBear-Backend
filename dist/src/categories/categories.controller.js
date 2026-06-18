@@ -45,6 +45,9 @@ let CategoriesController = class CategoriesController {
     update(id, dto) {
         return this.categoriesService.update(id, dto);
     }
+    reorder(items) {
+        return this.categoriesService.reorder(items);
+    }
     remove(id) {
         return this.categoriesService.remove(id);
     }
@@ -129,6 +132,17 @@ __decorate([
     __metadata("design:paramtypes", [String, update_category_dto_1.UpdateCategoryDto]),
     __metadata("design:returntype", void 0)
 ], CategoriesController.prototype, "update", null);
+__decorate([
+    (0, common_1.Post)('reorder'),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, decorators_1.Roles)(enums_1.Role.admin, enums_1.Role.super_admin),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    (0, swagger_1.ApiOperation)({ summary: 'Reorder kategori (admin)' }),
+    __param(0, (0, common_1.Body)(new common_1.ParseArrayPipe({ items: Object }))),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Array]),
+    __metadata("design:returntype", void 0)
+], CategoriesController.prototype, "reorder", null);
 __decorate([
     (0, common_1.Delete)(':id'),
     (0, swagger_1.ApiBearerAuth)(),

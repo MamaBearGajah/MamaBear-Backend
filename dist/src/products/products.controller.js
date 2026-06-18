@@ -21,6 +21,8 @@ const update_product_dto_1 = require("./dto/update-product.dto");
 const product_query_dto_1 = require("./dto/product-query.dto");
 const decorators_1 = require("../auth/decorators");
 const enums_1 = require("../../generated/prisma/enums");
+const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
+const roles_guard_1 = require("../auth/guards/roles.guard");
 let ProductsController = class ProductsController {
     productsService;
     constructor(productsService) {
@@ -47,6 +49,9 @@ let ProductsController = class ProductsController {
     }
     create(dto) {
         return this.productsService.create(dto);
+    }
+    bulkUpdate(body) {
+        return this.productsService.bulkUpdateProducts(body);
     }
     findOne(id) {
         return this.productsService.findOne(id);
@@ -126,6 +131,17 @@ __decorate([
     __metadata("design:paramtypes", [create_product_dto_1.CreateProductDto]),
     __metadata("design:returntype", void 0)
 ], ProductsController.prototype, "create", null);
+__decorate([
+    (0, common_1.Post)('bulk'),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, decorators_1.Roles)(enums_1.Role.admin, enums_1.Role.super_admin),
+    (0, swagger_1.ApiOperation)({ summary: 'Bulk update status/harga produk (admin)' }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], ProductsController.prototype, "bulkUpdate", null);
 __decorate([
     (0, decorators_1.Public)(),
     (0, common_1.Get)(':id'),

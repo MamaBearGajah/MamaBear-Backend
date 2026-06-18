@@ -20,7 +20,7 @@ const create_order_dto_1 = require("./dto/create-order.dto");
 const update_order_dto_1 = require("./dto/update-order.dto");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 const roles_guard_1 = require("../auth/guards/roles.guard");
-const decorators_1 = require("./../auth/decorators");
+const decorators_1 = require("../auth/decorators");
 const enums_1 = require("../../generated/prisma/enums");
 let OrdersController = class OrdersController {
     ordersService;
@@ -57,6 +57,8 @@ __decorate([
     (0, common_1.Post)(),
     (0, swagger_1.ApiOperation)({ summary: 'Buat order dari cart aktif' }),
     (0, swagger_1.ApiResponse)({ status: 201, description: 'Order berhasil dibuat' }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: 'Cart kosong / stok tidak cukup / shipping tidak tersedia' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Address tidak ditemukan' }),
     __param(0, (0, decorators_1.GetUser)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -68,6 +70,7 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: 'List order milik user yang sedang login' }),
     (0, swagger_1.ApiQuery)({ name: 'page', required: false, example: 1 }),
     (0, swagger_1.ApiQuery)({ name: 'limit', required: false, example: 10 }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'List order berhasil diambil' }),
     __param(0, (0, decorators_1.GetUser)('id')),
     __param(1, (0, common_1.Query)('page', new common_1.DefaultValuePipe(1), common_1.ParseIntPipe)),
     __param(2, (0, common_1.Query)('limit', new common_1.DefaultValuePipe(10), common_1.ParseIntPipe)),
@@ -138,9 +141,10 @@ __decorate([
     (0, common_1.Patch)(':id/status'),
     (0, common_1.UseGuards)(roles_guard_1.RolesGuard),
     (0, decorators_1.Roles)(enums_1.Role.admin, enums_1.Role.super_admin),
-    (0, swagger_1.ApiOperation)({ summary: '[Admin] Update status order' }),
+    (0, swagger_1.ApiOperation)({ summary: '[Admin] Update status order (beserta tracking number & catatan)' }),
     (0, swagger_1.ApiParam)({ name: 'id', description: 'Order ID' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Status order berhasil diupdate' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Order tidak ditemukan' }),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -150,8 +154,9 @@ __decorate([
 __decorate([
     (0, common_1.Post)(':id/cancel'),
     (0, swagger_1.ApiOperation)({
-        summary: 'Cancel order',
-        description: 'Hanya bisa dalam 30 menit setelah order dibuat. Lewat batas waktu → hubungi CS.',
+        summary: 'Cancel order (user)',
+        description: 'Hanya bisa dalam 30 menit setelah order dibuat dan status masih pending. ' +
+            'Lewat batas waktu → hubungi CS.',
     }),
     (0, swagger_1.ApiParam)({ name: 'id', description: 'Order ID' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Order berhasil dicancel' }),

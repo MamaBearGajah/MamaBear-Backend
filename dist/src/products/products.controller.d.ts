@@ -116,6 +116,14 @@ export declare class ProductsController {
         avgRating: import("@prisma/client-runtime-utils").Decimal | null;
         reviewCount: number;
     }>;
+    bulkUpdate(body: {
+        productIds: string[];
+        status?: string;
+        price?: number;
+    }): Promise<{
+        success: boolean;
+        updated: number;
+    }>;
     findOne(id: string): Promise<any>;
     update(id: string, dto: UpdateProductDto): Promise<{
         category: {

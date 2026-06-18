@@ -22,6 +22,7 @@ exports.OrdersModule = OrdersModule = __decorate([
         imports: [shipping_module_1.ShippingModule, mail_module_1.MailModule, membership_module_1.MembershipModule, voucher_module_1.VoucherModule],
         controllers: [orders_controller_1.OrdersController],
         providers: [orders_service_1.OrdersService],
+        exports: [orders_service_1.OrdersService],
     })
 ], OrdersModule);
 //# sourceMappingURL=orders.module.js.map

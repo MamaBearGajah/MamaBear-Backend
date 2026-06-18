@@ -180,6 +180,14 @@ export declare class ProductsService {
         avgRating: import("@prisma/client-runtime-utils").Decimal | null;
         reviewCount: number;
     }>;
+    bulkUpdateProducts(body: {
+        productIds: string[];
+        status?: string;
+        price?: number;
+    }): Promise<{
+        success: boolean;
+        updated: number;
+    }>;
     findAllVariants(query: {
         page?: number;
         limit?: number;

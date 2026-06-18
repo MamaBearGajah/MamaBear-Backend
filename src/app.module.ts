@@ -32,6 +32,7 @@ import { BannerModule } from './banner/banner.module';
 import { VoucherModule } from './voucher/voucher.module';
 import { BundleModule } from './bundle/bundle.module';
 import { WishlistModule } from './wishlist/wishlist.module';
+import { ReportsModule } from './reports/reports.module';
 
 @Module({
   imports: [
@@ -62,6 +63,7 @@ import { WishlistModule } from './wishlist/wishlist.module';
     VoucherModule,
     BundleModule,
     WishlistModule,
+    ReportsModule
   ],
   controllers: [AppController],
   providers: [
