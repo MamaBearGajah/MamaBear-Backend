@@ -93,6 +93,27 @@ export declare class MembershipController {
         discountValue: number;
         message: string;
     }>;
+    dailyLoginCheckIn(userId: string): Promise<{
+        alreadyClaimed: boolean;
+        message: string;
+        nextCheckIn: Date;
+        currentPoints: number;
+        pointsEarned?: undefined;
+        basePoints?: undefined;
+        bonusPoints?: undefined;
+        streakCount?: undefined;
+        isStreakBonus?: undefined;
+    } | {
+        alreadyClaimed: boolean;
+        message: string;
+        pointsEarned: number;
+        basePoints: number;
+        bonusPoints: number;
+        streakCount: number;
+        isStreakBonus: boolean;
+        currentPoints: number;
+        nextCheckIn?: undefined;
+    }>;
     findAll(page: number, limit: number, tier?: MembershipTier): Promise<{
         data: ({
             user: {

@@ -53,10 +53,12 @@ export declare class ReviewsService {
     }>;
     toggleHelpful(reviewId: string, userId: string, isHelpful: boolean): Promise<{
         message: string;
+        helpfulCount: number;
         isHelpful?: undefined;
     } | {
         message: string;
         isHelpful: boolean;
+        helpfulCount: number;
     }>;
     getRatingSummary(productId: string): Promise<{
         avgRating: number;

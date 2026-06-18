@@ -26,4 +26,7 @@ export type * from './models/Faq.js';
 export type * from './models/Consultation.js';
 export type * from './models/SearchAnalytic.js';
 export type * from './models/Wishlist.js';
+export type * from './models/PromotionLanding.js';
+export type * from './models/PromotionSection.js';
+export type * from './models/PromotionBenefit.js';
 export type * from './commonInputTypes.js';

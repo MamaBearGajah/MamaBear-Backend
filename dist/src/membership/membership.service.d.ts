@@ -94,6 +94,27 @@ export declare class MembershipService {
         discountValue: number;
         message: string;
     }>;
+    dailyLoginCheckIn(userId: string): Promise<{
+        alreadyClaimed: boolean;
+        message: string;
+        nextCheckIn: Date;
+        currentPoints: number;
+        pointsEarned?: undefined;
+        basePoints?: undefined;
+        bonusPoints?: undefined;
+        streakCount?: undefined;
+        isStreakBonus?: undefined;
+    } | {
+        alreadyClaimed: boolean;
+        message: string;
+        pointsEarned: number;
+        basePoints: number;
+        bonusPoints: number;
+        streakCount: number;
+        isStreakBonus: boolean;
+        currentPoints: number;
+        nextCheckIn?: undefined;
+    }>;
     getPointHistory(userId: string, page?: number, limit?: number): Promise<{
         data: {
             id: string;

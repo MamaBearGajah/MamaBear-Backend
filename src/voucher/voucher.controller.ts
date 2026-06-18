@@ -3,73 +3,98 @@ import {
   Get,
   Post,
   Patch,
+  Delete,
   Body,
   Param,
   Query,
-  UseGuards,
   DefaultValuePipe,
   ParseIntPipe,
+  UseGuards,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import {
   ApiTags,
   ApiBearerAuth,
   ApiOperation,
   ApiResponse,
-  ApiQuery,
   ApiParam,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { VoucherService } from './voucher.service';
 import { CreateVoucherDto } from './dto/create-voucher.dto';
-import { UpdateVoucherDto, ValidateVoucherDto } from './dto/validate-voucher.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
+import { ValidateVoucherDto } from './dto/validate-voucher.dto';
 import { GetUser, Roles } from '../auth/decorators';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Public } from '../auth/decorators';
 import { Role } from '../../generated/prisma/enums';
 
 @ApiTags('Voucher')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('vouchers')
 export class VoucherController {
   constructor(private readonly voucherService: VoucherService) {}
 
-  // ─── User Endpoints ──────────────────────────────────────────────────────────
+  // ─── User: Lihat voucher saya ─────────────────────────────────────────────
 
-  @Get('me')
-  @ApiOperation({ summary: 'Voucher saya (personal & masih aktif)' })
-  @ApiResponse({ status: 200, description: 'List voucher milik user' })
+  @Get('my')
+  @ApiOperation({
+    summary: 'Daftar voucher milik saya (aktif)',
+    description: 'Menampilkan voucher personal (dari redeem point atau tier benefit) yang masih aktif dan belum kadaluarsa.',
+  })
+  @ApiResponse({ status: 200, description: 'List voucher berhasil diambil' })
   getMyVouchers(@GetUser('id') userId: string) {
     return this.voucherService.getMyVouchers(userId);
   }
 
+  // ─── User: Validasi voucher sebelum checkout ──────────────────────────────
+
   @Post('validate')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({
-    summary: 'Validasi voucher sebelum checkout',
-    description: 'Cek apakah kode voucher valid dan hitung nilai diskonnya. Tidak mengubah data.',
+    summary: 'Validasi kode voucher sebelum checkout',
+    description: `
+      Cek apakah voucher valid dan hitung nilai diskonnya.
+      Tidak mengubah state DB (tidak mengurangi usedCount).
+      
+      Kirim \`subtotal\` dan \`shippingCost\` untuk mendapat kalkulasi diskon yang akurat.
+    `,
   })
-  @ApiResponse({ status: 200, description: 'Voucher valid, kembalikan nilai diskon' })
-  @ApiResponse({ status: 400, description: 'Voucher tidak valid / expired / habis' })
+  @ApiResponse({
+    status: 200,
+    description: 'Voucher valid',
+    schema: {
+      example: {
+        valid: true,
+        voucher: { code: 'HEMAT25K', type: 'fixed', value: 25000 },
+        discountAmount: 25000,
+        finalShippingCost: 15000,
+      },
+    },
+  })
+  @ApiResponse({ status: 400, description: 'Voucher tidak valid / kadaluarsa / tidak cukup belanja' })
   @ApiResponse({ status: 404, description: 'Voucher tidak ditemukan' })
-  validateVoucher(
-    @GetUser('id') userId: string,
+  validate(
     @Body() dto: ValidateVoucherDto,
+    @GetUser('id') userId: string,
   ) {
     return this.voucherService.validate(
       dto.code,
       dto.totalAmount,
-      0, // shippingCost tidak diketahui di sini, bisa 0 untuk validate awal
+      dto.shippingCost ?? 0,
       userId,
     );
   }
 
-  // ─── Admin Endpoints ─────────────────────────────────────────────────────────
+  // ─── Admin: List semua voucher ────────────────────────────────────────────
 
   @Get()
   @UseGuards(RolesGuard)
   @Roles(Role.admin, Role.super_admin)
-  @ApiOperation({ summary: '[Admin] List semua voucher' })
+  @ApiOperation({ summary: '[Admin] List semua voucher dengan pagination' })
   @ApiQuery({ name: 'page', required: false, example: 1 })
   @ApiQuery({ name: 'limit', required: false, example: 20 })
+  @ApiResponse({ status: 200, description: 'List voucher berhasil diambil' })
   findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
@@ -77,30 +102,53 @@ export class VoucherController {
     return this.voucherService.findAll(page, limit);
   }
 
+  // ─── Admin: Buat voucher ──────────────────────────────────────────────────
+
   @Post()
   @UseGuards(RolesGuard)
   @Roles(Role.admin, Role.super_admin)
-  @ApiOperation({ summary: '[Admin] Buat voucher baru' })
+  @ApiOperation({
+    summary: '[Admin] Buat voucher baru',
+    description: `
+      Tipe voucher:
+      - **percentage** — diskon % dari subtotal (gunakan \`maxDiscount\` untuk batasi nominal)
+      - **fixed** — potongan nominal tetap dari subtotal
+      - **free_shipping** — potongan ongkir sebesar \`value\`
+      
+      Jika \`ownerId\` diisi, voucher hanya bisa dipakai user tersebut.
+    `,
+  })
   @ApiResponse({ status: 201, description: 'Voucher berhasil dibuat' })
-  @ApiResponse({ status: 400, description: 'Kode voucher sudah ada' })
+  @ApiResponse({ status: 400, description: 'Kode voucher sudah digunakan' })
   create(@Body() dto: CreateVoucherDto) {
     return this.voucherService.create(dto);
   }
+
+  // ─── Admin: Update voucher ────────────────────────────────────────────────
 
   @Patch(':id')
   @UseGuards(RolesGuard)
   @Roles(Role.admin, Role.super_admin)
   @ApiOperation({ summary: '[Admin] Update voucher' })
-  @ApiParam({ name: 'id', description: 'Voucher ID' })
-  update(@Param('id') id: string, @Body() dto: UpdateVoucherDto) {
+  @ApiParam({ name: 'id' })
+  @ApiResponse({ status: 200, description: 'Voucher berhasil diupdate' })
+  @ApiResponse({ status: 404, description: 'Voucher tidak ditemukan' })
+  update(@Param('id') id: string, @Body() dto: CreateVoucherDto) {
     return this.voucherService.update(id, dto);
   }
 
-  @Patch(':id/deactivate')
+  // ─── Admin: Nonaktifkan voucher ───────────────────────────────────────────
+
+  @Delete(':id')
   @UseGuards(RolesGuard)
   @Roles(Role.admin, Role.super_admin)
-  @ApiOperation({ summary: '[Admin] Non-aktifkan voucher' })
-  @ApiParam({ name: 'id', description: 'Voucher ID' })
+  @ApiOperation({
+    summary: '[Admin] Nonaktifkan voucher (soft deactivate)',
+    description: 'Tidak menghapus voucher dari DB, hanya set isActive = false.',
+  })
+  @ApiParam({ name: 'id' })
+  @ApiResponse({ status: 200, description: 'Voucher dinonaktifkan' })
+  @ApiResponse({ status: 404, description: 'Voucher tidak ditemukan' })
   deactivate(@Param('id') id: string) {
     return this.voucherService.deactivate(id);
   }

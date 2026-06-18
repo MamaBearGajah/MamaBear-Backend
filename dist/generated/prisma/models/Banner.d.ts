@@ -20,6 +20,7 @@ export type BannerMinAggregateOutputType = {
     altText: string | null;
     label: string | null;
     title: string | null;
+    extraText: string | null;
     desc: string | null;
     path: string | null;
     isActive: boolean | null;
@@ -35,6 +36,7 @@ export type BannerMaxAggregateOutputType = {
     altText: string | null;
     label: string | null;
     title: string | null;
+    extraText: string | null;
     desc: string | null;
     path: string | null;
     isActive: boolean | null;
@@ -50,6 +52,7 @@ export type BannerCountAggregateOutputType = {
     altText: number;
     label: number;
     title: number;
+    extraText: number;
     desc: number;
     path: number;
     isActive: number;
@@ -72,6 +75,7 @@ export type BannerMinAggregateInputType = {
     altText?: true;
     label?: true;
     title?: true;
+    extraText?: true;
     desc?: true;
     path?: true;
     isActive?: true;
@@ -87,6 +91,7 @@ export type BannerMaxAggregateInputType = {
     altText?: true;
     label?: true;
     title?: true;
+    extraText?: true;
     desc?: true;
     path?: true;
     isActive?: true;
@@ -102,6 +107,7 @@ export type BannerCountAggregateInputType = {
     altText?: true;
     label?: true;
     title?: true;
+    extraText?: true;
     desc?: true;
     path?: true;
     isActive?: true;
@@ -146,6 +152,7 @@ export type BannerGroupByOutputType = {
     altText: string | null;
     label: string | null;
     title: string | null;
+    extraText: string | null;
     desc: string | null;
     path: string | null;
     isActive: boolean;
@@ -172,6 +179,7 @@ export type BannerWhereInput = {
     altText?: Prisma.StringNullableFilter<"Banner"> | string | null;
     label?: Prisma.StringNullableFilter<"Banner"> | string | null;
     title?: Prisma.StringNullableFilter<"Banner"> | string | null;
+    extraText?: Prisma.StringNullableFilter<"Banner"> | string | null;
     desc?: Prisma.StringNullableFilter<"Banner"> | string | null;
     path?: Prisma.StringNullableFilter<"Banner"> | string | null;
     isActive?: Prisma.BoolFilter<"Banner"> | boolean;
@@ -187,6 +195,7 @@ export type BannerOrderByWithRelationInput = {
     altText?: Prisma.SortOrderInput | Prisma.SortOrder;
     label?: Prisma.SortOrderInput | Prisma.SortOrder;
     title?: Prisma.SortOrderInput | Prisma.SortOrder;
+    extraText?: Prisma.SortOrderInput | Prisma.SortOrder;
     desc?: Prisma.SortOrderInput | Prisma.SortOrder;
     path?: Prisma.SortOrderInput | Prisma.SortOrder;
     isActive?: Prisma.SortOrder;
@@ -205,6 +214,7 @@ export type BannerWhereUniqueInput = Prisma.AtLeast<{
     altText?: Prisma.StringNullableFilter<"Banner"> | string | null;
     label?: Prisma.StringNullableFilter<"Banner"> | string | null;
     title?: Prisma.StringNullableFilter<"Banner"> | string | null;
+    extraText?: Prisma.StringNullableFilter<"Banner"> | string | null;
     desc?: Prisma.StringNullableFilter<"Banner"> | string | null;
     path?: Prisma.StringNullableFilter<"Banner"> | string | null;
     isActive?: Prisma.BoolFilter<"Banner"> | boolean;
@@ -220,6 +230,7 @@ export type BannerOrderByWithAggregationInput = {
     altText?: Prisma.SortOrderInput | Prisma.SortOrder;
     label?: Prisma.SortOrderInput | Prisma.SortOrder;
     title?: Prisma.SortOrderInput | Prisma.SortOrder;
+    extraText?: Prisma.SortOrderInput | Prisma.SortOrder;
     desc?: Prisma.SortOrderInput | Prisma.SortOrder;
     path?: Prisma.SortOrderInput | Prisma.SortOrder;
     isActive?: Prisma.SortOrder;
@@ -243,6 +254,7 @@ export type BannerScalarWhereWithAggregatesInput = {
     altText?: Prisma.StringNullableWithAggregatesFilter<"Banner"> | string | null;
     label?: Prisma.StringNullableWithAggregatesFilter<"Banner"> | string | null;
     title?: Prisma.StringNullableWithAggregatesFilter<"Banner"> | string | null;
+    extraText?: Prisma.StringNullableWithAggregatesFilter<"Banner"> | string | null;
     desc?: Prisma.StringNullableWithAggregatesFilter<"Banner"> | string | null;
     path?: Prisma.StringNullableWithAggregatesFilter<"Banner"> | string | null;
     isActive?: Prisma.BoolWithAggregatesFilter<"Banner"> | boolean;
@@ -258,6 +270,7 @@ export type BannerCreateInput = {
     altText?: string | null;
     label?: string | null;
     title?: string | null;
+    extraText?: string | null;
     desc?: string | null;
     path?: string | null;
     isActive?: boolean;
@@ -273,6 +286,7 @@ export type BannerUncheckedCreateInput = {
     altText?: string | null;
     label?: string | null;
     title?: string | null;
+    extraText?: string | null;
     desc?: string | null;
     path?: string | null;
     isActive?: boolean;
@@ -288,6 +302,7 @@ export type BannerUpdateInput = {
     altText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     label?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    extraText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     desc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     path?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean;
@@ -303,6 +318,7 @@ export type BannerUncheckedUpdateInput = {
     altText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     label?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    extraText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     desc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     path?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean;
@@ -318,6 +334,7 @@ export type BannerCreateManyInput = {
     altText?: string | null;
     label?: string | null;
     title?: string | null;
+    extraText?: string | null;
     desc?: string | null;
     path?: string | null;
     isActive?: boolean;
@@ -333,6 +350,7 @@ export type BannerUpdateManyMutationInput = {
     altText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     label?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    extraText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     desc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     path?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean;
@@ -348,6 +366,7 @@ export type BannerUncheckedUpdateManyInput = {
     altText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     label?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    extraText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     desc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     path?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean;
@@ -363,6 +382,7 @@ export type BannerCountOrderByAggregateInput = {
     altText?: Prisma.SortOrder;
     label?: Prisma.SortOrder;
     title?: Prisma.SortOrder;
+    extraText?: Prisma.SortOrder;
     desc?: Prisma.SortOrder;
     path?: Prisma.SortOrder;
     isActive?: Prisma.SortOrder;
@@ -381,6 +401,7 @@ export type BannerMaxOrderByAggregateInput = {
     altText?: Prisma.SortOrder;
     label?: Prisma.SortOrder;
     title?: Prisma.SortOrder;
+    extraText?: Prisma.SortOrder;
     desc?: Prisma.SortOrder;
     path?: Prisma.SortOrder;
     isActive?: Prisma.SortOrder;
@@ -396,6 +417,7 @@ export type BannerMinOrderByAggregateInput = {
     altText?: Prisma.SortOrder;
     label?: Prisma.SortOrder;
     title?: Prisma.SortOrder;
+    extraText?: Prisma.SortOrder;
     desc?: Prisma.SortOrder;
     path?: Prisma.SortOrder;
     isActive?: Prisma.SortOrder;
@@ -421,6 +443,7 @@ export type BannerSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     altText?: boolean;
     label?: boolean;
     title?: boolean;
+    extraText?: boolean;
     desc?: boolean;
     path?: boolean;
     isActive?: boolean;
@@ -436,6 +459,7 @@ export type BannerSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
     altText?: boolean;
     label?: boolean;
     title?: boolean;
+    extraText?: boolean;
     desc?: boolean;
     path?: boolean;
     isActive?: boolean;
@@ -451,6 +475,7 @@ export type BannerSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
     altText?: boolean;
     label?: boolean;
     title?: boolean;
+    extraText?: boolean;
     desc?: boolean;
     path?: boolean;
     isActive?: boolean;
@@ -466,6 +491,7 @@ export type BannerSelectScalar = {
     altText?: boolean;
     label?: boolean;
     title?: boolean;
+    extraText?: boolean;
     desc?: boolean;
     path?: boolean;
     isActive?: boolean;
@@ -475,7 +501,7 @@ export type BannerSelectScalar = {
     createdAt?: boolean;
     updatedAt?: boolean;
 };
-export type BannerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "imageUrl" | "altText" | "label" | "title" | "desc" | "path" | "isActive" | "sortOrder" | "startDate" | "endDate" | "createdAt" | "updatedAt", ExtArgs["result"]["banner"]>;
+export type BannerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "imageUrl" | "altText" | "label" | "title" | "extraText" | "desc" | "path" | "isActive" | "sortOrder" | "startDate" | "endDate" | "createdAt" | "updatedAt", ExtArgs["result"]["banner"]>;
 export type $BannerPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     name: "Banner";
     objects: {};
@@ -485,6 +511,7 @@ export type $BannerPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
         altText: string | null;
         label: string | null;
         title: string | null;
+        extraText: string | null;
         desc: string | null;
         path: string | null;
         isActive: boolean;
@@ -555,6 +582,7 @@ export interface BannerFieldRefs {
     readonly altText: Prisma.FieldRef<"Banner", 'String'>;
     readonly label: Prisma.FieldRef<"Banner", 'String'>;
     readonly title: Prisma.FieldRef<"Banner", 'String'>;
+    readonly extraText: Prisma.FieldRef<"Banner", 'String'>;
     readonly desc: Prisma.FieldRef<"Banner", 'String'>;
     readonly path: Prisma.FieldRef<"Banner", 'String'>;
     readonly isActive: Prisma.FieldRef<"Banner", 'Boolean'>;

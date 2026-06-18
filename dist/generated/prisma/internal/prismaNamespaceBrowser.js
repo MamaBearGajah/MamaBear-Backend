@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.JsonNullValueFilter = exports.NullsOrder = exports.QueryMode = exports.NullableJsonNullValueInput = exports.SortOrder = exports.WishlistScalarFieldEnum = exports.SearchAnalyticScalarFieldEnum = exports.ConsultationScalarFieldEnum = exports.FaqScalarFieldEnum = exports.BlogPostScalarFieldEnum = exports.PointTransactionScalarFieldEnum = exports.MembershipScalarFieldEnum = exports.PaymentScalarFieldEnum = exports.OrderStatusHistoryScalarFieldEnum = exports.OrderItemScalarFieldEnum = exports.OrderScalarFieldEnum = exports.VoucherScalarFieldEnum = exports.GuestCartItemScalarFieldEnum = exports.GuestCartScalarFieldEnum = exports.CartItemScalarFieldEnum = exports.CartScalarFieldEnum = exports.ProductReviewImageScalarFieldEnum = exports.ProductReviewHelpfulScalarFieldEnum = exports.ProductReviewScalarFieldEnum = exports.BundleItemScalarFieldEnum = exports.BundleScalarFieldEnum = exports.ProductVariantScalarFieldEnum = exports.ProductImageScalarFieldEnum = exports.ProductScalarFieldEnum = exports.CategoryScalarFieldEnum = exports.BannerScalarFieldEnum = exports.AddressScalarFieldEnum = exports.UserScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.Decimal = void 0;
+exports.JsonNullValueFilter = exports.NullsOrder = exports.QueryMode = exports.NullableJsonNullValueInput = exports.SortOrder = exports.PromotionBenefitScalarFieldEnum = exports.PromotionSectionScalarFieldEnum = exports.PromotionLandingScalarFieldEnum = exports.WishlistScalarFieldEnum = exports.SearchAnalyticScalarFieldEnum = exports.ConsultationScalarFieldEnum = exports.FaqScalarFieldEnum = exports.BlogPostScalarFieldEnum = exports.PointTransactionScalarFieldEnum = exports.MembershipScalarFieldEnum = exports.PaymentScalarFieldEnum = exports.OrderStatusHistoryScalarFieldEnum = exports.OrderItemScalarFieldEnum = exports.OrderScalarFieldEnum = exports.VoucherScalarFieldEnum = exports.GuestCartItemScalarFieldEnum = exports.GuestCartScalarFieldEnum = exports.CartItemScalarFieldEnum = exports.CartScalarFieldEnum = exports.ProductReviewImageScalarFieldEnum = exports.ProductReviewHelpfulScalarFieldEnum = exports.ProductReviewScalarFieldEnum = exports.BundleItemScalarFieldEnum = exports.BundleScalarFieldEnum = exports.ProductVariantScalarFieldEnum = exports.ProductImageScalarFieldEnum = exports.ProductScalarFieldEnum = exports.CategoryScalarFieldEnum = exports.BannerScalarFieldEnum = exports.AddressScalarFieldEnum = exports.UserScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.Decimal = void 0;
 const runtime = __importStar(require("@prisma/client/runtime/index-browser"));
 exports.Decimal = runtime.Decimal;
 exports.NullTypes = {
@@ -72,7 +72,10 @@ exports.ModelName = {
     Faq: 'Faq',
     Consultation: 'Consultation',
     SearchAnalytic: 'SearchAnalytic',
-    Wishlist: 'Wishlist'
+    Wishlist: 'Wishlist',
+    PromotionLanding: 'PromotionLanding',
+    PromotionSection: 'PromotionSection',
+    PromotionBenefit: 'PromotionBenefit'
 };
 exports.TransactionIsolationLevel = runtime.makeStrictEnum({
     ReadUncommitted: 'ReadUncommitted',
@@ -120,6 +123,7 @@ exports.BannerScalarFieldEnum = {
     altText: 'altText',
     label: 'label',
     title: 'title',
+    extraText: 'extraText',
     desc: 'desc',
     path: 'path',
     isActive: 'isActive',
@@ -428,6 +432,38 @@ exports.WishlistScalarFieldEnum = {
     userId: 'userId',
     productId: 'productId',
     createdAt: 'createdAt'
+};
+exports.PromotionLandingScalarFieldEnum = {
+    id: 'id',
+    title: 'title',
+    slug: 'slug',
+    subtitle: 'subtitle',
+    description: 'description',
+    badgeText: 'badgeText',
+    startDate: 'startDate',
+    endDate: 'endDate',
+    status: 'status',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt',
+    heroBundleId: 'heroBundleId'
+};
+exports.PromotionSectionScalarFieldEnum = {
+    id: 'id',
+    promotionId: 'promotionId',
+    title: 'title',
+    subtitle: 'subtitle',
+    sortOrder: 'sortOrder',
+    isActive: 'isActive',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+};
+exports.PromotionBenefitScalarFieldEnum = {
+    id: 'id',
+    promotionId: 'promotionId',
+    icon: 'icon',
+    title: 'title',
+    description: 'description',
+    sortOrder: 'sortOrder'
 };
 exports.SortOrder = {
     asc: 'asc',

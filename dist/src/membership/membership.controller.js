@@ -35,6 +35,9 @@ let MembershipController = class MembershipController {
     redeemPoints(userId, dto) {
         return this.membershipService.redeemPoints(userId, dto);
     }
+    dailyLoginCheckIn(userId) {
+        return this.membershipService.dailyLoginCheckIn(userId);
+    }
     findAll(page, limit, tier) {
         return this.membershipService.findAll(page, limit, tier);
     }
@@ -83,6 +86,38 @@ __decorate([
     __metadata("design:paramtypes", [String, redeem_points_dto_1.RedeemPointsDto]),
     __metadata("design:returntype", void 0)
 ], MembershipController.prototype, "redeemPoints", null);
+__decorate([
+    (0, common_1.Post)('daily-login'),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Daily login check-in — klaim point harian',
+        description: `
+      Klaim point harian (1x per hari).
+      - **+5 point** setiap hari login
+      - **+20 point bonus** setiap 7 hari streak berturut-turut
+      - Jika sudah diklaim hari ini, akan mengembalikan \`alreadyClaimed: true\`
+    `,
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Check-in berhasil atau sudah diklaim hari ini',
+        schema: {
+            example: {
+                alreadyClaimed: false,
+                message: 'Check-in berhasil! +5 point. Streak: 3 hari.',
+                pointsEarned: 5,
+                basePoints: 5,
+                bonusPoints: 0,
+                streakCount: 3,
+                isStreakBonus: false,
+                currentPoints: 45,
+            },
+        },
+    }),
+    __param(0, (0, decorators_1.GetUser)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], MembershipController.prototype, "dailyLoginCheckIn", null);
 __decorate([
     (0, common_1.Get)(),
     (0, common_1.UseGuards)(roles_guard_1.RolesGuard),

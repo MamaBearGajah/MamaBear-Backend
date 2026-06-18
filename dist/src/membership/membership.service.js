@@ -143,6 +143,79 @@ let MembershipService = MembershipService_1 = class MembershipService {
             message: `Berhasil redeem ${dto.points} point. Voucher Rp ${discountValue.toLocaleString('id-ID')} telah diterbitkan dan berlaku 30 hari.`,
         };
     }
+    async dailyLoginCheckIn(userId) {
+        const membership = await this.getOrCreate(userId);
+        const now = new Date();
+        const todayStart = new Date(now);
+        todayStart.setUTCHours(0, 0, 0, 0);
+        if (membership.lastDailyLoginAt &&
+            membership.lastDailyLoginAt >= todayStart) {
+            const nextCheckIn = new Date(todayStart);
+            nextCheckIn.setUTCDate(nextCheckIn.getUTCDate() + 1);
+            return {
+                alreadyClaimed: true,
+                message: 'Kamu sudah check-in hari ini. Kembali lagi besok!',
+                nextCheckIn,
+                currentPoints: membership.points,
+            };
+        }
+        const yesterdayStart = new Date(todayStart);
+        yesterdayStart.setUTCDate(yesterdayStart.getUTCDate() - 1);
+        const isConsecutive = membership.lastDailyLoginAt !== null &&
+            membership.lastDailyLoginAt >= yesterdayStart;
+        const recentLoginTransactions = await this.prisma.pointTransaction.count({
+            where: {
+                userId,
+                type: 'daily_login',
+                createdAt: { gte: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000) },
+            },
+        });
+        const streakCount = isConsecutive ? recentLoginTransactions + 1 : 1;
+        const isStreakBonus = streakCount > 0 && streakCount % 7 === 0;
+        const basePoints = 5;
+        const bonusPoints = isStreakBonus ? 20 : 0;
+        const totalPoints = basePoints + bonusPoints;
+        await this.prisma.$transaction(async (tx) => {
+            await tx.membership.update({
+                where: { userId },
+                data: {
+                    points: { increment: totalPoints },
+                    lastDailyLoginAt: now,
+                },
+            });
+            await tx.pointTransaction.create({
+                data: {
+                    userId,
+                    points: basePoints,
+                    type: 'daily_login',
+                    description: `Daily check-in (hari ke-${streakCount})`,
+                },
+            });
+            if (isStreakBonus) {
+                await tx.pointTransaction.create({
+                    data: {
+                        userId,
+                        points: bonusPoints,
+                        type: 'bonus',
+                        description: `Bonus streak ${streakCount} hari berturut-turut!`,
+                    },
+                });
+            }
+        });
+        this.logger.log(`Daily check-in user ${userId}: +${totalPoints} pts (streak ${streakCount}d${isStreakBonus ? ', BONUS!' : ''})`);
+        return {
+            alreadyClaimed: false,
+            message: isStreakBonus
+                ? `🎉 Streak ${streakCount} hari! +${totalPoints} point (termasuk bonus streak ${bonusPoints} point).`
+                : `Check-in berhasil! +${basePoints} point. Streak: ${streakCount} hari.`,
+            pointsEarned: totalPoints,
+            basePoints,
+            bonusPoints,
+            streakCount,
+            isStreakBonus,
+            currentPoints: membership.points + totalPoints,
+        };
+    }
     async getPointHistory(userId, page = 1, limit = 20) {
         const skip = (page - 1) * limit;
         const [transactions, total] = await Promise.all([

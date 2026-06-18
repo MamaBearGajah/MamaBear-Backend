@@ -90,6 +90,10 @@ export async function seedOrders(
 
   let orderIndex = 1;
 
+  // Simpan semua review yang dibuat beserta userId penulisnya
+  // format: { reviewId, authorUserId }
+  const createdReviews: Array<{ reviewId: string; authorUserId: string }> = [];
+
   async function createMockOrder(opts: {
     userId: string;
     addressId: string;
@@ -142,7 +146,7 @@ export async function seedOrders(
       const rd = opts.reviewData[i];
       if (!rd) continue;
       const reviewDate = new Date(opts.createdAt.getTime() + 3 * 24 * 60 * 60 * 1000);
-      await prisma.productReview.create({
+      const review = await prisma.productReview.create({
         data: {
           productId: opts.lines[i].productId,
           userId: opts.userId,
@@ -150,11 +154,14 @@ export async function seedOrders(
           rating: rd.rating,
           review: rd.review,
           isVerifiedPurchase: true,
-          helpfulCount: Math.floor(Math.random() * 15),
+          helpfulCount: 0, // akan di-update setelah helpful votes dibuat
           createdAt: reviewDate,
           updatedAt: reviewDate,
         },
       });
+
+      // Simpan untuk dipakai saat seed helpful votes
+      createdReviews.push({ reviewId: review.id, authorUserId: opts.userId });
     }
 
     return order;
@@ -184,6 +191,68 @@ export async function seedOrders(
   await createMockOrder({ userId: c[8].id, addressId: a[8].id, createdAt: daysAgo(4),  trackingNumber: "JNE0001234578", lines: [{ productId: almonMix.id, price: 40000, quantity: 6 }], reviewData: [reviewsAlmonMix[9]] });
   await createMockOrder({ userId: c[9].id, addressId: a[9].id, createdAt: daysAgo(2),  trackingNumber: "JNE0001234579", lines: [{ productId: zoyaMix.id, price: 38000, quantity: 5 }, { productId: almonMix.id, price: 40000, quantity: 4 }], reviewData: [null, null] });
 
+  // ─── Seed Helpful Votes ───────────────────────────────────────────────────
+  // Setiap review mendapat helpful vote dari customers lain (bukan penulisnya).
+  // Jumlah voter per review: review lama (index kecil) dapat lebih banyak vote
+  // karena sudah ada lebih lama — makin realistis.
+
+  const allCustomerIds = customers.map((cu) => cu.id);
+
+  // Bobot helpful vote per review berdasarkan urutan review (index 0 = paling lama)
+  // range antara 2–8 voter per review
+  const helpfulWeights = [8, 7, 6, 8, 9, 5, 7, 3, 8, 6]; // almonMix (10 review)
+  const tehWeights     = [9, 8, 5, 7, 4, 8, 6, 4, 7, 2]; // teh (10 review)
+  const zoyaWeights    = [6, 4, 7, 3, 5];                 // zoyaMix (5 review)
+  const kukisWeights   = [7, 4, 8, 3, 6];                 // kukis (5 review)
+  const kapsulWeights  = [8, 7, 4, 6];                    // kapsul (4 review)
+
+  // Gabungkan semua weight sesuai urutan review dibuat
+  // Urutan: almon[0], teh[0], almon[1], teh[1]+zoya[0], almon[2]+kukis[0],
+  //         teh[2]+kapsul[0], almon[3]+zoya[1], almon[4], zoya[2]+kukis[2],
+  //         teh[4]+almon[5]+kapsul[2], teh[5], teh[6]+zoya[3], almon[6],
+  //         kapsul[3]+teh[7], almon[7]+kukis[3], teh[8]+zoya[4], almon[8],
+  //         teh[9]+kukis[4], almon[9]
+  const allWeights = [
+    ...helpfulWeights,
+    ...tehWeights,
+    ...zoyaWeights,
+    ...kukisWeights,
+    ...kapsulWeights,
+  ];
+
+  for (let i = 0; i < createdReviews.length; i++) {
+    const { reviewId, authorUserId } = createdReviews[i];
+
+    // Ambil voters: semua customers kecuali penulis review
+    const eligibleVoters = allCustomerIds.filter((id) => id !== authorUserId);
+
+    // Jumlah voter untuk review ini (max = jumlah eligible voters)
+    const targetVotes = Math.min(allWeights[i] ?? 3, eligibleVoters.length);
+
+    // Shuffle eligible voters dan ambil sejumlah targetVotes
+    const shuffled = [...eligibleVoters].sort(() => Math.random() - 0.5);
+    const voters = shuffled.slice(0, targetVotes);
+
+    // Insert ke ProductReviewHelpful
+    for (const voterId of voters) {
+      await prisma.productReviewHelpful.create({
+        data: {
+          reviewId,
+          userId: voterId,
+          isHelpful: true,
+        },
+      });
+    }
+
+    // Update helpfulCount di ProductReview sesuai jumlah actual votes
+    await prisma.productReview.update({
+      where: { id: reviewId },
+      data: { helpfulCount: voters.length },
+    });
+  }
+
+  console.log(`✅ Helpful votes seeded untuk ${createdReviews.length} reviews`);
+
   // ─── Sync avgRating & reviewCount ke semua produk ─────────────────────────
 
   for (const productId of allProductIds) {
@@ -202,5 +271,5 @@ export async function seedOrders(
     });
   }
 
-  console.log("✅ Orders, payments, reviews & avgRating seeded");
+  console.log("✅ Orders, payments, reviews, helpful votes & avgRating seeded");
 }
