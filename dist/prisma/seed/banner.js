@@ -15,8 +15,8 @@ async function seedBanner(prisma) {
             path: "/products?category=asi-booster",
             isActive: true,
             sortOrder: 0,
-            startDate: new Date("2025-05-01T00:00:00Z"),
-            endDate: new Date("2025-05-31T23:59:59Z"),
+            startDate: new Date("2026-01-01T00:00:00Z"),
+            endDate: new Date("2027-12-31T23:59:59Z"),
         },
         {
             id: "banner-hero-kookie",
@@ -29,8 +29,8 @@ async function seedBanner(prisma) {
             path: "/products?category=kookie",
             isActive: true,
             sortOrder: 1,
-            startDate: new Date("2025-05-01T00:00:00Z"),
-            endDate: new Date("2025-08-31T23:59:59Z"),
+            startDate: new Date("2026-01-01T00:00:00Z"),
+            endDate: new Date("2027-12-31T23:59:59Z"),
         },
         {
             id: "banner-hero-zoyamix",
@@ -43,8 +43,8 @@ async function seedBanner(prisma) {
             path: "/products?category=zoyamix",
             isActive: true,
             sortOrder: 2,
-            startDate: new Date("2025-05-01T00:00:00Z"),
-            endDate: new Date("2025-10-31T23:59:59Z"),
+            startDate: new Date("2026-01-01T00:00:00Z"),
+            endDate: new Date("2027-12-31T23:59:59Z"),
         },
     ];
     for (const banner of banners) {

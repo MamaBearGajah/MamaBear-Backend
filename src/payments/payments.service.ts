@@ -39,6 +39,11 @@ export class PaymentsService {
       payerEmail: order.user.email,
       description: `Pembayaran Order ${order.orderNumber}`,
       expiryDate,
+      // FIX: dibutuhkan supaya XenditService bisa menyusun
+      // successRedirectUrl/failureRedirectUrl yang menyertakan orderId
+      // (lihat xendit.service.ts — sebelumnya redirect ke route yang
+      // tidak ada di frontend, /payment/success & /payment/failed).
+      orderId,
     });
 
     await this.prisma.payment.create({
