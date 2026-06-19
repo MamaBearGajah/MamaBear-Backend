@@ -12,9 +12,9 @@ export declare class WishlistService {
                 id: string;
                 name: string;
                 slug: string;
+                status: import("../../generated/prisma/enums").ProductStatus;
                 basePrice: import("@prisma/client-runtime-utils").Decimal;
                 discountPrice: import("@prisma/client-runtime-utils").Decimal | null;
-                status: import("../../generated/prisma/enums").ProductStatus;
                 images: {
                     imageUrl: string;
                     altText: string | null;
@@ -30,9 +30,9 @@ export declare class WishlistService {
             id: string;
             name: string;
             slug: string;
+            status: import("../../generated/prisma/enums").ProductStatus;
             basePrice: import("@prisma/client-runtime-utils").Decimal;
             discountPrice: import("@prisma/client-runtime-utils").Decimal | null;
-            status: import("../../generated/prisma/enums").ProductStatus;
             images: {
                 imageUrl: string;
                 altText: string | null;

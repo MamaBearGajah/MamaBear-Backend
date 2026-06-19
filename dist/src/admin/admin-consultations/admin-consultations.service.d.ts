@@ -7,15 +7,15 @@ export declare class AdminConsultationsService {
     findAll(query: AdminConsultationQueryDto): Promise<{
         data: {
             id: string;
-            name: string;
-            email: string;
-            phone: string | null;
             createdAt: Date;
             updatedAt: Date;
+            name: string;
             status: ConsultationStatus;
+            email: string;
+            phone: string | null;
             message: string;
-            respondedBy: string | null;
             response: string | null;
+            respondedBy: string | null;
             respondedAt: Date | null;
         }[];
         meta: {
@@ -27,15 +27,15 @@ export declare class AdminConsultationsService {
     }>;
     updateStatus(id: string, adminId: string, dto: UpdateConsultationStatusDto): Promise<{
         id: string;
-        name: string;
-        email: string;
-        phone: string | null;
         createdAt: Date;
         updatedAt: Date;
+        name: string;
         status: ConsultationStatus;
+        email: string;
+        phone: string | null;
         message: string;
-        respondedBy: string | null;
         response: string | null;
+        respondedBy: string | null;
         respondedAt: Date | null;
     }>;
 }

@@ -19,20 +19,20 @@ export declare class MembershipController {
         recentTransactions: {
             id: string;
             createdAt: Date;
-            userId: string;
             description: string | null;
-            type: import("../../generated/prisma/enums").PointTransactionType;
+            userId: string;
             expiredAt: Date | null;
+            type: import("../../generated/prisma/enums").PointTransactionType;
             points: number;
             referenceId: string | null;
         }[];
         activeVouchers: {
             id: string;
-            createdAt: Date;
-            updatedAt: Date;
             isActive: boolean;
             startDate: Date | null;
             endDate: Date | null;
+            createdAt: Date;
+            updatedAt: Date;
             value: import("@prisma/client-runtime-utils").Decimal;
             code: string;
             type: import("../../generated/prisma/enums").VoucherType;
@@ -57,10 +57,10 @@ export declare class MembershipController {
         data: {
             id: string;
             createdAt: Date;
-            userId: string;
             description: string | null;
-            type: import("../../generated/prisma/enums").PointTransactionType;
+            userId: string;
             expiredAt: Date | null;
+            type: import("../../generated/prisma/enums").PointTransactionType;
             points: number;
             referenceId: string | null;
         }[];
@@ -74,11 +74,11 @@ export declare class MembershipController {
     redeemPoints(userId: string, dto: RedeemPointsDto): Promise<{
         voucher: {
             id: string;
-            createdAt: Date;
-            updatedAt: Date;
             isActive: boolean;
             startDate: Date | null;
             endDate: Date | null;
+            createdAt: Date;
+            updatedAt: Date;
             value: import("@prisma/client-runtime-utils").Decimal;
             code: string;
             type: import("../../generated/prisma/enums").VoucherType;

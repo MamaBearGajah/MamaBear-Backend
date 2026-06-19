@@ -74,10 +74,19 @@ export class OrdersService {
       courier: dto.courier,
     });
 
-    const selectedService = shippingOptions
-      .flatMap((o: any) => o.cost)
-      .find((c: any) => c.service === dto.service);
-    if (!selectedService) throw new BadRequestException('Shipping service not available');
+    // FIX: shippingOptions sudah flat ([{ service, cost, etd }]), jadi tidak perlu
+    // di-flatMap lagi via `.cost` (itu sisa struktur lama yang bikin .find() selalu
+    // gagal karena dibandingkan terhadap angka, bukan objek).
+    // Perbandingan dibuat case-insensitive karena FE/BE bisa kirim casing berbeda
+    // (mis. "REG" dari RajaOngkir vs "reg" yang dikirim klien).
+    const selectedService = shippingOptions.find(
+      (c: any) => c.service?.toLowerCase() === dto.service?.toLowerCase(),
+    );
+    if (!selectedService) {
+      throw new BadRequestException(
+        `Shipping service "${dto.service}" not available for courier "${dto.courier}"`,
+      );
+    }
 
     const shippingCost: number = selectedService.cost;
 
@@ -477,7 +486,7 @@ export class OrdersService {
         _count:  { select: { items: true } },
       },
     });
- 
+
     const csvStringifier = createObjectCsvStringifier({
       header: [
         { id: 'orderNumber',    title: 'ORDER_NUMBER' },
@@ -500,7 +509,7 @@ export class OrdersService {
         { id: 'total',          title: 'TOTAL' },
       ],
     });
- 
+
     const records = orders.map((o) => ({
       orderNumber:     o.orderNumber,
       createdAt:       o.createdAt.toISOString().slice(0, 19).replace('T', ' '),
@@ -521,7 +530,7 @@ export class OrdersService {
       shippingCost:    Number(o.shippingCost).toFixed(0),
       total:           Number(o.total).toFixed(0),
     }));
- 
+
     return csvStringifier.getHeaderString() + csvStringifier.stringifyRecords(records);
   }
 }

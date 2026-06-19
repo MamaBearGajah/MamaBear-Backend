@@ -5,6 +5,7 @@ export interface CreateInvoiceOptions {
     payerEmail: string;
     description?: string;
     expiryDate?: Date;
+    orderId: string;
 }
 export interface CreateRefundOptions {
     invoiceId: string;

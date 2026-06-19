@@ -31,13 +31,10 @@ export declare class AdminOrdersController {
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            userId: string;
-            notes: string | null;
             status: OrderStatus;
-            bundleId: string | null;
+            notes: string | null;
+            userId: string;
             orderNumber: string;
-            addressId: string;
-            voucherId: string | null;
             paymentStatus: import("../../../generated/prisma/enums").PaymentStatus;
             subtotal: import("@prisma/client-runtime-utils").Decimal;
             discountAmount: import("@prisma/client-runtime-utils").Decimal;
@@ -53,6 +50,9 @@ export declare class AdminOrdersController {
             cancelReason: string | null;
             paymentDeadline: Date | null;
             cancelDeadline: Date | null;
+            addressId: string;
+            voucherId: string | null;
+            bundleId: string | null;
         })[];
         meta: {
             total: number;
@@ -66,13 +66,10 @@ export declare class AdminOrdersController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        userId: string;
-        notes: string | null;
         status: OrderStatus;
-        bundleId: string | null;
+        notes: string | null;
+        userId: string;
         orderNumber: string;
-        addressId: string;
-        voucherId: string | null;
         paymentStatus: import("../../../generated/prisma/enums").PaymentStatus;
         subtotal: import("@prisma/client-runtime-utils").Decimal;
         discountAmount: import("@prisma/client-runtime-utils").Decimal;
@@ -88,18 +85,18 @@ export declare class AdminOrdersController {
         cancelReason: string | null;
         paymentDeadline: Date | null;
         cancelDeadline: Date | null;
+        addressId: string;
+        voucherId: string | null;
+        bundleId: string | null;
     }>;
     updateTracking(id: string, dto: UpdateTrackingDto): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        userId: string;
-        notes: string | null;
         status: OrderStatus;
-        bundleId: string | null;
+        notes: string | null;
+        userId: string;
         orderNumber: string;
-        addressId: string;
-        voucherId: string | null;
         paymentStatus: import("../../../generated/prisma/enums").PaymentStatus;
         subtotal: import("@prisma/client-runtime-utils").Decimal;
         discountAmount: import("@prisma/client-runtime-utils").Decimal;
@@ -115,5 +112,8 @@ export declare class AdminOrdersController {
         cancelReason: string | null;
         paymentDeadline: Date | null;
         cancelDeadline: Date | null;
+        addressId: string;
+        voucherId: string | null;
+        bundleId: string | null;
     }>;
 }

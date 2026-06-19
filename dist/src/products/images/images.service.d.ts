@@ -9,11 +9,11 @@ export declare class ImagesService {
     constructor(prisma: PrismaService, mediaService: MediaService);
     findAll(productId: string): Promise<{
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         imageUrl: string;
         altText: string | null;
         sortOrder: number;
+        createdAt: Date;
+        updatedAt: Date;
         productId: string;
         publicId: string | null;
         imageType: import("../../../generated/prisma/enums").ImageType;
@@ -21,11 +21,11 @@ export declare class ImagesService {
     }[]>;
     addImage(productId: string, dto: CreateImageDto): Promise<{
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         imageUrl: string;
         altText: string | null;
         sortOrder: number;
+        createdAt: Date;
+        updatedAt: Date;
         productId: string;
         publicId: string | null;
         imageType: import("../../../generated/prisma/enums").ImageType;
@@ -33,11 +33,11 @@ export declare class ImagesService {
     }>;
     setFeatured(productId: string, imageId: string): Promise<{
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         imageUrl: string;
         altText: string | null;
         sortOrder: number;
+        createdAt: Date;
+        updatedAt: Date;
         productId: string;
         publicId: string | null;
         imageType: import("../../../generated/prisma/enums").ImageType;
@@ -45,11 +45,11 @@ export declare class ImagesService {
     }>;
     reorder(productId: string, dto: ReorderImagesDto): Promise<{
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         imageUrl: string;
         altText: string | null;
         sortOrder: number;
+        createdAt: Date;
+        updatedAt: Date;
         productId: string;
         publicId: string | null;
         imageType: import("../../../generated/prisma/enums").ImageType;
@@ -57,11 +57,11 @@ export declare class ImagesService {
     }[]>;
     updateImage(productId: string, imageId: string, dto: UpdateImageDto): Promise<{
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         imageUrl: string;
         altText: string | null;
         sortOrder: number;
+        createdAt: Date;
+        updatedAt: Date;
         productId: string;
         publicId: string | null;
         imageType: import("../../../generated/prisma/enums").ImageType;
@@ -69,11 +69,11 @@ export declare class ImagesService {
     }>;
     removeImage(productId: string, imageId: string): Promise<{
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         imageUrl: string;
         altText: string | null;
         sortOrder: number;
+        createdAt: Date;
+        updatedAt: Date;
         productId: string;
         publicId: string | null;
         imageType: import("../../../generated/prisma/enums").ImageType;

@@ -12,16 +12,16 @@ export declare class BlogController {
             } | null;
         } & {
             id: string;
+            title: string;
             createdAt: Date;
             updatedAt: Date;
-            title: string;
             slug: string;
-            status: import("../../generated/prisma/enums").BlogStatus;
             authorId: string | null;
             excerpt: string | null;
             coverImage: string | null;
             coverPublicId: string | null;
             content: string;
+            status: import("../../generated/prisma/enums").BlogStatus;
             viewCount: number;
             publishedAt: Date | null;
         })[];
@@ -40,16 +40,16 @@ export declare class BlogController {
         } | null;
     } & {
         id: string;
+        title: string;
         createdAt: Date;
         updatedAt: Date;
-        title: string;
         slug: string;
-        status: import("../../generated/prisma/enums").BlogStatus;
         authorId: string | null;
         excerpt: string | null;
         coverImage: string | null;
         coverPublicId: string | null;
         content: string;
+        status: import("../../generated/prisma/enums").BlogStatus;
         viewCount: number;
         publishedAt: Date | null;
     }>;
@@ -60,16 +60,16 @@ export declare class BlogController {
         } | null;
     } & {
         id: string;
+        title: string;
         createdAt: Date;
         updatedAt: Date;
-        title: string;
         slug: string;
-        status: import("../../generated/prisma/enums").BlogStatus;
         authorId: string | null;
         excerpt: string | null;
         coverImage: string | null;
         coverPublicId: string | null;
         content: string;
+        status: import("../../generated/prisma/enums").BlogStatus;
         viewCount: number;
         publishedAt: Date | null;
     }>;

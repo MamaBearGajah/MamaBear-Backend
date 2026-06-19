@@ -6,57 +6,57 @@ export declare class FaqService {
     constructor(prisma: PrismaService);
     findAll(): Promise<{
         id: string;
+        isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
-        isActive: boolean;
         question: string;
         answer: string;
     }[]>;
     findOne(id: string): Promise<{
         id: string;
+        isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
-        isActive: boolean;
         question: string;
         answer: string;
     }>;
     create(dto: CreateFaqDto): Promise<{
         id: string;
+        isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
-        isActive: boolean;
         question: string;
         answer: string;
     }>;
     update(id: string, dto: UpdateFaqDto): Promise<{
         id: string;
+        isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
-        isActive: boolean;
         question: string;
         answer: string;
     }>;
     remove(id: string): Promise<{
         id: string;
+        isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
-        isActive: boolean;
         question: string;
         answer: string;
     }>;
     findByKeyword(keyword: string): Promise<{
         id: string;
+        isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
-        isActive: boolean;
         question: string;
         answer: string;
     }[]>;
     findTopFaqs(): Promise<{
         id: string;
+        isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
-        isActive: boolean;
         question: string;
         answer: string;
     }[]>;
