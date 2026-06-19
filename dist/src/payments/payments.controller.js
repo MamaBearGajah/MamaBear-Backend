@@ -35,17 +35,14 @@ let PaymentsController = class PaymentsController {
     xenditWebhook(callbackToken, body) {
         return this.paymentsService.handleXenditWebhook(callbackToken, body);
     }
-    midtransWebhook(body) {
-        return this.paymentsService.handleMidtransWebhook(body);
-    }
 };
 exports.PaymentsController = PaymentsController;
 __decorate([
     (0, common_1.Post)('checkout'),
     (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
-    (0, swagger_1.ApiOperation)({ summary: 'Buat payment untuk order (Xendit / Midtrans)' }),
-    (0, swagger_1.ApiResponse)({ status: 201, description: 'Payment berhasil dibuat, dapat paymentUrl' }),
+    (0, swagger_1.ApiOperation)({ summary: 'Buat payment untuk order via Xendit' }),
+    (0, swagger_1.ApiResponse)({ status: 201, description: 'Invoice Xendit berhasil dibuat, dapat paymentUrl' }),
     (0, swagger_1.ApiResponse)({ status: 404, description: 'Order tidak ditemukan' }),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -57,12 +54,9 @@ __decorate([
     (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, decorators_1.Roles)(enums_1.Role.admin, enums_1.Role.super_admin),
-    (0, swagger_1.ApiOperation)({
-        summary: '[Admin] Proses refund order',
-        description: 'Memicu refund aktif ke Xendit/Midtrans sesuai provider yang dipakai order ini.',
-    }),
+    (0, swagger_1.ApiOperation)({ summary: '[Admin] Proses refund order via Xendit' }),
     (0, swagger_1.ApiParam)({ name: 'orderId' }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: 'Refund berhasil diajukan' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Refund berhasil diajukan ke Xendit' }),
     (0, swagger_1.ApiResponse)({ status: 400, description: 'Payment belum paid / tidak bisa di-refund' }),
     (0, swagger_1.ApiResponse)({ status: 404, description: 'Order/payment tidak ditemukan' }),
     __param(0, (0, common_1.Param)('orderId')),
@@ -74,7 +68,7 @@ __decorate([
 __decorate([
     (0, common_1.Post)('webhook/xendit'),
     (0, decorators_1.Public)(),
-    (0, swagger_1.ApiOperation)({ summary: 'Xendit payment webhook' }),
+    (0, swagger_1.ApiOperation)({ summary: 'Xendit payment webhook (verifikasi via x-callback-token)' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Webhook diproses' }),
     __param(0, (0, common_1.Headers)('x-callback-token')),
     __param(1, (0, common_1.Body)()),
@@ -82,16 +76,6 @@ __decorate([
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", void 0)
 ], PaymentsController.prototype, "xenditWebhook", null);
-__decorate([
-    (0, common_1.Post)('webhook/midtrans'),
-    (0, decorators_1.Public)(),
-    (0, swagger_1.ApiOperation)({ summary: 'Midtrans payment notification webhook' }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: 'Webhook diproses' }),
-    __param(0, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", void 0)
-], PaymentsController.prototype, "midtransWebhook", null);
 exports.PaymentsController = PaymentsController = __decorate([
     (0, swagger_1.ApiTags)('Payments'),
     (0, common_1.Controller)('payments'),

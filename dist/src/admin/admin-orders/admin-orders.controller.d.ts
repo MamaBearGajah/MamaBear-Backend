@@ -1,32 +1,12 @@
-import { OrderStatus } from '../../generated/prisma/enums';
-import { AdminCustomersService } from './admin-customers/admin-customers.service';
-import { OrdersService } from '../orders/orders.service';
-import { UpdateOrderDto } from '../orders/dto/update-order.dto';
-export declare class AdminController {
-    private readonly adminCustomersService;
+import type { Response } from 'express';
+import { OrderStatus } from '../../../generated/prisma/enums';
+import { OrdersService } from '../../orders/orders.service';
+import { UpdateOrderDto } from '../../orders/dto/update-order.dto';
+import { UpdateTrackingDto } from '../dto/update-tracking.dto';
+export declare class AdminOrdersController {
     private readonly ordersService;
-    constructor(adminCustomersService: AdminCustomersService, ordersService: OrdersService);
-    getCustomers(page: number, limit: number, search?: string): Promise<{
-        data: {
-            id: string;
-            name: string;
-            email: string;
-            createdAt: Date;
-            orders: {
-                total: import("@prisma/client-runtime-utils").Decimal;
-            }[];
-            _count: {
-                orders: number;
-            };
-        }[];
-        meta: {
-            totalItems: number;
-            itemsPerPage: number;
-            totalPages: number;
-            currentPage: number;
-        };
-    }>;
-    getOrders(page: number, limit: number, status?: OrderStatus, q?: string): Promise<{
+    constructor(ordersService: OrdersService);
+    findAll(page: number, limit: number, status?: OrderStatus, q?: string): Promise<{
         data: ({
             user: {
                 id: string;
@@ -40,11 +20,11 @@ export declare class AdminController {
             voucher: {
                 value: import("@prisma/client-runtime-utils").Decimal;
                 code: string;
-                type: import("../../generated/prisma/enums").VoucherType;
+                type: import("../../../generated/prisma/enums").VoucherType;
             } | null;
             payment: {
                 id: string;
-                status: import("../../generated/prisma/enums").PaymentStatus;
+                status: import("../../../generated/prisma/enums").PaymentStatus;
                 paymentMethod: string | null;
             } | null;
         } & {
@@ -58,7 +38,7 @@ export declare class AdminController {
             orderNumber: string;
             addressId: string;
             voucherId: string | null;
-            paymentStatus: import("../../generated/prisma/enums").PaymentStatus;
+            paymentStatus: import("../../../generated/prisma/enums").PaymentStatus;
             subtotal: import("@prisma/client-runtime-utils").Decimal;
             discountAmount: import("@prisma/client-runtime-utils").Decimal;
             shippingCost: import("@prisma/client-runtime-utils").Decimal;
@@ -81,7 +61,8 @@ export declare class AdminController {
             totalPages: number;
         };
     }>;
-    updateOrderStatus(id: string, dto: UpdateOrderDto): Promise<{
+    exportCsv(res: Response): Promise<Response<any, Record<string, any>>>;
+    updateStatus(id: string, dto: UpdateOrderDto): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
@@ -92,7 +73,34 @@ export declare class AdminController {
         orderNumber: string;
         addressId: string;
         voucherId: string | null;
-        paymentStatus: import("../../generated/prisma/enums").PaymentStatus;
+        paymentStatus: import("../../../generated/prisma/enums").PaymentStatus;
+        subtotal: import("@prisma/client-runtime-utils").Decimal;
+        discountAmount: import("@prisma/client-runtime-utils").Decimal;
+        shippingCost: import("@prisma/client-runtime-utils").Decimal;
+        total: import("@prisma/client-runtime-utils").Decimal;
+        courier: string;
+        service: string;
+        shippingProvider: string | null;
+        trackingNumber: string | null;
+        estimatedDelivery: Date | null;
+        deliveredAt: Date | null;
+        cancelledAt: Date | null;
+        cancelReason: string | null;
+        paymentDeadline: Date | null;
+        cancelDeadline: Date | null;
+    }>;
+    updateTracking(id: string, dto: UpdateTrackingDto): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        userId: string;
+        notes: string | null;
+        status: OrderStatus;
+        bundleId: string | null;
+        orderNumber: string;
+        addressId: string;
+        voucherId: string | null;
+        paymentStatus: import("../../../generated/prisma/enums").PaymentStatus;
         subtotal: import("@prisma/client-runtime-utils").Decimal;
         discountAmount: import("@prisma/client-runtime-utils").Decimal;
         shippingCost: import("@prisma/client-runtime-utils").Decimal;

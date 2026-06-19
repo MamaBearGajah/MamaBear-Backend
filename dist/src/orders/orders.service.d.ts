@@ -770,4 +770,5 @@ export declare class OrdersService {
         paymentDeadline: Date | null;
         cancelDeadline: Date | null;
     }>;
+    exportOrdersToCsv(): Promise<string>;
 }

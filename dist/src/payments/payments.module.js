@@ -11,7 +11,6 @@ const common_1 = require("@nestjs/common");
 const payments_service_1 = require("./payments.service");
 const payments_controller_1 = require("./payments.controller");
 const xendit_service_1 = require("./providers/xendit.service");
-const midtrans_service_1 = require("./providers/midtrans.service");
 const mail_module_1 = require("../mail/mail.module");
 let PaymentsModule = class PaymentsModule {
 };
@@ -23,7 +22,6 @@ exports.PaymentsModule = PaymentsModule = __decorate([
         providers: [
             payments_service_1.PaymentsService,
             xendit_service_1.XenditService,
-            midtrans_service_1.MidtransService,
         ],
     })
 ], PaymentsModule);
