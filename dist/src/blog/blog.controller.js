@@ -28,11 +28,11 @@ let BlogController = class BlogController {
     findAll(page, limit) {
         return this.blogService.findAll(page, limit);
     }
-    findBySlug(slug) {
-        return this.blogService.findBySlug(slug);
-    }
     findAllAdmin(page, limit) {
         return this.blogService.findAllAdmin(page, limit);
+    }
+    findBySlug(slug) {
+        return this.blogService.findBySlug(slug);
     }
     create(authorId, dto) {
         return this.blogService.create(authorId, dto);
@@ -59,18 +59,6 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], BlogController.prototype, "findAll", null);
 __decorate([
-    (0, decorators_1.Public)(),
-    (0, common_1.Get)(':slug'),
-    (0, swagger_1.ApiOperation)({ summary: 'Detail artikel by slug (public)' }),
-    (0, swagger_1.ApiParam)({ name: 'slug', example: 'cara-meningkatkan-produksi-asi' }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: 'Detail artikel berhasil diambil' }),
-    (0, swagger_1.ApiResponse)({ status: 404, description: 'Artikel tidak ditemukan' }),
-    __param(0, (0, common_1.Param)('slug')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", void 0)
-], BlogController.prototype, "findBySlug", null);
-__decorate([
     (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.UseGuards)(roles_guard_1.RolesGuard),
     (0, decorators_1.Roles)(enums_1.Role.admin, enums_1.Role.super_admin),
@@ -84,6 +72,18 @@ __decorate([
     __metadata("design:paramtypes", [Number, Number]),
     __metadata("design:returntype", void 0)
 ], BlogController.prototype, "findAllAdmin", null);
+__decorate([
+    (0, decorators_1.Public)(),
+    (0, common_1.Get)(':slug'),
+    (0, swagger_1.ApiOperation)({ summary: 'Detail artikel by slug (public)' }),
+    (0, swagger_1.ApiParam)({ name: 'slug', example: 'cara-meningkatkan-produksi-asi' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Detail artikel berhasil diambil' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Artikel tidak ditemukan' }),
+    __param(0, (0, common_1.Param)('slug')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], BlogController.prototype, "findBySlug", null);
 __decorate([
     (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.UseGuards)(roles_guard_1.RolesGuard),

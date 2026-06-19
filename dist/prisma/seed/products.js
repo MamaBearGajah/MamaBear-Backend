@@ -115,6 +115,7 @@ Keunggulan Mamabear AlmonMix:
             soldCount: 312,
             status: client_1.ProductStatus.active,
             categoryId: catMap["almonmix"],
+            mainImage: IMG.almon.main,
         },
     });
     await resetAndRecreateMedia(prisma, almonMix.id, [
@@ -165,6 +166,7 @@ Keunggulan Mamabear ZoyaMix:
             soldCount: 198,
             status: client_1.ProductStatus.active,
             categoryId: catMap["zoyamix"],
+            mainImage: IMG.zoya.main,
         },
     });
     await resetAndRecreateMedia(prisma, zoyaMix.id, [
@@ -216,6 +218,7 @@ Keunggulan Mamabear Teh Pelancar ASI:
             soldCount: 274,
             status: client_1.ProductStatus.active,
             categoryId: catMap["teh-pelancar-asi"],
+            mainImage: IMG.teh.main,
         },
     });
     await resetAndRecreateMedia(prisma, tehPelancar.id, [
@@ -260,6 +263,7 @@ Aman dikonsumsi ibu hamil & menyusui, anak-anak, dewasa, & orang tua.
             soldCount: 156,
             status: client_1.ProductStatus.active,
             categoryId: catMap["kookie"],
+            mainImage: IMG.kukis.main,
         },
     });
     await resetAndRecreateMedia(prisma, kukis.id, [
@@ -302,6 +306,7 @@ Anjuran pemakaian: Konsumsi 2-3x sehari, 1 kapsul setelah makan.
             soldCount: 89,
             status: client_1.ProductStatus.active,
             categoryId: catMap["kapsul-pelancar-asi"],
+            mainImage: IMG.kapsul.main,
         },
     });
     await resetAndRecreateMedia(prisma, kapsul.id, [
