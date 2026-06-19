@@ -68,11 +68,10 @@ let OrdersService = OrdersService_1 = class OrdersService {
             weight: totalWeight,
             courier: dto.courier,
         });
-        const selectedService = shippingOptions
-            .flatMap((o) => o.cost)
-            .find((c) => c.service === dto.service);
-        if (!selectedService)
-            throw new common_1.BadRequestException('Shipping service not available');
+        const selectedService = shippingOptions.find((c) => c.service?.toLowerCase() === dto.service?.toLowerCase());
+        if (!selectedService) {
+            throw new common_1.BadRequestException(`Shipping service "${dto.service}" not available for courier "${dto.courier}"`);
+        }
         const shippingCost = selectedService.cost;
         const subtotal = cart.items.reduce((sum, item) => {
             return sum + Number(item.variant?.basePrice ?? item.price ?? 0) * item.quantity;

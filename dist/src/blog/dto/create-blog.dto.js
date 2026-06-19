@@ -45,6 +45,7 @@ __decorate([
     (0, swagger_1.ApiPropertyOptional)({ example: 'https://res.cloudinary.com/.../blog-cover.jpg' }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsUrl)(),
     __metadata("design:type", String)
 ], CreateBlogDto.prototype, "coverImage", void 0);
 __decorate([

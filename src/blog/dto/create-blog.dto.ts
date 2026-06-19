@@ -23,6 +23,7 @@ export class CreateBlogDto {
   @ApiPropertyOptional({ example: 'https://res.cloudinary.com/.../blog-cover.jpg' })
   @IsOptional()
   @IsString()
+  @IsUrl()
   coverImage?: string;
 
   @ApiPropertyOptional({ description: 'Cloudinary public_id untuk delete gambar cover' })

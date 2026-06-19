@@ -40,6 +40,7 @@ let PaymentsService = PaymentsService_1 = class PaymentsService {
             payerEmail: order.user.email,
             description: `Pembayaran Order ${order.orderNumber}`,
             expiryDate,
+            orderId,
         });
         await this.prisma.payment.create({
             data: {

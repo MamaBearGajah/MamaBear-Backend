@@ -4,7 +4,6 @@ export declare class BlogController {
     private readonly blogService;
     constructor(blogService: BlogService);
     findAll(page: number, limit: number): Promise<any>;
-    findBySlug(slug: string): Promise<any>;
     findAllAdmin(page: number, limit: number): Promise<{
         data: ({
             author: {
@@ -33,6 +32,7 @@ export declare class BlogController {
             totalPages: number;
         };
     }>;
+    findBySlug(slug: string): Promise<any>;
     create(authorId: string, dto: CreateBlogDto): Promise<{
         author: {
             id: string;

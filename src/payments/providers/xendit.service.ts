@@ -13,6 +13,10 @@ export interface CreateInvoiceOptions {
   payerEmail: string;
   description?: string;
   expiryDate?: Date; // opsional, default Xendit 24 jam jika tidak diisi
+  // FIX: dibutuhkan supaya redirect URL bisa menyertakan orderId — tanpa ini,
+  // customer diarahkan ke halaman sukses/gagal tanpa tahu order mana yang
+  // dimaksud (OrderSuccessView akan render kosong / fallback generik).
+  orderId: string;
 }
 
 export interface CreateRefundOptions {
@@ -50,6 +54,14 @@ export class XenditService {
       ? Math.max(60, Math.floor((opts.expiryDate.getTime() - Date.now()) / 1000))
       : undefined; // default Xendit = 24 jam
 
+    // FIX: sebelumnya redirect ke `/payment/success` dan `/payment/failed`
+    // — route itu TIDAK ADA di frontend (cuma ada `/payment` dan
+    // `/order-success`), jadi customer akan kena 404 setelah selesai bayar.
+    // Diarahkan ke route yang benar-benar ada, sekaligus bawa `orderId`
+    // supaya halaman bisa langsung menampilkan order yang bersangkutan.
+    const successRedirectUrl = `${frontendUrl}/order-success?orderId=${encodeURIComponent(opts.orderId)}`;
+    const failureRedirectUrl = `${frontendUrl}/payment?orderId=${encodeURIComponent(opts.orderId)}&status=failed`;
+
     try {
       const invoice = await this.invoiceClient.createInvoice({
         data: {
@@ -57,8 +69,8 @@ export class XenditService {
           amount: opts.amount,
           payerEmail: opts.payerEmail,
           description: opts.description ?? 'MamaBear Order Payment',
-          successRedirectUrl: `${frontendUrl}/payment/success`,
-          failureRedirectUrl: `${frontendUrl}/payment/failed`,
+          successRedirectUrl,
+          failureRedirectUrl,
           // FIX: invoiceDuration sekarang number, sesuai tipe CreateInvoiceRequest
           ...(invoiceDuration !== undefined && { invoiceDuration }),
         },
