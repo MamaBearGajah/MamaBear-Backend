@@ -18,26 +18,26 @@ export declare class CategoriesService {
     }[]>;
     create(dto: CreateCategoryDto): Promise<{
         id: string;
+        name: string;
+        createdAt: Date;
+        updatedAt: Date;
         imageUrl: string | null;
         isActive: boolean;
         sortOrder: number;
-        createdAt: Date;
-        updatedAt: Date;
-        name: string;
-        slug: string;
         parentId: string | null;
+        slug: string;
         description: string | null;
     }>;
     update(id: string, dto: UpdateCategoryDto): Promise<{
         id: string;
+        name: string;
+        createdAt: Date;
+        updatedAt: Date;
         imageUrl: string | null;
         isActive: boolean;
         sortOrder: number;
-        createdAt: Date;
-        updatedAt: Date;
-        name: string;
-        slug: string;
         parentId: string | null;
+        slug: string;
         description: string | null;
     }>;
     reorder(items: {
@@ -49,14 +49,14 @@ export declare class CategoriesService {
     }>;
     remove(id: string): Promise<{
         id: string;
+        name: string;
+        createdAt: Date;
+        updatedAt: Date;
         imageUrl: string | null;
         isActive: boolean;
         sortOrder: number;
-        createdAt: Date;
-        updatedAt: Date;
-        name: string;
-        slug: string;
         parentId: string | null;
+        slug: string;
         description: string | null;
     }>;
     findProducts(id: string, query: ProductQueryDto): Promise<{}>;

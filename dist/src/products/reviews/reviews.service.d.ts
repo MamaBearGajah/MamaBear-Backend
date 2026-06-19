@@ -25,11 +25,11 @@ export declare class ReviewsService {
         updatedAt: Date;
         userId: string;
         productId: string;
+        orderId: string;
         rating: number | null;
         review: string | null;
         isVerifiedPurchase: boolean;
         helpfulCount: number;
-        orderId: string;
     }>;
     updateReview(reviewId: string, userId: string, dto: UpdateReviewDto): Promise<{
         user: {
@@ -42,11 +42,11 @@ export declare class ReviewsService {
         updatedAt: Date;
         userId: string;
         productId: string;
+        orderId: string;
         rating: number | null;
         review: string | null;
         isVerifiedPurchase: boolean;
         helpfulCount: number;
-        orderId: string;
     }>;
     deleteReview(reviewId: string, userId: string, role: Role): Promise<{
         message: string;
