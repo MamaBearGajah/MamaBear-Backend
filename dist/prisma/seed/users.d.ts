@@ -2,14 +2,14 @@ import { PrismaClient } from "../../generated/prisma/client";
 export declare function seedUsers(prisma: PrismaClient): Promise<{
     customers: {
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         name: string;
         email: string;
         phone: string | null;
         password: string;
         role: import("generated/prisma/client").Role;
         isVerified: boolean;
+        createdAt: Date;
+        updatedAt: Date;
         deletedAt: Date | null;
         bannedAt: Date | null;
         banReason: string | null;
@@ -21,10 +21,11 @@ export declare function seedUsers(prisma: PrismaClient): Promise<{
     }[];
     addresses: {
         id: string;
-        label: string | null;
+        phone: string;
         createdAt: Date;
         updatedAt: Date;
-        phone: string;
+        userId: string;
+        label: string | null;
         receiverName: string;
         address: string;
         notes: string | null;
@@ -32,6 +33,5 @@ export declare function seedUsers(prisma: PrismaClient): Promise<{
         provinceId: string;
         postalCode: string;
         isDefault: boolean;
-        userId: string;
     }[];
 }>;

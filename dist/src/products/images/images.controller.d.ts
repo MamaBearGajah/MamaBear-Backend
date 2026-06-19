@@ -7,11 +7,11 @@ export declare class ImagesController {
     constructor(imagesService: ImagesService);
     findAll(productId: string): Promise<{
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         imageUrl: string;
         altText: string | null;
         sortOrder: number;
-        createdAt: Date;
-        updatedAt: Date;
         productId: string;
         publicId: string | null;
         imageType: import("generated/prisma/enums").ImageType;
@@ -19,11 +19,11 @@ export declare class ImagesController {
     }[]>;
     addImage(productId: string, dto: CreateImageDto): Promise<{
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         imageUrl: string;
         altText: string | null;
         sortOrder: number;
-        createdAt: Date;
-        updatedAt: Date;
         productId: string;
         publicId: string | null;
         imageType: import("generated/prisma/enums").ImageType;
@@ -31,11 +31,11 @@ export declare class ImagesController {
     }>;
     reorder(productId: string, dto: ReorderImagesDto): Promise<{
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         imageUrl: string;
         altText: string | null;
         sortOrder: number;
-        createdAt: Date;
-        updatedAt: Date;
         productId: string;
         publicId: string | null;
         imageType: import("generated/prisma/enums").ImageType;
@@ -43,11 +43,11 @@ export declare class ImagesController {
     }[]>;
     setFeatured(productId: string, imageId: string): Promise<{
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         imageUrl: string;
         altText: string | null;
         sortOrder: number;
-        createdAt: Date;
-        updatedAt: Date;
         productId: string;
         publicId: string | null;
         imageType: import("generated/prisma/enums").ImageType;
@@ -55,11 +55,11 @@ export declare class ImagesController {
     }>;
     updateImage(productId: string, imageId: string, dto: UpdateImageDto): Promise<{
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         imageUrl: string;
         altText: string | null;
         sortOrder: number;
-        createdAt: Date;
-        updatedAt: Date;
         productId: string;
         publicId: string | null;
         imageType: import("generated/prisma/enums").ImageType;
@@ -67,11 +67,11 @@ export declare class ImagesController {
     }>;
     removeImage(productId: string, imageId: string): Promise<{
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         imageUrl: string;
         altText: string | null;
         sortOrder: number;
-        createdAt: Date;
-        updatedAt: Date;
         productId: string;
         publicId: string | null;
         imageType: import("generated/prisma/enums").ImageType;
