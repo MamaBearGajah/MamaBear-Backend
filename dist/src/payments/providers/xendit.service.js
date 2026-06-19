@@ -32,6 +32,8 @@ let XenditService = XenditService_1 = class XenditService {
         const invoiceDuration = opts.expiryDate
             ? Math.max(60, Math.floor((opts.expiryDate.getTime() - Date.now()) / 1000))
             : undefined;
+        const successRedirectUrl = `${frontendUrl}/order-success?orderId=${encodeURIComponent(opts.orderId)}`;
+        const failureRedirectUrl = `${frontendUrl}/payment?orderId=${encodeURIComponent(opts.orderId)}&status=failed`;
         try {
             const invoice = await this.invoiceClient.createInvoice({
                 data: {
@@ -39,8 +41,8 @@ let XenditService = XenditService_1 = class XenditService {
                     amount: opts.amount,
                     payerEmail: opts.payerEmail,
                     description: opts.description ?? 'MamaBear Order Payment',
-                    successRedirectUrl: `${frontendUrl}/payment/success`,
-                    failureRedirectUrl: `${frontendUrl}/payment/failed`,
+                    successRedirectUrl,
+                    failureRedirectUrl,
                     ...(invoiceDuration !== undefined && { invoiceDuration }),
                 },
             });

@@ -33,16 +33,6 @@ export class BlogController {
     return this.blogService.findAll(page, limit);
   }
 
-  @Public()
-  @Get(':slug')
-  @ApiOperation({ summary: 'Detail artikel by slug (public)' })
-  @ApiParam({ name: 'slug', example: 'cara-meningkatkan-produksi-asi' })
-  @ApiResponse({ status: 200, description: 'Detail artikel berhasil diambil' })
-  @ApiResponse({ status: 404, description: 'Artikel tidak ditemukan' })
-  findBySlug(@Param('slug') slug: string) {
-    return this.blogService.findBySlug(slug);
-  }
-
   // ─── Admin ───────────────────────────────────────────────────────────────
 
   @ApiBearerAuth()
@@ -57,6 +47,16 @@ export class BlogController {
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
   ) {
     return this.blogService.findAllAdmin(page, limit);
+  }
+
+  @Public()
+  @Get(':slug')
+  @ApiOperation({ summary: 'Detail artikel by slug (public)' })
+  @ApiParam({ name: 'slug', example: 'cara-meningkatkan-produksi-asi' })
+  @ApiResponse({ status: 200, description: 'Detail artikel berhasil diambil' })
+  @ApiResponse({ status: 404, description: 'Artikel tidak ditemukan' })
+  findBySlug(@Param('slug') slug: string) {
+    return this.blogService.findBySlug(slug);
   }
 
   @ApiBearerAuth()

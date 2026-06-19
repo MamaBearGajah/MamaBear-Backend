@@ -25,12 +25,12 @@ __decorate([
     __metadata("design:type", String)
 ], CreatePaymentDto.prototype, "orderId", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ enum: ['xendit', 'midtrans'], description: 'Payment gateway yang digunakan' }),
-    (0, class_validator_1.IsEnum)(['xendit', 'midtrans']),
+    (0, swagger_1.ApiProperty)({ enum: ['xendit'], description: 'Payment gateway — hanya Xendit' }),
+    (0, class_validator_1.IsEnum)(['xendit']),
     __metadata("design:type", String)
 ], CreatePaymentDto.prototype, "provider", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 55000, description: 'Total amount dalam Rupiah' }),
+    (0, swagger_1.ApiProperty)({ example: 55000, description: 'Total amount dalam Rupiah (min. Rp 1.000)' }),
     (0, class_validator_1.IsNumber)(),
     (0, class_validator_1.Min)(1000),
     __metadata("design:type", Number)

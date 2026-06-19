@@ -18,6 +18,7 @@ const shipping_service_1 = require("../shipping/shipping.service");
 const mail_service_1 = require("../mail/mail.service");
 const membership_service_1 = require("../membership/membership.service");
 const voucher_service_1 = require("../voucher/voucher.service");
+const csv_writer_1 = require("csv-writer");
 let OrdersService = OrdersService_1 = class OrdersService {
     prisma;
     shippingService;
@@ -67,11 +68,10 @@ let OrdersService = OrdersService_1 = class OrdersService {
             weight: totalWeight,
             courier: dto.courier,
         });
-        const selectedService = shippingOptions
-            .flatMap((o) => o.cost)
-            .find((c) => c.service === dto.service);
-        if (!selectedService)
-            throw new common_1.BadRequestException('Shipping service not available');
+        const selectedService = shippingOptions.find((c) => c.service?.toLowerCase() === dto.service?.toLowerCase());
+        if (!selectedService) {
+            throw new common_1.BadRequestException(`Shipping service "${dto.service}" not available for courier "${dto.courier}"`);
+        }
         const shippingCost = selectedService.cost;
         const subtotal = cart.items.reduce((sum, item) => {
             return sum + Number(item.variant?.basePrice ?? item.price ?? 0) * item.quantity;
@@ -395,6 +395,60 @@ let OrdersService = OrdersService_1 = class OrdersService {
             where: { id: orderId },
             data: { trackingNumber },
         });
+    }
+    async exportOrdersToCsv() {
+        const orders = await this.prisma.order.findMany({
+            orderBy: { createdAt: 'desc' },
+            include: {
+                user: { select: { name: true, email: true } },
+                address: { select: { receiverName: true, phone: true, cityId: true, provinceId: true } },
+                payment: { select: { provider: true, status: true } },
+                _count: { select: { items: true } },
+            },
+        });
+        const csvStringifier = (0, csv_writer_1.createObjectCsvStringifier)({
+            header: [
+                { id: 'orderNumber', title: 'ORDER_NUMBER' },
+                { id: 'createdAt', title: 'DATE' },
+                { id: 'customerName', title: 'CUSTOMER_NAME' },
+                { id: 'customerEmail', title: 'CUSTOMER_EMAIL' },
+                { id: 'recipient', title: 'RECIPIENT' },
+                { id: 'phone', title: 'PHONE' },
+                { id: 'cityId', title: 'CITY_ID' },
+                { id: 'provinceId', title: 'PROVINCE_ID' },
+                { id: 'status', title: 'STATUS' },
+                { id: 'paymentStatus', title: 'PAYMENT_STATUS' },
+                { id: 'paymentProvider', title: 'PAYMENT_PROVIDER' },
+                { id: 'courier', title: 'COURIER' },
+                { id: 'service', title: 'SERVICE' },
+                { id: 'trackingNumber', title: 'TRACKING_NUMBER' },
+                { id: 'itemCount', title: 'ITEM_COUNT' },
+                { id: 'subtotal', title: 'SUBTOTAL' },
+                { id: 'shippingCost', title: 'SHIPPING_COST' },
+                { id: 'total', title: 'TOTAL' },
+            ],
+        });
+        const records = orders.map((o) => ({
+            orderNumber: o.orderNumber,
+            createdAt: o.createdAt.toISOString().slice(0, 19).replace('T', ' '),
+            customerName: o.user.name,
+            customerEmail: o.user.email,
+            recipient: o.address.receiverName,
+            phone: o.address.phone,
+            cityId: o.address.cityId,
+            provinceId: o.address.provinceId,
+            status: o.status,
+            paymentStatus: o.paymentStatus,
+            paymentProvider: o.payment?.provider ?? '',
+            courier: o.courier,
+            service: o.service,
+            trackingNumber: o.trackingNumber ?? '',
+            itemCount: o._count.items,
+            subtotal: Number(o.subtotal).toFixed(0),
+            shippingCost: Number(o.shippingCost).toFixed(0),
+            total: Number(o.total).toFixed(0),
+        }));
+        return csvStringifier.getHeaderString() + csvStringifier.stringifyRecords(records);
     }
 };
 exports.OrdersService = OrdersService;

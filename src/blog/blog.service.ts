@@ -138,7 +138,7 @@ export class BlogService {
       include: { author: { select: { id: true, name: true } } },
     });
 
-    await this.invalidateCache(post.slug);
+    await this.invalidateCache(post.slug, dto.slug);
     return updated;
   }
 
@@ -152,8 +152,9 @@ export class BlogService {
   }
 
   // ─── Helpers ─────────────────────────────────────────────────────────────
-  private async invalidateCache(slug?: string) {
+  private async invalidateCache(oldSlug?: string, newSlug?: string) {
     await this.cache.delByPattern('blog:list:*');
-    if (slug) await this.cache.del(`blog:slug:${slug}`);
+    if (oldSlug) await this.cache.del(`blog:slug:${oldSlug}`);
+    if (newSlug && newSlug !== oldSlug) await this.cache.del(`blog:slug:${newSlug}`);
   }
 }

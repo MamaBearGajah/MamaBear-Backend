@@ -129,6 +129,7 @@ Keunggulan Mamabear AlmonMix:
       soldCount: 312,
       status: ProductStatus.active,
       categoryId: catMap["almonmix"],
+      mainImage: IMG.almon.main,
     },
   });
 
@@ -183,6 +184,7 @@ Keunggulan Mamabear ZoyaMix:
       soldCount: 198,
       status: ProductStatus.active,
       categoryId: catMap["zoyamix"],
+      mainImage: IMG.zoya.main,
     },
   });
 
@@ -238,6 +240,7 @@ Keunggulan Mamabear Teh Pelancar ASI:
       soldCount: 274,
       status: ProductStatus.active,
       categoryId: catMap["teh-pelancar-asi"],
+      mainImage: IMG.teh.main,
     },
   });
 
@@ -286,6 +289,7 @@ Aman dikonsumsi ibu hamil & menyusui, anak-anak, dewasa, & orang tua.
       soldCount: 156,
       status: ProductStatus.active,
       categoryId: catMap["kookie"],
+      mainImage: IMG.kukis.main,
     },
   });
 
@@ -332,6 +336,7 @@ Anjuran pemakaian: Konsumsi 2-3x sehari, 1 kapsul setelah makan.
       soldCount: 89,
       status: ProductStatus.active,
       categoryId: catMap["kapsul-pelancar-asi"],
+      mainImage: IMG.kapsul.main,
     },
   });
 

@@ -7,12 +7,6 @@ export declare class PaymentsController {
         paymentUrl: string;
         externalId: string;
         expiredAt: Date;
-        snapToken?: undefined;
-    } | {
-        paymentUrl: any;
-        snapToken: any;
-        expiredAt: Date | null;
-        externalId?: undefined;
     }>;
     requestRefund(orderId: string, reason?: string): Promise<{
         message: string;
@@ -20,9 +14,6 @@ export declare class PaymentsController {
         amount: number;
     }>;
     xenditWebhook(callbackToken: string, body: any): Promise<{
-        message: string;
-    }>;
-    midtransWebhook(body: any): Promise<{
         message: string;
     }>;
 }

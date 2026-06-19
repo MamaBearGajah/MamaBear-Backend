@@ -2606,6 +2606,7 @@ export declare const ProductScalarFieldEnum: {
     readonly discountPrice: "discountPrice";
     readonly weight: "weight";
     readonly sku: "sku";
+    readonly mainImage: "mainImage";
     readonly stock: "stock";
     readonly reservedStock: "reservedStock";
     readonly soldCount: "soldCount";

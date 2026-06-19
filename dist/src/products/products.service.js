@@ -215,11 +215,20 @@ let ProductsService = class ProductsService {
         if (existing)
             throw new common_1.BadRequestException('Slug atau SKU sudah digunakan');
         const { images, variants, ...productData } = dto;
+        const imageCreatePayload = images ? [...images] : [];
+        if (productData.mainImage && !imageCreatePayload.some((img) => img.imageType === 'main')) {
+            imageCreatePayload.unshift({
+                imageUrl: productData.mainImage,
+                imageType: 'main',
+                sortOrder: 1,
+                isFeatured: true,
+            });
+        }
         const product = await this.prisma.product.create({
             data: {
                 ...productData,
                 slug: productSlug,
-                images: images ? { create: images } : undefined,
+                images: imageCreatePayload.length ? { create: imageCreatePayload } : undefined,
                 variants: variants ? { create: variants } : undefined,
             },
             include: { images: true, variants: true, category: true },

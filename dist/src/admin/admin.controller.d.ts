@@ -12,20 +12,12 @@ export declare class AdminController {
             name: string;
             email: string;
             createdAt: Date;
-        }[];
-        meta: {
-            totalItems: number;
-            itemsPerPage: number;
-            totalPages: number;
-            currentPage: number;
-        };
-    }>;
-    getCustomerById(id: string): Promise<{
-        data: {
-            id: string;
-            name: string;
-            email: string;
-            createdAt: Date;
+            orders: {
+                total: import("@prisma/client-runtime-utils").Decimal;
+            }[];
+            _count: {
+                orders: number;
+            };
         }[];
         meta: {
             totalItems: number;
