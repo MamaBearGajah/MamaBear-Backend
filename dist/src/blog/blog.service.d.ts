@@ -20,16 +20,16 @@ export declare class BlogService {
             } | null;
         } & {
             id: string;
+            title: string;
             createdAt: Date;
             updatedAt: Date;
-            title: string;
             slug: string;
-            status: BlogStatus;
             authorId: string | null;
             excerpt: string | null;
             coverImage: string | null;
             coverPublicId: string | null;
             content: string;
+            status: BlogStatus;
             viewCount: number;
             publishedAt: Date | null;
         })[];
@@ -47,16 +47,16 @@ export declare class BlogService {
         } | null;
     } & {
         id: string;
+        title: string;
         createdAt: Date;
         updatedAt: Date;
-        title: string;
         slug: string;
-        status: BlogStatus;
         authorId: string | null;
         excerpt: string | null;
         coverImage: string | null;
         coverPublicId: string | null;
         content: string;
+        status: BlogStatus;
         viewCount: number;
         publishedAt: Date | null;
     }>;
@@ -67,16 +67,16 @@ export declare class BlogService {
         } | null;
     } & {
         id: string;
+        title: string;
         createdAt: Date;
         updatedAt: Date;
-        title: string;
         slug: string;
-        status: BlogStatus;
         authorId: string | null;
         excerpt: string | null;
         coverImage: string | null;
         coverPublicId: string | null;
         content: string;
+        status: BlogStatus;
         viewCount: number;
         publishedAt: Date | null;
     }>;

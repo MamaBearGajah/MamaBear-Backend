@@ -6,14 +6,14 @@ export declare class AdminCategoriesService {
     findAll(query: AdminBaseQueryDto): Promise<{
         data: {
             id: string;
-            name: string;
-            createdAt: Date;
-            updatedAt: Date;
             imageUrl: string | null;
             isActive: boolean;
             sortOrder: number;
-            parentId: string | null;
+            createdAt: Date;
+            updatedAt: Date;
+            name: string;
             slug: string;
+            parentId: string | null;
             description: string | null;
         }[];
         meta: {

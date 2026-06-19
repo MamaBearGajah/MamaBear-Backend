@@ -5,12 +5,12 @@ export declare class AdminService {
     getCustomers(page?: number, limit?: number, search?: string): Promise<{
         data: {
             id: string;
+            createdAt: Date;
             name: string;
             email: string;
             phone: string | null;
             role: import("../../generated/prisma/enums").Role;
             isVerified: boolean;
-            createdAt: Date;
         }[];
         meta: {
             page: number;
@@ -28,19 +28,18 @@ export declare class AdminService {
                 notes: string | null;
                 productId: string;
                 bundleId: string | null;
-                quantity: number;
-                orderId: string;
-                variantId: string | null;
-                price: import("@prisma/client-runtime-utils").Decimal;
                 productName: string;
                 variantName: string | null;
+                quantity: number;
+                price: import("@prisma/client-runtime-utils").Decimal;
+                variantId: string | null;
+                orderId: string;
             }[];
             payment: {
                 id: string;
                 createdAt: Date;
                 updatedAt: Date;
                 status: import("../../generated/prisma/enums").PaymentStatus;
-                orderId: string;
                 provider: import("../../generated/prisma/enums").PaymentProvider;
                 amount: import("@prisma/client-runtime-utils").Decimal;
                 externalId: string | null;
@@ -51,18 +50,16 @@ export declare class AdminService {
                 refundedAt: Date | null;
                 refundReason: string | null;
                 metadata: import("@prisma/client/runtime/client").JsonValue | null;
+                orderId: string;
             } | null;
         } & {
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            userId: string;
-            notes: string | null;
             status: import("../../generated/prisma/enums").OrderStatus;
-            bundleId: string | null;
+            notes: string | null;
+            userId: string;
             orderNumber: string;
-            addressId: string;
-            voucherId: string | null;
             paymentStatus: import("../../generated/prisma/enums").PaymentStatus;
             subtotal: import("@prisma/client-runtime-utils").Decimal;
             discountAmount: import("@prisma/client-runtime-utils").Decimal;
@@ -78,6 +75,9 @@ export declare class AdminService {
             cancelReason: string | null;
             paymentDeadline: Date | null;
             cancelDeadline: Date | null;
+            addressId: string;
+            voucherId: string | null;
+            bundleId: string | null;
         })[];
         membership: {
             createdAt: Date;
@@ -92,14 +92,14 @@ export declare class AdminService {
         } | null;
     } & {
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         name: string;
         email: string;
         phone: string | null;
         password: string;
         role: import("../../generated/prisma/enums").Role;
         isVerified: boolean;
-        createdAt: Date;
-        updatedAt: Date;
         deletedAt: Date | null;
         bannedAt: Date | null;
         banReason: string | null;

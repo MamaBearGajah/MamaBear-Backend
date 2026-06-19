@@ -9,9 +9,9 @@ export declare class AdminController {
     getCustomers(page: number, limit: number, search?: string): Promise<{
         data: {
             id: string;
+            createdAt: Date;
             name: string;
             email: string;
-            createdAt: Date;
             orders: {
                 total: import("@prisma/client-runtime-utils").Decimal;
             }[];
@@ -51,13 +51,10 @@ export declare class AdminController {
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            userId: string;
-            notes: string | null;
             status: OrderStatus;
-            bundleId: string | null;
+            notes: string | null;
+            userId: string;
             orderNumber: string;
-            addressId: string;
-            voucherId: string | null;
             paymentStatus: import("../../generated/prisma/enums").PaymentStatus;
             subtotal: import("@prisma/client-runtime-utils").Decimal;
             discountAmount: import("@prisma/client-runtime-utils").Decimal;
@@ -73,6 +70,9 @@ export declare class AdminController {
             cancelReason: string | null;
             paymentDeadline: Date | null;
             cancelDeadline: Date | null;
+            addressId: string;
+            voucherId: string | null;
+            bundleId: string | null;
         })[];
         meta: {
             total: number;
@@ -85,13 +85,10 @@ export declare class AdminController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        userId: string;
-        notes: string | null;
         status: OrderStatus;
-        bundleId: string | null;
+        notes: string | null;
+        userId: string;
         orderNumber: string;
-        addressId: string;
-        voucherId: string | null;
         paymentStatus: import("../../generated/prisma/enums").PaymentStatus;
         subtotal: import("@prisma/client-runtime-utils").Decimal;
         discountAmount: import("@prisma/client-runtime-utils").Decimal;
@@ -107,5 +104,8 @@ export declare class AdminController {
         cancelReason: string | null;
         paymentDeadline: Date | null;
         cancelDeadline: Date | null;
+        addressId: string;
+        voucherId: string | null;
+        bundleId: string | null;
     }>;
 }
