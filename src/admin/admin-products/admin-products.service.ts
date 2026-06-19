@@ -100,6 +100,7 @@ export class AdminProductsService {
             weight:      row.weight ? parseInt(row.weight, 10) : 0,
             sku:         row.sku || `SKU-${Date.now()}-${rowNumber}`,
             status,
+            mainImage:   row.mainImage || row.imageUrl || '',
           },
         });
 

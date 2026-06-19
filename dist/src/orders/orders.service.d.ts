@@ -181,6 +181,7 @@ export declare class OrdersService {
                         discountPrice: import("@prisma/client-runtime-utils").Decimal | null;
                         weight: number;
                         sku: string;
+                        mainImage: string;
                         stock: number;
                         reservedStock: number;
                         soldCount: number;

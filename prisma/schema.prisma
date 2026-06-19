@@ -211,6 +211,7 @@ model Product {
   discountPrice Decimal?
   weight        Int           // in grams
   sku           String        @unique
+  mainImage     String
   stock         Int           @default(0)
   reservedStock Int           @default(0)
   soldCount     Int           @default(0)

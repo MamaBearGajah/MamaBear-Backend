@@ -129,7 +129,7 @@ let BlogService = class BlogService {
             },
             include: { author: { select: { id: true, name: true } } },
         });
-        await this.invalidateCache(post.slug);
+        await this.invalidateCache(post.slug, dto.slug);
         return updated;
     }
     async remove(id) {
@@ -140,10 +140,12 @@ let BlogService = class BlogService {
         await this.invalidateCache(post.slug);
         return { message: 'Artikel berhasil dihapus' };
     }
-    async invalidateCache(slug) {
+    async invalidateCache(oldSlug, newSlug) {
         await this.cache.delByPattern('blog:list:*');
-        if (slug)
-            await this.cache.del(`blog:slug:${slug}`);
+        if (oldSlug)
+            await this.cache.del(`blog:slug:${oldSlug}`);
+        if (newSlug && newSlug !== oldSlug)
+            await this.cache.del(`blog:slug:${newSlug}`);
     }
 };
 exports.BlogService = BlogService;

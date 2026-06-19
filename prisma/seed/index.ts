@@ -8,6 +8,8 @@ import { seedOrders } from './orders';
 import { seedFaq } from './faq';
 import { seedBlog } from './blog';
 import { seedMembership } from './membership';
+import { seedBanner } from './banner';
+import { seedPromotion } from './promotion';
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 export const prisma = new PrismaClient({ adapter });
@@ -22,6 +24,8 @@ async function main() {
   await seedMembership(prisma, customers); // ← setelah orders agar totalSpent bisa dihitung
   await seedFaq(prisma);
   await seedBlog(prisma);
+  await seedBanner(prisma);
+  await seedPromotion(prisma);
 
   console.log('\n🎉 Seeding complete!');
 }

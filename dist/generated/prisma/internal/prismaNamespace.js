@@ -172,6 +172,7 @@ exports.ProductScalarFieldEnum = {
     discountPrice: 'discountPrice',
     weight: 'weight',
     sku: 'sku',
+    mainImage: 'mainImage',
     stock: 'stock',
     reservedStock: 'reservedStock',
     soldCount: 'soldCount',
