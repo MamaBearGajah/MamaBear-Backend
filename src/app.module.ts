@@ -28,6 +28,12 @@ import { UsersModule } from './users/users.module';
 import { CustomThrottlerGuard } from './common/guards/throttler.guard';
 import { ReviewsModule } from './products/reviews/reviews.module';
 import { GuestCartModule } from './guest-cart/guest-cart.module';
+import { BannerModule } from './banner/banner.module';
+import { VoucherModule } from './voucher/voucher.module';
+import { BundleModule } from './bundle/bundle.module';
+import { WishlistModule } from './wishlist/wishlist.module';
+import { ReportsModule } from './reports/reports.module';
+import { PromotionModule } from './promotion/promotion.module';
 
 @Module({
   imports: [
@@ -54,6 +60,12 @@ import { GuestCartModule } from './guest-cart/guest-cart.module';
     UsersModule,
     ReviewsModule,
     GuestCartModule,
+    BannerModule,
+    VoucherModule,
+    BundleModule,
+    WishlistModule,
+    ReportsModule,
+    PromotionModule,
   ],
   controllers: [AppController],
   providers: [

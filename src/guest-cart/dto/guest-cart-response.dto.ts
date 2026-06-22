@@ -33,6 +33,9 @@ export class GuestCartItemDto {
   @ApiProperty({ example: 35000, description: 'Snapshot price per unit in IDR' })
   price!: number;
 
+  @ApiPropertyOptional({ example: 'Tolong bungkus kado', nullable: true, description: 'Catatan customer untuk item ini' })
+  notes!: string | null;
+
   @ApiProperty({ type: GuestCartProductBriefDto })
   product!: GuestCartProductBriefDto;
 

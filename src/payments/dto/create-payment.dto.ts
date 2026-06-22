@@ -7,11 +7,11 @@ export class CreatePaymentDto {
   @IsNotEmpty()
   orderId!: string;
 
-  @ApiProperty({ enum: ['xendit', 'midtrans'], description: 'Payment gateway yang digunakan' })
-  @IsEnum(['xendit', 'midtrans'])
-  provider!: 'xendit' | 'midtrans';
+  @ApiProperty({ enum: ['xendit'], description: 'Payment gateway — hanya Xendit' })
+  @IsEnum(['xendit'])
+  provider!: 'xendit';
 
-  @ApiProperty({ example: 55000, description: 'Total amount dalam Rupiah' })
+  @ApiProperty({ example: 55000, description: 'Total amount dalam Rupiah (min. Rp 1.000)' })
   @IsNumber()
   @Min(1000)
   amount!: number;

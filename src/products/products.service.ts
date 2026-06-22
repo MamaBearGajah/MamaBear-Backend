@@ -258,11 +258,21 @@ export class ProductsService {
 
     const { images, variants, ...productData } = dto;
 
+    const imageCreatePayload = images ? [...images] : [];
+    if (productData.mainImage && !imageCreatePayload.some((img) => img.imageType === 'main')) {
+      imageCreatePayload.unshift({
+        imageUrl: productData.mainImage,
+        imageType: 'main',
+        sortOrder: 1,
+        isFeatured: true,
+      });
+    }
+
     const product = await this.prisma.product.create({
       data: {
         ...productData,
         slug: productSlug,
-        images: images ? { create: images } : undefined,
+        images: imageCreatePayload.length ? { create: imageCreatePayload } : undefined,
         variants: variants ? { create: variants } : undefined,
       },
       include: { images: true, variants: true, category: true },
@@ -354,6 +364,44 @@ export class ProductsService {
     });
     await this.invalidateProductCache(id);
     return product;
+  }
+
+  async bulkUpdateProducts(body: {
+    productIds: string[];
+    status?: string;
+    price?: number;
+  }) {
+    const { productIds, status, price } = body;
+
+    if (!productIds?.length) {
+      throw new BadRequestException('productIds wajib diisi');
+    }
+
+    const data: any = {};
+
+    if (status) {
+      data.status = status;
+    }
+
+    if (price !== undefined) {
+      data.basePrice = price;
+    }
+
+    const result = await this.prisma.product.updateMany({
+      where: {
+        id: {
+          in: productIds,
+        },
+      },
+      data,
+    });
+
+    await this.cache.delByPattern('products:*');
+
+    return {
+      success: true,
+      updated: result.count,
+    };
   }
 
   // ─── ADMIN: ALL VARIANTS ACROSS PRODUCTS ──────────────────────────────────
