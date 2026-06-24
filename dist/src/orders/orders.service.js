@@ -19,6 +19,19 @@ const mail_service_1 = require("../mail/mail.service");
 const membership_service_1 = require("../membership/membership.service");
 const voucher_service_1 = require("../voucher/voucher.service");
 const csv_writer_1 = require("csv-writer");
+function parseEtdToDate(etd, from = new Date()) {
+    if (!etd)
+        return null;
+    const match = etd.match(/\d+/g);
+    if (!match || match.length === 0)
+        return null;
+    const maxDays = Math.max(...match.map(Number));
+    if (!Number.isFinite(maxDays) || maxDays <= 0)
+        return null;
+    const date = new Date(from);
+    date.setDate(date.getDate() + maxDays);
+    return date;
+}
 let OrdersService = OrdersService_1 = class OrdersService {
     prisma;
     shippingService;
@@ -73,6 +86,7 @@ let OrdersService = OrdersService_1 = class OrdersService {
             throw new common_1.BadRequestException(`Shipping service "${dto.service}" not available for courier "${dto.courier}"`);
         }
         const shippingCost = selectedService.cost;
+        const estimatedDelivery = parseEtdToDate(selectedService.etd);
         const subtotal = cart.items.reduce((sum, item) => {
             return sum + Number(item.variant?.basePrice ?? item.price ?? 0) * item.quantity;
         }, 0);
@@ -112,6 +126,7 @@ let OrdersService = OrdersService_1 = class OrdersService {
                     paymentStatus: 'pending',
                     paymentDeadline,
                     cancelDeadline,
+                    estimatedDelivery,
                 },
             });
             await tx.orderItem.createMany({

@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.JsonNullValueFilter = exports.NullsOrder = exports.QueryMode = exports.NullableJsonNullValueInput = exports.SortOrder = exports.PromotionBenefitScalarFieldEnum = exports.PromotionSectionScalarFieldEnum = exports.PromotionLandingScalarFieldEnum = exports.WishlistScalarFieldEnum = exports.SearchAnalyticScalarFieldEnum = exports.ConsultationScalarFieldEnum = exports.FaqScalarFieldEnum = exports.BlogPostScalarFieldEnum = exports.PointTransactionScalarFieldEnum = exports.MembershipScalarFieldEnum = exports.PaymentScalarFieldEnum = exports.OrderStatusHistoryScalarFieldEnum = exports.OrderItemScalarFieldEnum = exports.OrderScalarFieldEnum = exports.VoucherScalarFieldEnum = exports.GuestCartItemScalarFieldEnum = exports.GuestCartScalarFieldEnum = exports.CartItemScalarFieldEnum = exports.CartScalarFieldEnum = exports.ProductReviewImageScalarFieldEnum = exports.ProductReviewHelpfulScalarFieldEnum = exports.ProductReviewScalarFieldEnum = exports.BundleItemScalarFieldEnum = exports.BundleScalarFieldEnum = exports.ProductVariantScalarFieldEnum = exports.ProductImageScalarFieldEnum = exports.ProductScalarFieldEnum = exports.CategoryScalarFieldEnum = exports.BannerScalarFieldEnum = exports.AddressScalarFieldEnum = exports.UserScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.Decimal = void 0;
+exports.JsonNullValueFilter = exports.NullsOrder = exports.QueryMode = exports.NullableJsonNullValueInput = exports.SortOrder = exports.SiteSettingsScalarFieldEnum = exports.PromotionBenefitScalarFieldEnum = exports.PromotionSectionScalarFieldEnum = exports.PromotionLandingScalarFieldEnum = exports.WishlistScalarFieldEnum = exports.SearchAnalyticScalarFieldEnum = exports.ConsultationScalarFieldEnum = exports.FaqScalarFieldEnum = exports.BlogPostScalarFieldEnum = exports.PointTransactionScalarFieldEnum = exports.MembershipScalarFieldEnum = exports.PaymentScalarFieldEnum = exports.OrderStatusHistoryScalarFieldEnum = exports.OrderItemScalarFieldEnum = exports.OrderScalarFieldEnum = exports.VoucherScalarFieldEnum = exports.GuestCartItemScalarFieldEnum = exports.GuestCartScalarFieldEnum = exports.CartItemScalarFieldEnum = exports.CartScalarFieldEnum = exports.ProductReviewImageScalarFieldEnum = exports.ProductReviewHelpfulScalarFieldEnum = exports.ProductReviewScalarFieldEnum = exports.BundleItemScalarFieldEnum = exports.BundleScalarFieldEnum = exports.ProductVariantScalarFieldEnum = exports.ProductImageScalarFieldEnum = exports.ProductScalarFieldEnum = exports.CategoryScalarFieldEnum = exports.BannerScalarFieldEnum = exports.AddressScalarFieldEnum = exports.UserScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.Decimal = void 0;
 const runtime = __importStar(require("@prisma/client/runtime/index-browser"));
 exports.Decimal = runtime.Decimal;
 exports.NullTypes = {
@@ -75,7 +75,8 @@ exports.ModelName = {
     Wishlist: 'Wishlist',
     PromotionLanding: 'PromotionLanding',
     PromotionSection: 'PromotionSection',
-    PromotionBenefit: 'PromotionBenefit'
+    PromotionBenefit: 'PromotionBenefit',
+    SiteSettings: 'SiteSettings'
 };
 exports.TransactionIsolationLevel = runtime.makeStrictEnum({
     ReadUncommitted: 'ReadUncommitted',
@@ -163,6 +164,8 @@ exports.ProductScalarFieldEnum = {
     status: 'status',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
+    metaTitle: 'metaTitle',
+    metaDescription: 'metaDescription',
     avgRating: 'avgRating',
     reviewCount: 'reviewCount',
     deletedAt: 'deletedAt'
@@ -465,6 +468,23 @@ exports.PromotionBenefitScalarFieldEnum = {
     title: 'title',
     description: 'description',
     sortOrder: 'sortOrder'
+};
+exports.SiteSettingsScalarFieldEnum = {
+    id: 'id',
+    siteName: 'siteName',
+    siteDescription: 'siteDescription',
+    contactEmail: 'contactEmail',
+    contactPhone: 'contactPhone',
+    contactAddress: 'contactAddress',
+    socialInstagram: 'socialInstagram',
+    socialTiktok: 'socialTiktok',
+    socialFacebook: 'socialFacebook',
+    socialWhatsapp: 'socialWhatsapp',
+    shippingOriginCityId: 'shippingOriginCityId',
+    taxRate: 'taxRate',
+    currency: 'currency',
+    maintenanceMode: 'maintenanceMode',
+    updatedAt: 'updatedAt'
 };
 exports.SortOrder = {
     asc: 'asc',

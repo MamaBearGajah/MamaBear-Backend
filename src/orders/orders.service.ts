@@ -15,6 +15,21 @@ import { MembershipService } from '../membership/membership.service';
 import { VoucherService } from '../voucher/voucher.service';
 import { createObjectCsvStringifier } from 'csv-writer';
 
+/**
+ * Parse ETD string dari RajaOngkir ("2-3 HARI", "1-2", "3") → tanggal estimasi.
+ * Ambil angka terbesar sebagai batas atas estimasi.
+ */
+function parseEtdToDate(etd: string | undefined, from: Date = new Date()): Date | null {
+  if (!etd) return null;
+  const match = etd.match(/\d+/g);
+  if (!match || match.length === 0) return null;
+  const maxDays = Math.max(...match.map(Number));
+  if (!Number.isFinite(maxDays) || maxDays <= 0) return null;
+  const date = new Date(from);
+  date.setDate(date.getDate() + maxDays);
+  return date;
+}
+
 @Injectable()
 export class OrdersService {
   private readonly logger = new Logger(OrdersService.name);
@@ -90,6 +105,9 @@ export class OrdersService {
 
     const shippingCost: number = selectedService.cost;
 
+    // ── Parse ETD dari RajaOngkir → estimatedDelivery ────────────────────────
+    const estimatedDelivery = parseEtdToDate(selectedService.etd);
+
     const subtotal = cart.items.reduce((sum, item) => {
       return sum + Number(item.variant?.basePrice ?? item.price ?? 0) * item.quantity;
     }, 0);
@@ -129,14 +147,15 @@ export class OrdersService {
           courier: dto.courier,
           service: dto.service,
           notes: dto.notes ?? null,
-          subtotal:       new Prisma.Decimal(subtotal),
-          discountAmount: new Prisma.Decimal(discountAmount),
-          shippingCost:   new Prisma.Decimal(finalShippingCost),
-          total:          new Prisma.Decimal(total),
-          status: 'pending',
-          paymentStatus: 'pending',
+          subtotal:          new Prisma.Decimal(subtotal),
+          discountAmount:    new Prisma.Decimal(discountAmount),
+          shippingCost:      new Prisma.Decimal(finalShippingCost),
+          total:             new Prisma.Decimal(total),
+          status:            'pending',
+          paymentStatus:     'pending',
           paymentDeadline,
           cancelDeadline,
+          estimatedDelivery, // ← dari ETD RajaOngkir
         },
       });
 
@@ -515,9 +534,9 @@ export class OrdersService {
       createdAt:       o.createdAt.toISOString().slice(0, 19).replace('T', ' '),
       customerName:    o.user.name,
       customerEmail:   o.user.email,
-      recipient:       o.address.receiverName,   // ← FIX: recipientName → receiverName
+      recipient:       o.address.receiverName,
       phone:           o.address.phone,
-      cityId:          o.address.cityId,          // ← FIX: city/province tidak ada, pakai cityId/provinceId
+      cityId:          o.address.cityId,
       provinceId:      o.address.provinceId,
       status:          o.status,
       paymentStatus:   o.paymentStatus,

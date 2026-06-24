@@ -1,3 +1,5 @@
+// src/admin/admin-orders/admin-orders.controller.ts — GANTI FILE LAMA DENGAN INI
+// Perubahan: tambah GET /:id/invoice
 import {
   Controller,
   Get,
@@ -63,6 +65,57 @@ export class AdminOrdersController {
     return res.status(200).send(csv);
   }
 
+  // ─── Invoice data ────────────────────────────────────────────────────────────
+  @Get(':id/invoice')
+  @ApiOperation({ summary: '[Admin] Ambil data invoice terstruktur untuk print di browser' })
+  @ApiParam({ name: 'id', description: 'Order ID' })
+  @ApiResponse({ status: 200, description: 'Data invoice berhasil diambil' })
+  @ApiResponse({ status: 404, description: 'Order tidak ditemukan' })
+  async getInvoice(@Param('id') id: string) {
+    const order = await this.ordersService.findOneAdmin(id);
+
+    // Format data khusus untuk kebutuhan invoice print
+    return {
+      invoiceNumber: `INV-${order.orderNumber}`,
+      orderNumber:   order.orderNumber,
+      orderDate:     order.createdAt,
+      customer: {
+        name:  order.user?.name,
+        email: order.user?.email,
+        phone: order.user?.phone,
+      },
+      shippingAddress: order.address
+        ? {
+            receiverName: order.address.receiverName,
+            phone:        order.address.phone,
+            address:      order.address.address,
+            cityId:       order.address.cityId,
+            provinceId:   order.address.provinceId,
+            postalCode:   order.address.postalCode,
+          }
+        : null,
+      items: order.items.map((item: any) => ({
+        productName: item.productName,
+        variantName: item.variantName,
+        quantity:    item.quantity,
+        price:       Number(item.price),
+        subtotal:    Number(item.price) * item.quantity,
+      })),
+      subtotal:       Number(order.subtotal),
+      shippingCost:   Number(order.shippingCost),
+      discountAmount: Number(order.discountAmount),
+      total:          Number(order.total),
+      courier:        order.courier,
+      service:        order.service,
+      trackingNumber: order.trackingNumber,
+      paymentStatus:  order.paymentStatus,
+      status:         order.status,
+      voucher:        order.voucher
+        ? { code: order.voucher.code, type: order.voucher.type, value: Number(order.voucher.value) }
+        : null,
+    };
+  }
+
   // ─── Update status order ────────────────────────────────────────────────────
   @Patch(':id/status')
   @ApiOperation({ summary: '[Admin] Update status order (termasuk tracking number jika shipped)' })
@@ -86,7 +139,6 @@ export class AdminOrdersController {
     @Param('id') id: string,
     @Body() dto: UpdateTrackingDto,
   ) {
-    // Reuse updateStatus dengan status shipped agar email notif ikut terkirim
     return this.ordersService.updateStatus(id, {
       status: OrderStatus.shipped,
       trackingNumber: dto.trackingNumber,
