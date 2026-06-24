@@ -62,6 +62,45 @@ export declare class AdminOrdersController {
         };
     }>;
     exportCsv(res: Response): Promise<Response<any, Record<string, any>>>;
+    getInvoice(id: string): Promise<{
+        invoiceNumber: string;
+        orderNumber: string;
+        orderDate: Date;
+        customer: {
+            name: string;
+            email: string;
+            phone: string | null;
+        };
+        shippingAddress: {
+            receiverName: string;
+            phone: string;
+            address: string;
+            cityId: string;
+            provinceId: string;
+            postalCode: string;
+        } | null;
+        items: {
+            productName: any;
+            variantName: any;
+            quantity: any;
+            price: number;
+            subtotal: number;
+        }[];
+        subtotal: number;
+        shippingCost: number;
+        discountAmount: number;
+        total: number;
+        courier: string;
+        service: string;
+        trackingNumber: string | null;
+        paymentStatus: import("../../../generated/prisma/enums").PaymentStatus;
+        status: OrderStatus;
+        voucher: {
+            code: string;
+            type: import("../../../generated/prisma/enums").VoucherType;
+            value: number;
+        } | null;
+    }>;
     updateStatus(id: string, dto: UpdateOrderDto): Promise<{
         id: string;
         createdAt: Date;

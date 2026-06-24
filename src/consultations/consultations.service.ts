@@ -1,26 +1,48 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateConsultationDto } from './dto/create-consultation.dto';
 import { UpdateConsultationDto } from './dto/update-consultation.dto';
+import { ConsultationQueryDto } from './dto/consultation-query.dto';
 
 @Injectable()
 export class ConsultationsService {
-  create(createConsultationDto: CreateConsultationDto) {
-    return 'This action adds a new consultation';
+  constructor(private readonly prisma: PrismaService) {}
+
+  async create(dto: CreateConsultationDto) {
+    return this.prisma.consultation.create({ data: dto });
   }
 
-  findAll() {
-    return `This action returns all consultations`;
+  async findAll(query: ConsultationQueryDto) {
+    const { page = 1, limit = 20 } = query;
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await Promise.all([
+      this.prisma.consultation.findMany({
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.consultation.count(),
+    ]);
+
+    return {
+      data,
+      meta: {
+        page,
+        limit,
+        totalItems: total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} consultation`;
-  }
+  async updateStatus(id: string, dto: UpdateConsultationDto) {
+    const consultation = await this.prisma.consultation.findUnique({ where: { id } });
+    if (!consultation) throw new NotFoundException(`Konsultasi dengan id ${id} tidak ditemukan`);
 
-  update(id: number, updateConsultationDto: UpdateConsultationDto) {
-    return `This action updates a #${id} consultation`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} consultation`;
+    return this.prisma.consultation.update({
+      where: { id },
+      data: { status: dto.status },
+    });
   }
 }

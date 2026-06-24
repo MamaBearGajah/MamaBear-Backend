@@ -36,6 +36,48 @@ let AdminOrdersController = class AdminOrdersController {
         res.setHeader('Content-Disposition', 'attachment; filename=orders_export.csv');
         return res.status(200).send(csv);
     }
+    async getInvoice(id) {
+        const order = await this.ordersService.findOneAdmin(id);
+        return {
+            invoiceNumber: `INV-${order.orderNumber}`,
+            orderNumber: order.orderNumber,
+            orderDate: order.createdAt,
+            customer: {
+                name: order.user?.name,
+                email: order.user?.email,
+                phone: order.user?.phone,
+            },
+            shippingAddress: order.address
+                ? {
+                    receiverName: order.address.receiverName,
+                    phone: order.address.phone,
+                    address: order.address.address,
+                    cityId: order.address.cityId,
+                    provinceId: order.address.provinceId,
+                    postalCode: order.address.postalCode,
+                }
+                : null,
+            items: order.items.map((item) => ({
+                productName: item.productName,
+                variantName: item.variantName,
+                quantity: item.quantity,
+                price: Number(item.price),
+                subtotal: Number(item.price) * item.quantity,
+            })),
+            subtotal: Number(order.subtotal),
+            shippingCost: Number(order.shippingCost),
+            discountAmount: Number(order.discountAmount),
+            total: Number(order.total),
+            courier: order.courier,
+            service: order.service,
+            trackingNumber: order.trackingNumber,
+            paymentStatus: order.paymentStatus,
+            status: order.status,
+            voucher: order.voucher
+                ? { code: order.voucher.code, type: order.voucher.type, value: Number(order.voucher.value) }
+                : null,
+        };
+    }
     updateStatus(id, dto) {
         return this.ordersService.updateStatus(id, dto);
     }
@@ -73,6 +115,17 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], AdminOrdersController.prototype, "exportCsv", null);
+__decorate([
+    (0, common_1.Get)(':id/invoice'),
+    (0, swagger_1.ApiOperation)({ summary: '[Admin] Ambil data invoice terstruktur untuk print di browser' }),
+    (0, swagger_1.ApiParam)({ name: 'id', description: 'Order ID' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Data invoice berhasil diambil' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Order tidak ditemukan' }),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], AdminOrdersController.prototype, "getInvoice", null);
 __decorate([
     (0, common_1.Patch)(':id/status'),
     (0, swagger_1.ApiOperation)({ summary: '[Admin] Update status order (termasuk tracking number jika shipped)' }),

@@ -218,6 +218,8 @@ model Product {
   status        ProductStatus @default(draft)
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
+  metaTitle       String?
+  metaDescription String?
 
   avgRating   Decimal? @db.Decimal(3, 2)
   reviewCount Int      @default(0)
@@ -711,4 +713,22 @@ model PromotionBenefit {
   promotion PromotionLanding @relation(fields: [promotionId], references: [id], onDelete: Cascade)
 
   @@index([promotionId])
+}
+
+model SiteSettings {
+  id              String   @id @default("singleton")
+  siteName        String   @default("Mamabear")
+  siteDescription String?
+  contactEmail    String?
+  contactPhone    String?
+  contactAddress  String?
+  socialInstagram String?
+  socialTiktok    String?
+  socialFacebook  String?
+  socialWhatsapp  String?
+  shippingOriginCityId String?
+  taxRate         Decimal  @default(0) @db.Decimal(5, 2)
+  currency        String   @default("IDR")
+  maintenanceMode Boolean  @default(false)
+  updatedAt       DateTime @updatedAt
 }
