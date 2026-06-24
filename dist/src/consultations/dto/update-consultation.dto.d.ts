@@ -1,5 +1,9 @@
-import { CreateConsultationDto } from './create-consultation.dto';
-declare const UpdateConsultationDto_base: import("@nestjs/common").Type<Partial<CreateConsultationDto>>;
-export declare class UpdateConsultationDto extends UpdateConsultationDto_base {
+declare enum ConsultationStatus {
+    new = "new",
+    in_progress = "in_progress",
+    closed = "closed"
+}
+export declare class UpdateConsultationDto {
+    status: ConsultationStatus;
 }
 export {};

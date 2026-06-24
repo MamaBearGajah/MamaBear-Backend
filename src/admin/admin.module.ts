@@ -9,6 +9,7 @@ import { AdminCategoriesService } from './admin-categories/admin-categories.serv
 import { AdminCustomersController } from './admin-customers/admin-customers.controller';
 import { AdminCustomersService } from './admin-customers/admin-customers.service';
 import { OrdersModule } from '../orders/orders.module';
+import { AdminOrdersController } from './admin-orders/admin-orders.controller';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { OrdersModule } from '../orders/orders.module';
     AdminProductsController,
     AdminCategoriesController,
     AdminCustomersController,
+    AdminOrdersController,
   ],
   providers: [
     AdminCustomersService,
