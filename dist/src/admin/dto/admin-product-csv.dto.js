@@ -16,7 +16,11 @@ class CsvUploadDto {
 }
 exports.CsvUploadDto = CsvUploadDto;
 __decorate([
-    (0, swagger_1.ApiProperty)({ type: 'string', format: 'binary', description: 'CSV file containing product data' }),
+    (0, swagger_1.ApiProperty)({
+        type: 'string',
+        format: 'binary',
+        description: 'CSV file containing product data',
+    }),
     __metadata("design:type", Object)
 ], CsvUploadDto.prototype, "file", void 0);
 //# sourceMappingURL=admin-product-csv.dto.js.map

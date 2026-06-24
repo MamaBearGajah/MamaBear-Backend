@@ -24,7 +24,10 @@ __decorate([
     __metadata("design:type", String)
 ], UpdateTrackingDto.prototype, "trackingNumber", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({ example: 'Dikirim via JNE REG', description: 'Catatan opsional' }),
+    (0, swagger_1.ApiPropertyOptional)({
+        example: 'Dikirim via JNE REG',
+        description: 'Catatan opsional',
+    }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)

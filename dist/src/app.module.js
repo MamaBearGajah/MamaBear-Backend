@@ -43,6 +43,7 @@ const bundle_module_1 = require("./bundle/bundle.module");
 const wishlist_module_1 = require("./wishlist/wishlist.module");
 const reports_module_1 = require("./reports/reports.module");
 const promotion_module_1 = require("./promotion/promotion.module");
+const site_settings_module_1 = require("./site-settings/site-settings.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -78,6 +79,7 @@ exports.AppModule = AppModule = __decorate([
             wishlist_module_1.WishlistModule,
             reports_module_1.ReportsModule,
             promotion_module_1.PromotionModule,
+            site_settings_module_1.SiteSettingsModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [

@@ -134,6 +134,75 @@ let AdminProductsService = class AdminProductsService {
             notFound: notFound.length > 0 ? notFound : undefined,
         };
     }
+    async duplicateProduct(productId) {
+        const source = await this.prisma.product.findUnique({
+            where: { id: productId },
+            include: {
+                images: true,
+                variants: true,
+            },
+        });
+        if (!source)
+            throw new common_1.NotFoundException('Produk tidak ditemukan');
+        const timestamp = Date.now();
+        const newSlug = `${source.slug}-copy-${timestamp}`;
+        const newSku = `${source.sku}-COPY-${timestamp}`;
+        const duplicate = await this.prisma.$transaction(async (tx) => {
+            const newProduct = await tx.product.create({
+                data: {
+                    name: `${source.name} (Copy)`,
+                    slug: newSlug,
+                    sku: newSku,
+                    description: source.description,
+                    notes: source.notes,
+                    basePrice: source.basePrice,
+                    discountPrice: source.discountPrice,
+                    weight: source.weight,
+                    stock: 0,
+                    mainImage: source.mainImage,
+                    status: enums_1.ProductStatus.draft,
+                    categoryId: source.categoryId,
+                },
+            });
+            if (source.images.length > 0) {
+                await tx.productImage.createMany({
+                    data: source.images.map((img) => ({
+                        productId: newProduct.id,
+                        imageUrl: img.imageUrl,
+                        publicId: img.publicId,
+                        altText: img.altText,
+                        imageType: img.imageType,
+                        sortOrder: img.sortOrder,
+                        isFeatured: img.isFeatured,
+                    })),
+                });
+            }
+            if (source.variants.length > 0) {
+                await tx.productVariant.createMany({
+                    data: source.variants.map((v) => ({
+                        productId: newProduct.id,
+                        name: v.name,
+                        value: v.value,
+                        basePrice: v.basePrice,
+                        discountPrice: v.discountPrice,
+                        priceAdjustment: v.priceAdjustment,
+                        stock: 0,
+                        weight: v.weight,
+                        imageUrl: v.imageUrl,
+                        altText: v.altText,
+                        sku: v.sku ? `${v.sku}-COPY-${timestamp}` : null,
+                        isActive: v.isActive,
+                        sortOrder: v.sortOrder,
+                    })),
+                });
+            }
+            return newProduct;
+        });
+        return {
+            message: 'Produk berhasil diduplikasi',
+            data: { id: duplicate.id, slug: duplicate.slug, sku: duplicate.sku },
+        };
+    }
 };
 exports.AdminProductsService = AdminProductsService;
 exports.AdminProductsService = AdminProductsService = __decorate([

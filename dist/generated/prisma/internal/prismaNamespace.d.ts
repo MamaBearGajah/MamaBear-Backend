@@ -188,6 +188,7 @@ export declare const ModelName: {
     readonly PromotionLanding: "PromotionLanding";
     readonly PromotionSection: "PromotionSection";
     readonly PromotionBenefit: "PromotionBenefit";
+    readonly SiteSettings: "SiteSettings";
 };
 export type ModelName = (typeof ModelName)[keyof typeof ModelName];
 export interface TypeMapCb<GlobalOmitOptions = {}> extends runtime.Types.Utils.Fn<{
@@ -200,7 +201,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         omit: GlobalOmitOptions;
     };
     meta: {
-        modelProps: "user" | "address" | "banner" | "category" | "product" | "productImage" | "productVariant" | "bundle" | "bundleItem" | "productReview" | "productReviewHelpful" | "productReviewImage" | "cart" | "cartItem" | "guestCart" | "guestCartItem" | "voucher" | "order" | "orderItem" | "orderStatusHistory" | "payment" | "membership" | "pointTransaction" | "blogPost" | "faq" | "consultation" | "searchAnalytic" | "wishlist" | "promotionLanding" | "promotionSection" | "promotionBenefit";
+        modelProps: "user" | "address" | "banner" | "category" | "product" | "productImage" | "productVariant" | "bundle" | "bundleItem" | "productReview" | "productReviewHelpful" | "productReviewImage" | "cart" | "cartItem" | "guestCart" | "guestCartItem" | "voucher" | "order" | "orderItem" | "orderStatusHistory" | "payment" | "membership" | "pointTransaction" | "blogPost" | "faq" | "consultation" | "searchAnalytic" | "wishlist" | "promotionLanding" | "promotionSection" | "promotionBenefit" | "siteSettings";
         txIsolationLevel: TransactionIsolationLevel;
     };
     model: {
@@ -2498,6 +2499,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
                 };
             };
         };
+        SiteSettings: {
+            payload: Prisma.$SiteSettingsPayload<ExtArgs>;
+            fields: Prisma.SiteSettingsFieldRefs;
+            operations: {
+                findUnique: {
+                    args: Prisma.SiteSettingsFindUniqueArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteSettingsPayload> | null;
+                };
+                findUniqueOrThrow: {
+                    args: Prisma.SiteSettingsFindUniqueOrThrowArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteSettingsPayload>;
+                };
+                findFirst: {
+                    args: Prisma.SiteSettingsFindFirstArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteSettingsPayload> | null;
+                };
+                findFirstOrThrow: {
+                    args: Prisma.SiteSettingsFindFirstOrThrowArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteSettingsPayload>;
+                };
+                findMany: {
+                    args: Prisma.SiteSettingsFindManyArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteSettingsPayload>[];
+                };
+                create: {
+                    args: Prisma.SiteSettingsCreateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteSettingsPayload>;
+                };
+                createMany: {
+                    args: Prisma.SiteSettingsCreateManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                createManyAndReturn: {
+                    args: Prisma.SiteSettingsCreateManyAndReturnArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteSettingsPayload>[];
+                };
+                delete: {
+                    args: Prisma.SiteSettingsDeleteArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteSettingsPayload>;
+                };
+                update: {
+                    args: Prisma.SiteSettingsUpdateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteSettingsPayload>;
+                };
+                deleteMany: {
+                    args: Prisma.SiteSettingsDeleteManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                updateMany: {
+                    args: Prisma.SiteSettingsUpdateManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                updateManyAndReturn: {
+                    args: Prisma.SiteSettingsUpdateManyAndReturnArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteSettingsPayload>[];
+                };
+                upsert: {
+                    args: Prisma.SiteSettingsUpsertArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteSettingsPayload>;
+                };
+                aggregate: {
+                    args: Prisma.SiteSettingsAggregateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.AggregateSiteSettings>;
+                };
+                groupBy: {
+                    args: Prisma.SiteSettingsGroupByArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.SiteSettingsGroupByOutputType>[];
+                };
+                count: {
+                    args: Prisma.SiteSettingsCountArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.SiteSettingsCountAggregateOutputType> | number;
+                };
+            };
+        };
     };
 } & {
     other: {
@@ -2613,6 +2688,8 @@ export declare const ProductScalarFieldEnum: {
     readonly status: "status";
     readonly createdAt: "createdAt";
     readonly updatedAt: "updatedAt";
+    readonly metaTitle: "metaTitle";
+    readonly metaDescription: "metaDescription";
     readonly avgRating: "avgRating";
     readonly reviewCount: "reviewCount";
     readonly deletedAt: "deletedAt";
@@ -2943,6 +3020,24 @@ export declare const PromotionBenefitScalarFieldEnum: {
     readonly sortOrder: "sortOrder";
 };
 export type PromotionBenefitScalarFieldEnum = (typeof PromotionBenefitScalarFieldEnum)[keyof typeof PromotionBenefitScalarFieldEnum];
+export declare const SiteSettingsScalarFieldEnum: {
+    readonly id: "id";
+    readonly siteName: "siteName";
+    readonly siteDescription: "siteDescription";
+    readonly contactEmail: "contactEmail";
+    readonly contactPhone: "contactPhone";
+    readonly contactAddress: "contactAddress";
+    readonly socialInstagram: "socialInstagram";
+    readonly socialTiktok: "socialTiktok";
+    readonly socialFacebook: "socialFacebook";
+    readonly socialWhatsapp: "socialWhatsapp";
+    readonly shippingOriginCityId: "shippingOriginCityId";
+    readonly taxRate: "taxRate";
+    readonly currency: "currency";
+    readonly maintenanceMode: "maintenanceMode";
+    readonly updatedAt: "updatedAt";
+};
+export type SiteSettingsScalarFieldEnum = (typeof SiteSettingsScalarFieldEnum)[keyof typeof SiteSettingsScalarFieldEnum];
 export declare const SortOrder: {
     readonly asc: "asc";
     readonly desc: "desc";
@@ -3064,6 +3159,7 @@ export type GlobalOmitConfig = {
     promotionLanding?: Prisma.PromotionLandingOmit;
     promotionSection?: Prisma.PromotionSectionOmit;
     promotionBenefit?: Prisma.PromotionBenefitOmit;
+    siteSettings?: Prisma.SiteSettingsOmit;
 };
 export type LogLevel = 'info' | 'query' | 'warn' | 'error';
 export type LogDefinition = {

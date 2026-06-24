@@ -19,6 +19,8 @@ export declare function seedProducts(prisma: PrismaClient): Promise<{
         reservedStock: number;
         soldCount: number;
         status: ProductStatus;
+        metaTitle: string | null;
+        metaDescription: string | null;
         avgRating: import("@prisma/client-runtime-utils").Decimal | null;
         reviewCount: number;
     };
@@ -41,6 +43,8 @@ export declare function seedProducts(prisma: PrismaClient): Promise<{
         reservedStock: number;
         soldCount: number;
         status: ProductStatus;
+        metaTitle: string | null;
+        metaDescription: string | null;
         avgRating: import("@prisma/client-runtime-utils").Decimal | null;
         reviewCount: number;
     };
@@ -63,6 +67,8 @@ export declare function seedProducts(prisma: PrismaClient): Promise<{
         reservedStock: number;
         soldCount: number;
         status: ProductStatus;
+        metaTitle: string | null;
+        metaDescription: string | null;
         avgRating: import("@prisma/client-runtime-utils").Decimal | null;
         reviewCount: number;
     };
@@ -85,6 +91,8 @@ export declare function seedProducts(prisma: PrismaClient): Promise<{
         reservedStock: number;
         soldCount: number;
         status: ProductStatus;
+        metaTitle: string | null;
+        metaDescription: string | null;
         avgRating: import("@prisma/client-runtime-utils").Decimal | null;
         reviewCount: number;
     };
@@ -107,6 +115,8 @@ export declare function seedProducts(prisma: PrismaClient): Promise<{
         reservedStock: number;
         soldCount: number;
         status: ProductStatus;
+        metaTitle: string | null;
+        metaDescription: string | null;
         avgRating: import("@prisma/client-runtime-utils").Decimal | null;
         reviewCount: number;
     };

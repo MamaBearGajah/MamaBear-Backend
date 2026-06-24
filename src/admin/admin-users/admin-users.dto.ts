@@ -7,7 +7,10 @@ import {
   MinLength,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Role } from '../../../generated/prisma/enums';
+
+// Pakai string literal type — bukan Role.admin/Role.super_admin
+// karena Prisma generated Role adalah union type, bukan enum object
+type AdminRole = 'admin' | 'super_admin';
 
 export class CreateAdminUserDto {
   @ApiProperty({ example: 'Budi Admin', description: 'Nama admin baru' })
@@ -24,14 +27,14 @@ export class CreateAdminUserDto {
   @MinLength(8)
   password!: string;
 
-  @ApiPropertyOptional({ enum: [Role.admin, Role.super_admin], default: Role.admin })
+  @ApiPropertyOptional({ enum: ['admin', 'super_admin'], default: 'admin' })
   @IsOptional()
-  @IsEnum([Role.admin, Role.super_admin])
-  role?: Role.admin | Role.super_admin;
+  @IsEnum(['admin', 'super_admin'])
+  role?: AdminRole;
 }
 
 export class UpdateAdminUserRoleDto {
-  @ApiProperty({ enum: [Role.admin, Role.super_admin] })
-  @IsEnum([Role.admin, Role.super_admin])
-  role!: Role.admin | Role.super_admin;
+  @ApiProperty({ enum: ['admin', 'super_admin'] })
+  @IsEnum(['admin', 'super_admin'])
+  role!: AdminRole;
 }

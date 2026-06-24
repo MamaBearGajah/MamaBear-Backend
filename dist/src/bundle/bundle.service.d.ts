@@ -41,6 +41,8 @@ export declare class BundleService {
                 reservedStock: number;
                 soldCount: number;
                 status: import("../../generated/prisma/enums").ProductStatus;
+                metaTitle: string | null;
+                metaDescription: string | null;
                 avgRating: import("@prisma/client-runtime-utils").Decimal | null;
                 reviewCount: number;
             };
@@ -102,6 +104,8 @@ export declare class BundleService {
                 reservedStock: number;
                 soldCount: number;
                 status: import("../../generated/prisma/enums").ProductStatus;
+                metaTitle: string | null;
+                metaDescription: string | null;
                 avgRating: import("@prisma/client-runtime-utils").Decimal | null;
                 reviewCount: number;
             };
@@ -163,6 +167,8 @@ export declare class BundleService {
                 reservedStock: number;
                 soldCount: number;
                 status: import("../../generated/prisma/enums").ProductStatus;
+                metaTitle: string | null;
+                metaDescription: string | null;
                 avgRating: import("@prisma/client-runtime-utils").Decimal | null;
                 reviewCount: number;
             };
@@ -224,6 +230,8 @@ export declare class BundleService {
                 reservedStock: number;
                 soldCount: number;
                 status: import("../../generated/prisma/enums").ProductStatus;
+                metaTitle: string | null;
+                metaDescription: string | null;
                 avgRating: import("@prisma/client-runtime-utils").Decimal | null;
                 reviewCount: number;
             };
@@ -285,6 +293,8 @@ export declare class BundleService {
                 reservedStock: number;
                 soldCount: number;
                 status: import("../../generated/prisma/enums").ProductStatus;
+                metaTitle: string | null;
+                metaDescription: string | null;
                 avgRating: import("@prisma/client-runtime-utils").Decimal | null;
                 reviewCount: number;
             };

@@ -81,6 +81,9 @@ let AdminProductsController = class AdminProductsController {
             throw new common_1.BadRequestException('data update tidak boleh kosong');
         return this.adminProductsService.bulkUpdateProducts(dto);
     }
+    async duplicate(id) {
+        return this.adminProductsService.duplicateProduct(id);
+    }
 };
 exports.AdminProductsController = AdminProductsController;
 __decorate([
@@ -114,6 +117,20 @@ __decorate([
     __metadata("design:paramtypes", [BulkUpdateDto]),
     __metadata("design:returntype", Promise)
 ], AdminProductsController.prototype, "bulkUpdate", null);
+__decorate([
+    (0, common_1.Post)(':id/duplicate'),
+    (0, swagger_1.ApiOperation)({
+        summary: '[Admin] Duplikasi produk',
+        description: 'Membuat produk baru berdasarkan produk yang ada. ' +
+            'SKU di-generate otomatis, status set ke draft, ' +
+            'URL gambar direferensikan (tidak dicopy di cloud storage).',
+    }),
+    (0, swagger_1.ApiParam)({ name: 'id', description: 'Product ID yang akan diduplikasi' }),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], AdminProductsController.prototype, "duplicate", null);
 exports.AdminProductsController = AdminProductsController = __decorate([
     (0, swagger_1.ApiTags)('Admin Product'),
     (0, swagger_1.ApiBearerAuth)(),
