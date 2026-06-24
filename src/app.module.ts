@@ -34,6 +34,7 @@ import { BundleModule } from './bundle/bundle.module';
 import { WishlistModule } from './wishlist/wishlist.module';
 import { ReportsModule } from './reports/reports.module';
 import { PromotionModule } from './promotion/promotion.module';
+import { SiteSettingsModule } from './site-settings/site-settings.module'; // ← BARU
 
 @Module({
   imports: [
@@ -66,6 +67,7 @@ import { PromotionModule } from './promotion/promotion.module';
     WishlistModule,
     ReportsModule,
     PromotionModule,
+    SiteSettingsModule, // ← BARU
   ],
   controllers: [AppController],
   providers: [

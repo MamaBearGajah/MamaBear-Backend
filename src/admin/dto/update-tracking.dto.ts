@@ -7,7 +7,10 @@ export class UpdateTrackingDto {
   @IsNotEmpty()
   trackingNumber!: string;
 
-  @ApiPropertyOptional({ example: 'Dikirim via JNE REG', description: 'Catatan opsional' })
+  @ApiPropertyOptional({
+    example: 'Dikirim via JNE REG',
+    description: 'Catatan opsional',
+  })
   @IsOptional()
   @IsString()
   note?: string;

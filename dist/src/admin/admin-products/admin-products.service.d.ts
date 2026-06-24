@@ -22,4 +22,12 @@ export declare class AdminProductsService {
         updated: number;
         notFound: string[] | undefined;
     }>;
+    duplicateProduct(productId: string): Promise<{
+        message: string;
+        data: {
+            id: string;
+            slug: string;
+            sku: string;
+        };
+    }>;
 }

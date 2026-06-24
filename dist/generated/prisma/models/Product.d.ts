@@ -47,6 +47,8 @@ export type ProductMinAggregateOutputType = {
     status: $Enums.ProductStatus | null;
     createdAt: Date | null;
     updatedAt: Date | null;
+    metaTitle: string | null;
+    metaDescription: string | null;
     avgRating: runtime.Decimal | null;
     reviewCount: number | null;
     deletedAt: Date | null;
@@ -69,6 +71,8 @@ export type ProductMaxAggregateOutputType = {
     status: $Enums.ProductStatus | null;
     createdAt: Date | null;
     updatedAt: Date | null;
+    metaTitle: string | null;
+    metaDescription: string | null;
     avgRating: runtime.Decimal | null;
     reviewCount: number | null;
     deletedAt: Date | null;
@@ -91,6 +95,8 @@ export type ProductCountAggregateOutputType = {
     status: number;
     createdAt: number;
     updatedAt: number;
+    metaTitle: number;
+    metaDescription: number;
     avgRating: number;
     reviewCount: number;
     deletedAt: number;
@@ -134,6 +140,8 @@ export type ProductMinAggregateInputType = {
     status?: true;
     createdAt?: true;
     updatedAt?: true;
+    metaTitle?: true;
+    metaDescription?: true;
     avgRating?: true;
     reviewCount?: true;
     deletedAt?: true;
@@ -156,6 +164,8 @@ export type ProductMaxAggregateInputType = {
     status?: true;
     createdAt?: true;
     updatedAt?: true;
+    metaTitle?: true;
+    metaDescription?: true;
     avgRating?: true;
     reviewCount?: true;
     deletedAt?: true;
@@ -178,6 +188,8 @@ export type ProductCountAggregateInputType = {
     status?: true;
     createdAt?: true;
     updatedAt?: true;
+    metaTitle?: true;
+    metaDescription?: true;
     avgRating?: true;
     reviewCount?: true;
     deletedAt?: true;
@@ -229,6 +241,8 @@ export type ProductGroupByOutputType = {
     status: $Enums.ProductStatus;
     createdAt: Date;
     updatedAt: Date;
+    metaTitle: string | null;
+    metaDescription: string | null;
     avgRating: runtime.Decimal | null;
     reviewCount: number;
     deletedAt: Date | null;
@@ -262,6 +276,8 @@ export type ProductWhereInput = {
     status?: Prisma.EnumProductStatusFilter<"Product"> | $Enums.ProductStatus;
     createdAt?: Prisma.DateTimeFilter<"Product"> | Date | string;
     updatedAt?: Prisma.DateTimeFilter<"Product"> | Date | string;
+    metaTitle?: Prisma.StringNullableFilter<"Product"> | string | null;
+    metaDescription?: Prisma.StringNullableFilter<"Product"> | string | null;
     avgRating?: Prisma.DecimalNullableFilter<"Product"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null;
     reviewCount?: Prisma.IntFilter<"Product"> | number;
     deletedAt?: Prisma.DateTimeNullableFilter<"Product"> | Date | string | null;
@@ -293,6 +309,8 @@ export type ProductOrderByWithRelationInput = {
     status?: Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
     updatedAt?: Prisma.SortOrder;
+    metaTitle?: Prisma.SortOrderInput | Prisma.SortOrder;
+    metaDescription?: Prisma.SortOrderInput | Prisma.SortOrder;
     avgRating?: Prisma.SortOrderInput | Prisma.SortOrder;
     reviewCount?: Prisma.SortOrder;
     deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder;
@@ -327,6 +345,8 @@ export type ProductWhereUniqueInput = Prisma.AtLeast<{
     status?: Prisma.EnumProductStatusFilter<"Product"> | $Enums.ProductStatus;
     createdAt?: Prisma.DateTimeFilter<"Product"> | Date | string;
     updatedAt?: Prisma.DateTimeFilter<"Product"> | Date | string;
+    metaTitle?: Prisma.StringNullableFilter<"Product"> | string | null;
+    metaDescription?: Prisma.StringNullableFilter<"Product"> | string | null;
     avgRating?: Prisma.DecimalNullableFilter<"Product"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null;
     reviewCount?: Prisma.IntFilter<"Product"> | number;
     deletedAt?: Prisma.DateTimeNullableFilter<"Product"> | Date | string | null;
@@ -358,6 +378,8 @@ export type ProductOrderByWithAggregationInput = {
     status?: Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
     updatedAt?: Prisma.SortOrder;
+    metaTitle?: Prisma.SortOrderInput | Prisma.SortOrder;
+    metaDescription?: Prisma.SortOrderInput | Prisma.SortOrder;
     avgRating?: Prisma.SortOrderInput | Prisma.SortOrder;
     reviewCount?: Prisma.SortOrder;
     deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder;
@@ -388,6 +410,8 @@ export type ProductScalarWhereWithAggregatesInput = {
     status?: Prisma.EnumProductStatusWithAggregatesFilter<"Product"> | $Enums.ProductStatus;
     createdAt?: Prisma.DateTimeWithAggregatesFilter<"Product"> | Date | string;
     updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Product"> | Date | string;
+    metaTitle?: Prisma.StringNullableWithAggregatesFilter<"Product"> | string | null;
+    metaDescription?: Prisma.StringNullableWithAggregatesFilter<"Product"> | string | null;
     avgRating?: Prisma.DecimalNullableWithAggregatesFilter<"Product"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null;
     reviewCount?: Prisma.IntWithAggregatesFilter<"Product"> | number;
     deletedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Product"> | Date | string | null;
@@ -409,6 +433,8 @@ export type ProductCreateInput = {
     status?: $Enums.ProductStatus;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    metaTitle?: string | null;
+    metaDescription?: string | null;
     avgRating?: runtime.Decimal | runtime.DecimalJsLike | number | string | null;
     reviewCount?: number;
     deletedAt?: Date | string | null;
@@ -440,6 +466,8 @@ export type ProductUncheckedCreateInput = {
     status?: $Enums.ProductStatus;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    metaTitle?: string | null;
+    metaDescription?: string | null;
     avgRating?: runtime.Decimal | runtime.DecimalJsLike | number | string | null;
     reviewCount?: number;
     deletedAt?: Date | string | null;
@@ -469,6 +497,8 @@ export type ProductUpdateInput = {
     status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    metaTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    metaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     avgRating?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null;
     reviewCount?: Prisma.IntFieldUpdateOperationsInput | number;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -500,6 +530,8 @@ export type ProductUncheckedUpdateInput = {
     status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    metaTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    metaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     avgRating?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null;
     reviewCount?: Prisma.IntFieldUpdateOperationsInput | number;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -530,6 +562,8 @@ export type ProductCreateManyInput = {
     status?: $Enums.ProductStatus;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    metaTitle?: string | null;
+    metaDescription?: string | null;
     avgRating?: runtime.Decimal | runtime.DecimalJsLike | number | string | null;
     reviewCount?: number;
     deletedAt?: Date | string | null;
@@ -551,6 +585,8 @@ export type ProductUpdateManyMutationInput = {
     status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    metaTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    metaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     avgRating?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null;
     reviewCount?: Prisma.IntFieldUpdateOperationsInput | number;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -573,6 +609,8 @@ export type ProductUncheckedUpdateManyInput = {
     status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    metaTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    metaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     avgRating?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null;
     reviewCount?: Prisma.IntFieldUpdateOperationsInput | number;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -603,6 +641,8 @@ export type ProductCountOrderByAggregateInput = {
     status?: Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
     updatedAt?: Prisma.SortOrder;
+    metaTitle?: Prisma.SortOrder;
+    metaDescription?: Prisma.SortOrder;
     avgRating?: Prisma.SortOrder;
     reviewCount?: Prisma.SortOrder;
     deletedAt?: Prisma.SortOrder;
@@ -635,6 +675,8 @@ export type ProductMaxOrderByAggregateInput = {
     status?: Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
     updatedAt?: Prisma.SortOrder;
+    metaTitle?: Prisma.SortOrder;
+    metaDescription?: Prisma.SortOrder;
     avgRating?: Prisma.SortOrder;
     reviewCount?: Prisma.SortOrder;
     deletedAt?: Prisma.SortOrder;
@@ -657,6 +699,8 @@ export type ProductMinOrderByAggregateInput = {
     status?: Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
     updatedAt?: Prisma.SortOrder;
+    metaTitle?: Prisma.SortOrder;
+    metaDescription?: Prisma.SortOrder;
     avgRating?: Prisma.SortOrder;
     reviewCount?: Prisma.SortOrder;
     deletedAt?: Prisma.SortOrder;
@@ -843,6 +887,8 @@ export type ProductCreateWithoutCategoryInput = {
     status?: $Enums.ProductStatus;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    metaTitle?: string | null;
+    metaDescription?: string | null;
     avgRating?: runtime.Decimal | runtime.DecimalJsLike | number | string | null;
     reviewCount?: number;
     deletedAt?: Date | string | null;
@@ -872,6 +918,8 @@ export type ProductUncheckedCreateWithoutCategoryInput = {
     status?: $Enums.ProductStatus;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    metaTitle?: string | null;
+    metaDescription?: string | null;
     avgRating?: runtime.Decimal | runtime.DecimalJsLike | number | string | null;
     reviewCount?: number;
     deletedAt?: Date | string | null;
@@ -926,6 +974,8 @@ export type ProductScalarWhereInput = {
     status?: Prisma.EnumProductStatusFilter<"Product"> | $Enums.ProductStatus;
     createdAt?: Prisma.DateTimeFilter<"Product"> | Date | string;
     updatedAt?: Prisma.DateTimeFilter<"Product"> | Date | string;
+    metaTitle?: Prisma.StringNullableFilter<"Product"> | string | null;
+    metaDescription?: Prisma.StringNullableFilter<"Product"> | string | null;
     avgRating?: Prisma.DecimalNullableFilter<"Product"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null;
     reviewCount?: Prisma.IntFilter<"Product"> | number;
     deletedAt?: Prisma.DateTimeNullableFilter<"Product"> | Date | string | null;
@@ -947,6 +997,8 @@ export type ProductCreateWithoutImagesInput = {
     status?: $Enums.ProductStatus;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    metaTitle?: string | null;
+    metaDescription?: string | null;
     avgRating?: runtime.Decimal | runtime.DecimalJsLike | number | string | null;
     reviewCount?: number;
     deletedAt?: Date | string | null;
@@ -977,6 +1029,8 @@ export type ProductUncheckedCreateWithoutImagesInput = {
     status?: $Enums.ProductStatus;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    metaTitle?: string | null;
+    metaDescription?: string | null;
     avgRating?: runtime.Decimal | runtime.DecimalJsLike | number | string | null;
     reviewCount?: number;
     deletedAt?: Date | string | null;
@@ -1018,6 +1072,8 @@ export type ProductUpdateWithoutImagesInput = {
     status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    metaTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    metaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     avgRating?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null;
     reviewCount?: Prisma.IntFieldUpdateOperationsInput | number;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -1048,6 +1104,8 @@ export type ProductUncheckedUpdateWithoutImagesInput = {
     status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    metaTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    metaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     avgRating?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null;
     reviewCount?: Prisma.IntFieldUpdateOperationsInput | number;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -1076,6 +1134,8 @@ export type ProductCreateWithoutVariantsInput = {
     status?: $Enums.ProductStatus;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    metaTitle?: string | null;
+    metaDescription?: string | null;
     avgRating?: runtime.Decimal | runtime.DecimalJsLike | number | string | null;
     reviewCount?: number;
     deletedAt?: Date | string | null;
@@ -1106,6 +1166,8 @@ export type ProductUncheckedCreateWithoutVariantsInput = {
     status?: $Enums.ProductStatus;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    metaTitle?: string | null;
+    metaDescription?: string | null;
     avgRating?: runtime.Decimal | runtime.DecimalJsLike | number | string | null;
     reviewCount?: number;
     deletedAt?: Date | string | null;
@@ -1147,6 +1209,8 @@ export type ProductUpdateWithoutVariantsInput = {
     status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    metaTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    metaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     avgRating?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null;
     reviewCount?: Prisma.IntFieldUpdateOperationsInput | number;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -1177,6 +1241,8 @@ export type ProductUncheckedUpdateWithoutVariantsInput = {
     status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    metaTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    metaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     avgRating?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null;
     reviewCount?: Prisma.IntFieldUpdateOperationsInput | number;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -1205,6 +1271,8 @@ export type ProductCreateWithoutBundleItemsInput = {
     status?: $Enums.ProductStatus;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    metaTitle?: string | null;
+    metaDescription?: string | null;
     avgRating?: runtime.Decimal | runtime.DecimalJsLike | number | string | null;
     reviewCount?: number;
     deletedAt?: Date | string | null;
@@ -1235,6 +1303,8 @@ export type ProductUncheckedCreateWithoutBundleItemsInput = {
     status?: $Enums.ProductStatus;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    metaTitle?: string | null;
+    metaDescription?: string | null;
     avgRating?: runtime.Decimal | runtime.DecimalJsLike | number | string | null;
     reviewCount?: number;
     deletedAt?: Date | string | null;
@@ -1276,6 +1346,8 @@ export type ProductUpdateWithoutBundleItemsInput = {
     status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    metaTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    metaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     avgRating?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null;
     reviewCount?: Prisma.IntFieldUpdateOperationsInput | number;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -1306,6 +1378,8 @@ export type ProductUncheckedUpdateWithoutBundleItemsInput = {
     status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    metaTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    metaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     avgRating?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null;
     reviewCount?: Prisma.IntFieldUpdateOperationsInput | number;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -1334,6 +1408,8 @@ export type ProductCreateWithoutReviewsInput = {
     status?: $Enums.ProductStatus;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    metaTitle?: string | null;
+    metaDescription?: string | null;
     avgRating?: runtime.Decimal | runtime.DecimalJsLike | number | string | null;
     reviewCount?: number;
     deletedAt?: Date | string | null;
@@ -1364,6 +1440,8 @@ export type ProductUncheckedCreateWithoutReviewsInput = {
     status?: $Enums.ProductStatus;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    metaTitle?: string | null;
+    metaDescription?: string | null;
     avgRating?: runtime.Decimal | runtime.DecimalJsLike | number | string | null;
     reviewCount?: number;
     deletedAt?: Date | string | null;
@@ -1405,6 +1483,8 @@ export type ProductUpdateWithoutReviewsInput = {
     status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    metaTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    metaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     avgRating?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null;
     reviewCount?: Prisma.IntFieldUpdateOperationsInput | number;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -1435,6 +1515,8 @@ export type ProductUncheckedUpdateWithoutReviewsInput = {
     status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    metaTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    metaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     avgRating?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null;
     reviewCount?: Prisma.IntFieldUpdateOperationsInput | number;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -1463,6 +1545,8 @@ export type ProductCreateWithoutCartItemsInput = {
     status?: $Enums.ProductStatus;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    metaTitle?: string | null;
+    metaDescription?: string | null;
     avgRating?: runtime.Decimal | runtime.DecimalJsLike | number | string | null;
     reviewCount?: number;
     deletedAt?: Date | string | null;
@@ -1493,6 +1577,8 @@ export type ProductUncheckedCreateWithoutCartItemsInput = {
     status?: $Enums.ProductStatus;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    metaTitle?: string | null;
+    metaDescription?: string | null;
     avgRating?: runtime.Decimal | runtime.DecimalJsLike | number | string | null;
     reviewCount?: number;
     deletedAt?: Date | string | null;
@@ -1534,6 +1620,8 @@ export type ProductUpdateWithoutCartItemsInput = {
     status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    metaTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    metaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     avgRating?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null;
     reviewCount?: Prisma.IntFieldUpdateOperationsInput | number;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -1564,6 +1652,8 @@ export type ProductUncheckedUpdateWithoutCartItemsInput = {
     status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    metaTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    metaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     avgRating?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null;
     reviewCount?: Prisma.IntFieldUpdateOperationsInput | number;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -1592,6 +1682,8 @@ export type ProductCreateWithoutGuestCartItemsInput = {
     status?: $Enums.ProductStatus;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    metaTitle?: string | null;
+    metaDescription?: string | null;
     avgRating?: runtime.Decimal | runtime.DecimalJsLike | number | string | null;
     reviewCount?: number;
     deletedAt?: Date | string | null;
@@ -1622,6 +1714,8 @@ export type ProductUncheckedCreateWithoutGuestCartItemsInput = {
     status?: $Enums.ProductStatus;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    metaTitle?: string | null;
+    metaDescription?: string | null;
     avgRating?: runtime.Decimal | runtime.DecimalJsLike | number | string | null;
     reviewCount?: number;
     deletedAt?: Date | string | null;
@@ -1663,6 +1757,8 @@ export type ProductUpdateWithoutGuestCartItemsInput = {
     status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    metaTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    metaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     avgRating?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null;
     reviewCount?: Prisma.IntFieldUpdateOperationsInput | number;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -1693,6 +1789,8 @@ export type ProductUncheckedUpdateWithoutGuestCartItemsInput = {
     status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    metaTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    metaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     avgRating?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null;
     reviewCount?: Prisma.IntFieldUpdateOperationsInput | number;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -1721,6 +1819,8 @@ export type ProductCreateWithoutOrderItemsInput = {
     status?: $Enums.ProductStatus;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    metaTitle?: string | null;
+    metaDescription?: string | null;
     avgRating?: runtime.Decimal | runtime.DecimalJsLike | number | string | null;
     reviewCount?: number;
     deletedAt?: Date | string | null;
@@ -1751,6 +1851,8 @@ export type ProductUncheckedCreateWithoutOrderItemsInput = {
     status?: $Enums.ProductStatus;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    metaTitle?: string | null;
+    metaDescription?: string | null;
     avgRating?: runtime.Decimal | runtime.DecimalJsLike | number | string | null;
     reviewCount?: number;
     deletedAt?: Date | string | null;
@@ -1792,6 +1894,8 @@ export type ProductUpdateWithoutOrderItemsInput = {
     status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    metaTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    metaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     avgRating?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null;
     reviewCount?: Prisma.IntFieldUpdateOperationsInput | number;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -1822,6 +1926,8 @@ export type ProductUncheckedUpdateWithoutOrderItemsInput = {
     status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    metaTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    metaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     avgRating?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null;
     reviewCount?: Prisma.IntFieldUpdateOperationsInput | number;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -1850,6 +1956,8 @@ export type ProductCreateWithoutWishlistsInput = {
     status?: $Enums.ProductStatus;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    metaTitle?: string | null;
+    metaDescription?: string | null;
     avgRating?: runtime.Decimal | runtime.DecimalJsLike | number | string | null;
     reviewCount?: number;
     deletedAt?: Date | string | null;
@@ -1880,6 +1988,8 @@ export type ProductUncheckedCreateWithoutWishlistsInput = {
     status?: $Enums.ProductStatus;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    metaTitle?: string | null;
+    metaDescription?: string | null;
     avgRating?: runtime.Decimal | runtime.DecimalJsLike | number | string | null;
     reviewCount?: number;
     deletedAt?: Date | string | null;
@@ -1921,6 +2031,8 @@ export type ProductUpdateWithoutWishlistsInput = {
     status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    metaTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    metaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     avgRating?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null;
     reviewCount?: Prisma.IntFieldUpdateOperationsInput | number;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -1951,6 +2063,8 @@ export type ProductUncheckedUpdateWithoutWishlistsInput = {
     status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    metaTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    metaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     avgRating?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null;
     reviewCount?: Prisma.IntFieldUpdateOperationsInput | number;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -1979,6 +2093,8 @@ export type ProductCreateManyCategoryInput = {
     status?: $Enums.ProductStatus;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    metaTitle?: string | null;
+    metaDescription?: string | null;
     avgRating?: runtime.Decimal | runtime.DecimalJsLike | number | string | null;
     reviewCount?: number;
     deletedAt?: Date | string | null;
@@ -2000,6 +2116,8 @@ export type ProductUpdateWithoutCategoryInput = {
     status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    metaTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    metaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     avgRating?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null;
     reviewCount?: Prisma.IntFieldUpdateOperationsInput | number;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -2029,6 +2147,8 @@ export type ProductUncheckedUpdateWithoutCategoryInput = {
     status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    metaTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    metaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     avgRating?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null;
     reviewCount?: Prisma.IntFieldUpdateOperationsInput | number;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -2058,6 +2178,8 @@ export type ProductUncheckedUpdateManyWithoutCategoryInput = {
     status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    metaTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    metaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     avgRating?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null;
     reviewCount?: Prisma.IntFieldUpdateOperationsInput | number;
     deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -2127,6 +2249,8 @@ export type ProductSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     status?: boolean;
     createdAt?: boolean;
     updatedAt?: boolean;
+    metaTitle?: boolean;
+    metaDescription?: boolean;
     avgRating?: boolean;
     reviewCount?: boolean;
     deletedAt?: boolean;
@@ -2159,6 +2283,8 @@ export type ProductSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
     status?: boolean;
     createdAt?: boolean;
     updatedAt?: boolean;
+    metaTitle?: boolean;
+    metaDescription?: boolean;
     avgRating?: boolean;
     reviewCount?: boolean;
     deletedAt?: boolean;
@@ -2182,6 +2308,8 @@ export type ProductSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
     status?: boolean;
     createdAt?: boolean;
     updatedAt?: boolean;
+    metaTitle?: boolean;
+    metaDescription?: boolean;
     avgRating?: boolean;
     reviewCount?: boolean;
     deletedAt?: boolean;
@@ -2205,11 +2333,13 @@ export type ProductSelectScalar = {
     status?: boolean;
     createdAt?: boolean;
     updatedAt?: boolean;
+    metaTitle?: boolean;
+    metaDescription?: boolean;
     avgRating?: boolean;
     reviewCount?: boolean;
     deletedAt?: boolean;
 };
-export type ProductOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "categoryId" | "name" | "slug" | "description" | "notes" | "basePrice" | "discountPrice" | "weight" | "sku" | "mainImage" | "stock" | "reservedStock" | "soldCount" | "status" | "createdAt" | "updatedAt" | "avgRating" | "reviewCount" | "deletedAt", ExtArgs["result"]["product"]>;
+export type ProductOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "categoryId" | "name" | "slug" | "description" | "notes" | "basePrice" | "discountPrice" | "weight" | "sku" | "mainImage" | "stock" | "reservedStock" | "soldCount" | "status" | "createdAt" | "updatedAt" | "metaTitle" | "metaDescription" | "avgRating" | "reviewCount" | "deletedAt", ExtArgs["result"]["product"]>;
 export type ProductInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     category?: boolean | Prisma.Product$categoryArgs<ExtArgs>;
     images?: boolean | Prisma.Product$imagesArgs<ExtArgs>;
@@ -2259,6 +2389,8 @@ export type $ProductPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
         status: $Enums.ProductStatus;
         createdAt: Date;
         updatedAt: Date;
+        metaTitle: string | null;
+        metaDescription: string | null;
         avgRating: runtime.Decimal | null;
         reviewCount: number;
         deletedAt: Date | null;
@@ -2345,6 +2477,8 @@ export interface ProductFieldRefs {
     readonly status: Prisma.FieldRef<"Product", 'ProductStatus'>;
     readonly createdAt: Prisma.FieldRef<"Product", 'DateTime'>;
     readonly updatedAt: Prisma.FieldRef<"Product", 'DateTime'>;
+    readonly metaTitle: Prisma.FieldRef<"Product", 'String'>;
+    readonly metaDescription: Prisma.FieldRef<"Product", 'String'>;
     readonly avgRating: Prisma.FieldRef<"Product", 'Decimal'>;
     readonly reviewCount: Prisma.FieldRef<"Product", 'Int'>;
     readonly deletedAt: Prisma.FieldRef<"Product", 'DateTime'>;

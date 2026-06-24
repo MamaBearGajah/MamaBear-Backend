@@ -33,3 +33,4 @@ export type Wishlist = Prisma.WishlistModel;
 export type PromotionLanding = Prisma.PromotionLandingModel;
 export type PromotionSection = Prisma.PromotionSectionModel;
 export type PromotionBenefit = Prisma.PromotionBenefitModel;
+export type SiteSettings = Prisma.SiteSettingsModel;

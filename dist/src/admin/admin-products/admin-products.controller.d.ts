@@ -25,5 +25,13 @@ export declare class AdminProductsController {
         updated: number;
         notFound: string[] | undefined;
     }>;
+    duplicate(id: string): Promise<{
+        message: string;
+        data: {
+            id: string;
+            slug: string;
+            sku: string;
+        };
+    }>;
 }
 export {};

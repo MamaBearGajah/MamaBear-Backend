@@ -1,4 +1,7 @@
-import { Injectable } from '@nestjs/common';
+// src/admin/admin-products/admin-products.service.ts — GANTI FILE LAMA DENGAN INI
+// Perubahan: tambah method duplicateProduct()
+
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ProductStatus } from '../../../generated/prisma/enums';
 import { createObjectCsvStringifier } from 'csv-writer';
@@ -25,7 +28,7 @@ export class AdminProductsService {
         { id: 'discountPrice',title: 'DISCOUNT_PRICE' },
         { id: 'stock',        title: 'STOCK' },
         { id: 'weight',       title: 'WEIGHT' },
-        { id: 'status',       title: 'STATUS' },       // ← FIX: isActive → status
+        { id: 'status',       title: 'STATUS' },
         { id: 'variants',     title: 'VARIANT_COUNT' },
         { id: 'description',  title: 'DESCRIPTION' },
         { id: 'createdAt',    title: 'CREATED_AT' },
@@ -41,7 +44,7 @@ export class AdminProductsService {
       discountPrice: p.discountPrice ? Number(p.discountPrice).toFixed(0) : '',
       stock:         p.stock,
       weight:        p.weight,
-      status:        p.status,                          // ← FIX: p.isActive → p.status
+      status:        p.status,
       variants:      p._count.variants,
       description:   (p.description ?? '').replace(/\n/g, ' '),
       createdAt:     p.createdAt.toISOString().slice(0, 10),
@@ -78,14 +81,12 @@ export class AdminProductsService {
 
       try {
         const existingProduct = await this.prisma.product.findUnique({ where: { slug: row.slug } });
-
         if (existingProduct) {
           failedCount++;
           errors.push({ row: rowNumber, reason: `Duplicate skipped. Slug "${row.slug}" already exists.` });
           continue;
         }
 
-        // status dari CSV, fallback ke 'draft'
         const status = Object.values(ProductStatus).includes(row.status)
           ? (row.status as ProductStatus)
           : ProductStatus.draft;
@@ -128,7 +129,7 @@ export class AdminProductsService {
     const result = await this.prisma.product.updateMany({
       where: { id: { in: foundIds } },
       data: {
-        ...(data.status    !== undefined && { status: data.status }),       // ← FIX: isActive → status
+        ...(data.status    !== undefined && { status: data.status }),
         ...(data.basePrice !== undefined && { basePrice: data.basePrice }),
       },
     });
@@ -136,6 +137,87 @@ export class AdminProductsService {
     return {
       updated: result.count,
       notFound: notFound.length > 0 ? notFound : undefined,
+    };
+  }
+
+  // ── Duplicate product ───────────────────────────────────────────────────────
+  async duplicateProduct(productId: string) {
+    const source = await this.prisma.product.findUnique({
+      where: { id: productId },
+      include: {
+        images: true,
+        variants: true,
+      },
+    });
+
+    if (!source) throw new NotFoundException('Produk tidak ditemukan');
+
+    // Generate unique slug & SKU
+    const timestamp = Date.now();
+    const newSlug = `${source.slug}-copy-${timestamp}`;
+    const newSku  = `${source.sku}-COPY-${timestamp}`;
+
+    const duplicate = await this.prisma.$transaction(async (tx) => {
+      // Buat produk baru
+      const newProduct = await tx.product.create({
+        data: {
+          name:          `${source.name} (Copy)`,
+          slug:          newSlug,
+          sku:           newSku,
+          description:   source.description,
+          notes:         source.notes,
+          basePrice:     source.basePrice,
+          discountPrice: source.discountPrice,
+          weight:        source.weight,
+          stock:         0, // reset stok ke 0 untuk produk baru
+          mainImage:     source.mainImage,
+          status:        ProductStatus.draft, // selalu draft
+          categoryId:    source.categoryId,
+        },
+      });
+
+      // Referensikan gambar yang sama (tidak copy file di cloud)
+      if (source.images.length > 0) {
+        await tx.productImage.createMany({
+          data: source.images.map((img) => ({
+            productId:  newProduct.id,
+            imageUrl:   img.imageUrl,
+            publicId:   img.publicId,
+            altText:    img.altText,
+            imageType:  img.imageType,
+            sortOrder:  img.sortOrder,
+            isFeatured: img.isFeatured,
+          })),
+        });
+      }
+
+      // Duplikasi variants
+      if (source.variants.length > 0) {
+        await tx.productVariant.createMany({
+          data: source.variants.map((v) => ({
+            productId:      newProduct.id,
+            name:           v.name,
+            value:          v.value,
+            basePrice:      v.basePrice,
+            discountPrice:  v.discountPrice,
+            priceAdjustment:v.priceAdjustment,
+            stock:          0, // reset stok variant
+            weight:         v.weight,
+            imageUrl:       v.imageUrl,
+            altText:        v.altText,
+            sku:            v.sku ? `${v.sku}-COPY-${timestamp}` : null,
+            isActive:       v.isActive,
+            sortOrder:      v.sortOrder,
+          })),
+        });
+      }
+
+      return newProduct;
+    });
+
+    return {
+      message: 'Produk berhasil diduplikasi',
+      data: { id: duplicate.id, slug: duplicate.slug, sku: duplicate.sku },
     };
   }
 }

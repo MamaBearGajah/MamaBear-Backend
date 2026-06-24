@@ -42,6 +42,7 @@ export declare const ModelName: {
     readonly PromotionLanding: "PromotionLanding";
     readonly PromotionSection: "PromotionSection";
     readonly PromotionBenefit: "PromotionBenefit";
+    readonly SiteSettings: "SiteSettings";
 };
 export type ModelName = (typeof ModelName)[keyof typeof ModelName];
 export declare const TransactionIsolationLevel: {
@@ -135,6 +136,8 @@ export declare const ProductScalarFieldEnum: {
     readonly status: "status";
     readonly createdAt: "createdAt";
     readonly updatedAt: "updatedAt";
+    readonly metaTitle: "metaTitle";
+    readonly metaDescription: "metaDescription";
     readonly avgRating: "avgRating";
     readonly reviewCount: "reviewCount";
     readonly deletedAt: "deletedAt";
@@ -465,6 +468,24 @@ export declare const PromotionBenefitScalarFieldEnum: {
     readonly sortOrder: "sortOrder";
 };
 export type PromotionBenefitScalarFieldEnum = (typeof PromotionBenefitScalarFieldEnum)[keyof typeof PromotionBenefitScalarFieldEnum];
+export declare const SiteSettingsScalarFieldEnum: {
+    readonly id: "id";
+    readonly siteName: "siteName";
+    readonly siteDescription: "siteDescription";
+    readonly contactEmail: "contactEmail";
+    readonly contactPhone: "contactPhone";
+    readonly contactAddress: "contactAddress";
+    readonly socialInstagram: "socialInstagram";
+    readonly socialTiktok: "socialTiktok";
+    readonly socialFacebook: "socialFacebook";
+    readonly socialWhatsapp: "socialWhatsapp";
+    readonly shippingOriginCityId: "shippingOriginCityId";
+    readonly taxRate: "taxRate";
+    readonly currency: "currency";
+    readonly maintenanceMode: "maintenanceMode";
+    readonly updatedAt: "updatedAt";
+};
+export type SiteSettingsScalarFieldEnum = (typeof SiteSettingsScalarFieldEnum)[keyof typeof SiteSettingsScalarFieldEnum];
 export declare const SortOrder: {
     readonly asc: "asc";
     readonly desc: "desc";

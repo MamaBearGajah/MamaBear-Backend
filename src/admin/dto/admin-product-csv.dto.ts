@@ -1,6 +1,10 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty } from '@nestjs/swagger';
 
 export class CsvUploadDto {
-    @ApiProperty({ type: 'string', format: 'binary', description: 'CSV file containing product data' })
-    file: any
+  @ApiProperty({
+    type: 'string',
+    format: 'binary',
+    description: 'CSV file containing product data',
+  })
+  file: any;
 }
