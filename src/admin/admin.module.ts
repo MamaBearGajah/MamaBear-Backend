@@ -10,6 +10,9 @@ import { AdminCustomersController } from './admin-customers/admin-customers.cont
 import { AdminCustomersService } from './admin-customers/admin-customers.service';
 import { OrdersModule } from '../orders/orders.module';
 import { AdminOrdersController } from './admin-orders/admin-orders.controller';
+// ── BARU ──
+import { AdminUsersController } from './admin-users/admin-users.controller';
+import { AdminUsersService } from './admin-users/admin-users.service';
 
 @Module({
   imports: [
@@ -22,12 +25,14 @@ import { AdminOrdersController } from './admin-orders/admin-orders.controller';
     AdminCategoriesController,
     AdminCustomersController,
     AdminOrdersController,
+    AdminUsersController,   // ← BARU
   ],
   providers: [
     AdminCustomersService,
     AdminConsultationsService,
     AdminProductsService,
     AdminCategoriesService,
+    AdminUsersService,
   ],
 })
 export class AdminModule {}

@@ -1,9 +1,13 @@
+// src/admin/admin-products/admin-products.controller.ts — GANTI FILE LAMA DENGAN INI
+// Perubahan: tambah POST /:id/duplicate
+
 import {
   BadRequestException,
   Body,
   Controller,
   Get,
   Post,
+  Param,
   Res,
   UploadedFile,
   UseGuards,
@@ -14,6 +18,7 @@ import {
   ApiBody,
   ApiConsumes,
   ApiOperation,
+  ApiParam,
   ApiProperty,
   ApiPropertyOptional,
   ApiTags,
@@ -93,5 +98,19 @@ export class AdminProductsController {
     if (!dto.data || Object.keys(dto.data).length === 0)
       throw new BadRequestException('data update tidak boleh kosong');
     return this.adminProductsService.bulkUpdateProducts(dto);
+  }
+
+  // ── POST /admin/products/:id/duplicate ─────────────────────────────────────
+  @Post(':id/duplicate')
+  @ApiOperation({
+    summary: '[Admin] Duplikasi produk',
+    description:
+      'Membuat produk baru berdasarkan produk yang ada. ' +
+      'SKU di-generate otomatis, status set ke draft, ' +
+      'URL gambar direferensikan (tidak dicopy di cloud storage).',
+  })
+  @ApiParam({ name: 'id', description: 'Product ID yang akan diduplikasi' })
+  async duplicate(@Param('id') id: string) {
+    return this.adminProductsService.duplicateProduct(id);
   }
 }
