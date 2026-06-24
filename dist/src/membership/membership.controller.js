@@ -17,6 +17,7 @@ const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const membership_service_1 = require("./membership.service");
 const redeem_points_dto_1 = require("./dto/redeem-points.dto");
+const admin_adjust_points_dto_1 = require("./dto/admin-adjust-points.dto");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 const roles_guard_1 = require("../auth/guards/roles.guard");
 const decorators_1 = require("../auth/decorators");
@@ -38,8 +39,20 @@ let MembershipController = class MembershipController {
     dailyLoginCheckIn(userId) {
         return this.membershipService.dailyLoginCheckIn(userId);
     }
-    findAll(page, limit, tier) {
-        return this.membershipService.findAll(page, limit, tier);
+    findAll(page, limit, tier, search) {
+        return this.membershipService.findAll(page, limit, tier, search);
+    }
+    getMembershipStats() {
+        return this.membershipService.getStats();
+    }
+    getMembershipByUser(userId) {
+        return this.membershipService.getMyMembership(userId);
+    }
+    getPointHistoryByUser(userId, page, limit) {
+        return this.membershipService.getPointHistory(userId, page, limit);
+    }
+    adminAdjustPoints(dto) {
+        return this.membershipService.adminAdjustPoints(dto);
     }
 };
 exports.MembershipController = MembershipController;
@@ -73,8 +86,8 @@ __decorate([
         summary: 'Redeem point jadi voucher potongan harga',
         description: `
       Konversi point menjadi voucher diskon.
-      - 1 point = Rp 1.000 potongan harga
-      - Minimal redeem 10 point (= Rp 10.000)
+      - 1 point = Rp 100 potongan harga
+      - Minimal redeem 100 point (= Rp 10.000)
       - Voucher berlaku 30 hari
     `,
     }),
@@ -126,13 +139,62 @@ __decorate([
     (0, swagger_1.ApiQuery)({ name: 'page', required: false, example: 1 }),
     (0, swagger_1.ApiQuery)({ name: 'limit', required: false, example: 20 }),
     (0, swagger_1.ApiQuery)({ name: 'tier', required: false, enum: enums_1.MembershipTier }),
+    (0, swagger_1.ApiQuery)({ name: 'search', required: false, description: 'Cari by nama/email user' }),
     __param(0, (0, common_1.Query)('page', new common_1.DefaultValuePipe(1), common_1.ParseIntPipe)),
     __param(1, (0, common_1.Query)('limit', new common_1.DefaultValuePipe(20), common_1.ParseIntPipe)),
     __param(2, (0, common_1.Query)('tier')),
+    __param(3, (0, common_1.Query)('search')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, Number, String]),
+    __metadata("design:paramtypes", [Number, Number, String, String]),
     __metadata("design:returntype", void 0)
 ], MembershipController.prototype, "findAll", null);
+__decorate([
+    (0, common_1.Get)('stats'),
+    (0, common_1.UseGuards)(roles_guard_1.RolesGuard),
+    (0, decorators_1.Roles)(enums_1.Role.admin, enums_1.Role.super_admin),
+    (0, swagger_1.ApiOperation)({ summary: '[Admin] Statistik membership (jumlah per tier, total point beredar)' }),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], MembershipController.prototype, "getMembershipStats", null);
+__decorate([
+    (0, common_1.Get)('user/:userId'),
+    (0, common_1.UseGuards)(roles_guard_1.RolesGuard),
+    (0, decorators_1.Roles)(enums_1.Role.admin, enums_1.Role.super_admin),
+    (0, swagger_1.ApiOperation)({ summary: '[Admin] Detail membership satu user' }),
+    __param(0, (0, common_1.Param)('userId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], MembershipController.prototype, "getMembershipByUser", null);
+__decorate([
+    (0, common_1.Get)('user/:userId/points/history'),
+    (0, common_1.UseGuards)(roles_guard_1.RolesGuard),
+    (0, decorators_1.Roles)(enums_1.Role.admin, enums_1.Role.super_admin),
+    (0, swagger_1.ApiOperation)({ summary: '[Admin] Riwayat point satu user' }),
+    (0, swagger_1.ApiQuery)({ name: 'page', required: false, example: 1 }),
+    (0, swagger_1.ApiQuery)({ name: 'limit', required: false, example: 20 }),
+    __param(0, (0, common_1.Param)('userId')),
+    __param(1, (0, common_1.Query)('page', new common_1.DefaultValuePipe(1), common_1.ParseIntPipe)),
+    __param(2, (0, common_1.Query)('limit', new common_1.DefaultValuePipe(20), common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Number, Number]),
+    __metadata("design:returntype", void 0)
+], MembershipController.prototype, "getPointHistoryByUser", null);
+__decorate([
+    (0, common_1.Post)('admin/adjust-points'),
+    (0, common_1.UseGuards)(roles_guard_1.RolesGuard),
+    (0, decorators_1.Roles)(enums_1.Role.admin, enums_1.Role.super_admin),
+    (0, swagger_1.ApiOperation)({
+        summary: '[Admin] Tambah/kurangi point user secara manual',
+        description: 'Gunakan untuk kompensasi, koreksi, atau reward manual. Nilai negatif = kurangi.',
+    }),
+    (0, swagger_1.ApiResponse)({ status: 201, description: 'Point berhasil disesuaikan' }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [admin_adjust_points_dto_1.AdminAdjustPointsDto]),
+    __metadata("design:returntype", void 0)
+], MembershipController.prototype, "adminAdjustPoints", null);
 exports.MembershipController = MembershipController = __decorate([
     (0, swagger_1.ApiTags)('Membership'),
     (0, swagger_1.ApiBearerAuth)(),

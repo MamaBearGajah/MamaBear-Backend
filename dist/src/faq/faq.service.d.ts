@@ -44,7 +44,7 @@ export declare class FaqService {
         question: string;
         answer: string;
     }>;
-    findByKeyword(keyword: string): Promise<{
+    findTopFaqs(): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
@@ -52,7 +52,7 @@ export declare class FaqService {
         question: string;
         answer: string;
     }[]>;
-    findTopFaqs(): Promise<{
+    findByKeyword(keyword: string): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;

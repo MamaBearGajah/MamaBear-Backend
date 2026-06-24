@@ -77,6 +77,8 @@ async function seedUsers(prisma) {
         { label: "Rumah", receiverName: "Nur Azizah", phone: "081234567009", address: "Jl. Teratai No. 4, Kel. Semarang Barat", cityId: "399", provinceId: "14", postalCode: "50149" },
         { label: "Rumah", receiverName: "Lina Marlina", phone: "081234567010", address: "Jl. Seruni No. 11, Kel. Gajahmungkur", cityId: "399", provinceId: "14", postalCode: "50231" },
     ];
+    const customerIds = customers.map((c) => c.id);
+    await prisma.address.deleteMany({ where: { userId: { in: customerIds } } });
     const addresses = await Promise.all(customers.map((customer, i) => prisma.address.create({
         data: { userId: customer.id, ...addressData[i], isDefault: true },
     })));

@@ -1,20 +1,20 @@
 import { PrismaClient, OrderStatus, PaymentStatus, PaymentProvider } from "generated/prisma/client";
 
-function daysAgo(days: number): Date {
+function daysAgo(n: number): Date {
   const d = new Date();
-  d.setDate(d.getDate() - days);
+  d.setDate(d.getDate() - n);
   return d;
 }
 
 function generateOrderNumber(createdAt: Date, index: number): string {
-  const y = createdAt.getFullYear();
-  const m = String(createdAt.getMonth() + 1).padStart(2, "0");
-  const d = String(createdAt.getDate()).padStart(2, "0");
+  const y   = createdAt.getFullYear();
+  const m   = String(createdAt.getMonth() + 1).padStart(2, "0");
+  const d   = String(createdAt.getDate()).padStart(2, "0");
   const seq = String(index).padStart(4, "0");
   return `ORB-${y}${m}${d}-${seq}`;
 }
 
-type User = { id: string };
+type User    = { id: string };
 type Address = { id: string };
 type Product = { id: string };
 
@@ -27,6 +27,19 @@ export async function seedOrders(
   }
 ) {
   const { almonMix, zoyaMix, tehPelancar, kukis, kapsul } = products;
+
+  // ── Cleanup (idempotent re-seed) ──────────────────────────────────────────
+  // Urutan penting — hapus child tables dulu sebelum Order.
+  // ProductReviewHelpful & ProductReviewImage cascade dari ProductReview (onDelete: Cascade).
+  // Payment tidak cascade → hapus manual dulu.
+  // ProductReview tidak cascade dari Order → hapus manual dulu.
+  // OrderItem & OrderStatusHistory cascade dari Order → ikut terhapus otomatis.
+  await prisma.payment.deleteMany({});
+  await prisma.productReviewHelpful.deleteMany({});
+  await prisma.productReviewImage.deleteMany({});
+  await prisma.productReview.deleteMany({});
+  await prisma.order.deleteMany({});
+  // ─────────────────────────────────────────────────────────────────────────
 
   const reviewsAlmonMix = [
     { rating: 5, review: "Suka banget sama AlmonMix rasa Cokelat! ASI langsung berasa lebih deras setelah rutin minum 3 hari. Recommended banget buat busui!" },
@@ -81,7 +94,7 @@ export async function seedOrders(
   const productNameMap = new Map<string, string>();
   const allProductIds = [almonMix.id, zoyaMix.id, tehPelancar.id, kukis.id, kapsul.id];
   const productRecords = await prisma.product.findMany({
-    where: { id: { in: allProductIds } },
+    where:  { id: { in: allProductIds } },
     select: { id: true, name: true },
   });
   for (const p of productRecords) {
@@ -91,28 +104,27 @@ export async function seedOrders(
   let orderIndex = 1;
 
   // Simpan semua review yang dibuat beserta userId penulisnya
-  // format: { reviewId, authorUserId }
   const createdReviews: Array<{ reviewId: string; authorUserId: string }> = [];
 
   async function createMockOrder(opts: {
-    userId: string;
-    addressId: string;
-    lines: Array<{ productId: string; price: number; quantity: number }>;
-    createdAt: Date;
+    userId:        string;
+    addressId:     string;
+    lines:         Array<{ productId: string; price: number; quantity: number }>;
+    createdAt:     Date;
     trackingNumber: string;
-    reviewData: Array<{ rating: number; review: string } | null>;
+    reviewData:    Array<{ rating: number; review: string } | null>;
   }) {
-    const shippingCost = 15000;
-    const subtotal = opts.lines.reduce((sum, l) => sum + l.price * l.quantity, 0);
-    const total = subtotal + shippingCost;
-    const orderNumber = generateOrderNumber(opts.createdAt, orderIndex++);
+    const shippingCost = 15_000;
+    const subtotal     = opts.lines.reduce((sum, l) => sum + l.price * l.quantity, 0);
+    const total        = subtotal + shippingCost;
+    const orderNumber  = generateOrderNumber(opts.createdAt, orderIndex++);
 
     const order = await prisma.order.create({
       data: {
         orderNumber,
-        userId: opts.userId,
+        userId:    opts.userId,
         addressId: opts.addressId,
-        status: OrderStatus.delivered,
+        status:        OrderStatus.delivered,
         paymentStatus: PaymentStatus.paid,
         subtotal, total, shippingCost,
         courier: "JNE", service: "REG",
@@ -121,20 +133,20 @@ export async function seedOrders(
         updatedAt: opts.createdAt,
         items: {
           create: opts.lines.map((l) => ({
-            productId: l.productId,
-            productName: productNameMap.get(l.productId) ?? '',
-            quantity: l.quantity,
-            price: l.price,
-            createdAt: opts.createdAt,
-            updatedAt: opts.createdAt,
+            productId:   l.productId,
+            productName: productNameMap.get(l.productId) ?? "",
+            quantity:    l.quantity,
+            price:       l.price,
+            createdAt:   opts.createdAt,
+            updatedAt:   opts.createdAt,
           })),
         },
         payment: {
           create: {
-            provider: PaymentProvider.xendit,
-            status: PaymentStatus.paid,
-            amount: total,
-            paidAt: opts.createdAt,
+            provider:  PaymentProvider.xendit,
+            status:    PaymentStatus.paid,
+            amount:    total,
+            paidAt:    opts.createdAt,
             createdAt: opts.createdAt,
             updatedAt: opts.createdAt,
           },
@@ -148,19 +160,18 @@ export async function seedOrders(
       const reviewDate = new Date(opts.createdAt.getTime() + 3 * 24 * 60 * 60 * 1000);
       const review = await prisma.productReview.create({
         data: {
-          productId: opts.lines[i].productId,
-          userId: opts.userId,
-          orderId: order.id,
-          rating: rd.rating,
-          review: rd.review,
+          productId:         opts.lines[i].productId,
+          userId:            opts.userId,
+          orderId:           order.id,
+          rating:            rd.rating,
+          review:            rd.review,
           isVerifiedPurchase: true,
-          helpfulCount: 0, // akan di-update setelah helpful votes dibuat
-          createdAt: reviewDate,
-          updatedAt: reviewDate,
+          helpfulCount:      0,
+          createdAt:         reviewDate,
+          updatedAt:         reviewDate,
         },
       });
 
-      // Simpan untuk dipakai saat seed helpful votes
       createdReviews.push({ reviewId: review.id, authorUserId: opts.userId });
     }
 
@@ -170,48 +181,37 @@ export async function seedOrders(
   const c = customers;
   const a = addresses;
 
-  await createMockOrder({ userId: c[0].id, addressId: a[0].id, createdAt: daysAgo(60), trackingNumber: "JNE0001234560", lines: [{ productId: almonMix.id, price: 40000, quantity: 3 }, { productId: tehPelancar.id, price: 40000, quantity: 2 }], reviewData: [reviewsAlmonMix[0], reviewsTeh[0]] });
-  await createMockOrder({ userId: c[1].id, addressId: a[1].id, createdAt: daysAgo(55), trackingNumber: "JNE0001234561", lines: [{ productId: almonMix.id, price: 40000, quantity: 5 }], reviewData: [reviewsAlmonMix[1]] });
-  await createMockOrder({ userId: c[2].id, addressId: a[2].id, createdAt: daysAgo(50), trackingNumber: "JNE0001234562", lines: [{ productId: tehPelancar.id, price: 40000, quantity: 4 }, { productId: zoyaMix.id, price: 38000, quantity: 2 }], reviewData: [reviewsTeh[1], reviewsZoyaMix[0]] });
-  await createMockOrder({ userId: c[3].id, addressId: a[3].id, createdAt: daysAgo(45), trackingNumber: "JNE0001234563", lines: [{ productId: almonMix.id, price: 40000, quantity: 4 }, { productId: kukis.id, price: 40000, quantity: 2 }], reviewData: [reviewsAlmonMix[2], reviewsKukis[0]] });
-  await createMockOrder({ userId: c[4].id, addressId: a[4].id, createdAt: daysAgo(42), trackingNumber: "JNE0001234564", lines: [{ productId: tehPelancar.id, price: 40000, quantity: 3 }, { productId: kapsul.id, price: 61900, quantity: 1 }], reviewData: [reviewsTeh[2], reviewsKapsul[0]] });
-  await createMockOrder({ userId: c[5].id, addressId: a[5].id, createdAt: daysAgo(38), trackingNumber: "JNE0001234565", lines: [{ productId: almonMix.id, price: 40000, quantity: 6 }, { productId: zoyaMix.id, price: 38000, quantity: 3 }], reviewData: [reviewsAlmonMix[3], reviewsZoyaMix[1]] });
-  await createMockOrder({ userId: c[6].id, addressId: a[6].id, createdAt: daysAgo(35), trackingNumber: "JNE0001234566", lines: [{ productId: tehPelancar.id, price: 40000, quantity: 5 }, { productId: kukis.id, price: 40000, quantity: 2 }, { productId: kapsul.id, price: 61900, quantity: 1 }], reviewData: [reviewsTeh[3], reviewsKukis[1], reviewsKapsul[1]] });
-  await createMockOrder({ userId: c[7].id, addressId: a[7].id, createdAt: daysAgo(30), trackingNumber: "JNE0001234567", lines: [{ productId: almonMix.id, price: 40000, quantity: 8 }], reviewData: [reviewsAlmonMix[4]] });
-  await createMockOrder({ userId: c[8].id, addressId: a[8].id, createdAt: daysAgo(28), trackingNumber: "JNE0001234568", lines: [{ productId: zoyaMix.id, price: 38000, quantity: 4 }, { productId: kukis.id, price: 40000, quantity: 3 }], reviewData: [reviewsZoyaMix[2], reviewsKukis[2]] });
-  await createMockOrder({ userId: c[9].id, addressId: a[9].id, createdAt: daysAgo(25), trackingNumber: "JNE0001234569", lines: [{ productId: tehPelancar.id, price: 40000, quantity: 4 }, { productId: almonMix.id, price: 40000, quantity: 3 }, { productId: kapsul.id, price: 61900, quantity: 2 }], reviewData: [reviewsTeh[4], reviewsAlmonMix[5], reviewsKapsul[2]] });
-  await createMockOrder({ userId: c[0].id, addressId: a[0].id, createdAt: daysAgo(20), trackingNumber: "JNE0001234570", lines: [{ productId: tehPelancar.id, price: 40000, quantity: 6 }], reviewData: [reviewsTeh[5]] });
-  await createMockOrder({ userId: c[1].id, addressId: a[1].id, createdAt: daysAgo(18), trackingNumber: "JNE0001234571", lines: [{ productId: tehPelancar.id, price: 40000, quantity: 5 }, { productId: zoyaMix.id, price: 38000, quantity: 3 }], reviewData: [reviewsTeh[6], reviewsZoyaMix[3]] });
-  await createMockOrder({ userId: c[2].id, addressId: a[2].id, createdAt: daysAgo(15), trackingNumber: "JNE0001234572", lines: [{ productId: almonMix.id, price: 40000, quantity: 7 }], reviewData: [reviewsAlmonMix[6]] });
-  await createMockOrder({ userId: c[3].id, addressId: a[3].id, createdAt: daysAgo(14), trackingNumber: "JNE0001234573", lines: [{ productId: kapsul.id, price: 61900, quantity: 1 }, { productId: tehPelancar.id, price: 40000, quantity: 3 }], reviewData: [reviewsKapsul[3], reviewsTeh[7]] });
-  await createMockOrder({ userId: c[4].id, addressId: a[4].id, createdAt: daysAgo(12), trackingNumber: "JNE0001234574", lines: [{ productId: almonMix.id, price: 40000, quantity: 6 }, { productId: kukis.id, price: 40000, quantity: 2 }], reviewData: [reviewsAlmonMix[7], reviewsKukis[3]] });
-  await createMockOrder({ userId: c[5].id, addressId: a[5].id, createdAt: daysAgo(10), trackingNumber: "JNE0001234575", lines: [{ productId: tehPelancar.id, price: 40000, quantity: 6 }, { productId: zoyaMix.id, price: 38000, quantity: 4 }], reviewData: [reviewsTeh[8], reviewsZoyaMix[4]] });
-  await createMockOrder({ userId: c[6].id, addressId: a[6].id, createdAt: daysAgo(8),  trackingNumber: "JNE0001234576", lines: [{ productId: almonMix.id, price: 40000, quantity: 10 }], reviewData: [reviewsAlmonMix[8]] });
-  await createMockOrder({ userId: c[7].id, addressId: a[7].id, createdAt: daysAgo(6),  trackingNumber: "JNE0001234577", lines: [{ productId: tehPelancar.id, price: 40000, quantity: 4 }, { productId: kukis.id, price: 40000, quantity: 4 }], reviewData: [reviewsTeh[9], reviewsKukis[4]] });
-  await createMockOrder({ userId: c[8].id, addressId: a[8].id, createdAt: daysAgo(4),  trackingNumber: "JNE0001234578", lines: [{ productId: almonMix.id, price: 40000, quantity: 6 }], reviewData: [reviewsAlmonMix[9]] });
-  await createMockOrder({ userId: c[9].id, addressId: a[9].id, createdAt: daysAgo(2),  trackingNumber: "JNE0001234579", lines: [{ productId: zoyaMix.id, price: 38000, quantity: 5 }, { productId: almonMix.id, price: 40000, quantity: 4 }], reviewData: [null, null] });
+  await createMockOrder({ userId: c[0].id, addressId: a[0].id, createdAt: daysAgo(60), trackingNumber: "JNE0001234560", lines: [{ productId: almonMix.id,   price: 40000, quantity: 3 }, { productId: tehPelancar.id, price: 40000, quantity: 2 }], reviewData: [reviewsAlmonMix[0], reviewsTeh[0]] });
+  await createMockOrder({ userId: c[1].id, addressId: a[1].id, createdAt: daysAgo(55), trackingNumber: "JNE0001234561", lines: [{ productId: almonMix.id,   price: 40000, quantity: 5 }],                                                              reviewData: [reviewsAlmonMix[1]] });
+  await createMockOrder({ userId: c[2].id, addressId: a[2].id, createdAt: daysAgo(50), trackingNumber: "JNE0001234562", lines: [{ productId: tehPelancar.id, price: 40000, quantity: 4 }, { productId: zoyaMix.id,    price: 38000, quantity: 2 }], reviewData: [reviewsTeh[1],    reviewsZoyaMix[0]] });
+  await createMockOrder({ userId: c[3].id, addressId: a[3].id, createdAt: daysAgo(45), trackingNumber: "JNE0001234563", lines: [{ productId: almonMix.id,   price: 40000, quantity: 4 }, { productId: kukis.id,      price: 40000, quantity: 2 }], reviewData: [reviewsAlmonMix[2], reviewsKukis[0]] });
+  await createMockOrder({ userId: c[4].id, addressId: a[4].id, createdAt: daysAgo(42), trackingNumber: "JNE0001234564", lines: [{ productId: tehPelancar.id, price: 40000, quantity: 3 }, { productId: kapsul.id,     price: 61900, quantity: 1 }], reviewData: [reviewsTeh[2],    reviewsKapsul[0]] });
+  await createMockOrder({ userId: c[5].id, addressId: a[5].id, createdAt: daysAgo(38), trackingNumber: "JNE0001234565", lines: [{ productId: almonMix.id,   price: 40000, quantity: 6 }, { productId: zoyaMix.id,    price: 38000, quantity: 3 }], reviewData: [reviewsAlmonMix[3], reviewsZoyaMix[1]] });
+  await createMockOrder({ userId: c[6].id, addressId: a[6].id, createdAt: daysAgo(35), trackingNumber: "JNE0001234566", lines: [{ productId: tehPelancar.id, price: 40000, quantity: 5 }, { productId: kukis.id,      price: 40000, quantity: 2 }, { productId: kapsul.id, price: 61900, quantity: 1 }], reviewData: [reviewsTeh[3], reviewsKukis[1], reviewsKapsul[1]] });
+  await createMockOrder({ userId: c[7].id, addressId: a[7].id, createdAt: daysAgo(30), trackingNumber: "JNE0001234567", lines: [{ productId: almonMix.id,   price: 40000, quantity: 8 }],                                                              reviewData: [reviewsAlmonMix[4]] });
+  await createMockOrder({ userId: c[8].id, addressId: a[8].id, createdAt: daysAgo(28), trackingNumber: "JNE0001234568", lines: [{ productId: zoyaMix.id,    price: 38000, quantity: 4 }, { productId: kukis.id,      price: 40000, quantity: 3 }], reviewData: [reviewsZoyaMix[2], reviewsKukis[2]] });
+  await createMockOrder({ userId: c[9].id, addressId: a[9].id, createdAt: daysAgo(25), trackingNumber: "JNE0001234569", lines: [{ productId: tehPelancar.id, price: 40000, quantity: 4 }, { productId: almonMix.id,   price: 40000, quantity: 3 }, { productId: kapsul.id, price: 61900, quantity: 2 }], reviewData: [reviewsTeh[4], reviewsAlmonMix[5], reviewsKapsul[2]] });
+  await createMockOrder({ userId: c[0].id, addressId: a[0].id, createdAt: daysAgo(20), trackingNumber: "JNE0001234570", lines: [{ productId: tehPelancar.id, price: 40000, quantity: 6 }],                                                              reviewData: [reviewsTeh[5]] });
+  await createMockOrder({ userId: c[1].id, addressId: a[1].id, createdAt: daysAgo(18), trackingNumber: "JNE0001234571", lines: [{ productId: tehPelancar.id, price: 40000, quantity: 5 }, { productId: zoyaMix.id,    price: 38000, quantity: 3 }], reviewData: [reviewsTeh[6],    reviewsZoyaMix[3]] });
+  await createMockOrder({ userId: c[2].id, addressId: a[2].id, createdAt: daysAgo(15), trackingNumber: "JNE0001234572", lines: [{ productId: almonMix.id,   price: 40000, quantity: 7 }],                                                              reviewData: [reviewsAlmonMix[6]] });
+  await createMockOrder({ userId: c[3].id, addressId: a[3].id, createdAt: daysAgo(14), trackingNumber: "JNE0001234573", lines: [{ productId: kapsul.id,     price: 61900, quantity: 1 }, { productId: tehPelancar.id, price: 40000, quantity: 3 }], reviewData: [reviewsKapsul[3], reviewsTeh[7]] });
+  await createMockOrder({ userId: c[4].id, addressId: a[4].id, createdAt: daysAgo(12), trackingNumber: "JNE0001234574", lines: [{ productId: almonMix.id,   price: 40000, quantity: 6 }, { productId: kukis.id,      price: 40000, quantity: 2 }], reviewData: [reviewsAlmonMix[7], reviewsKukis[3]] });
+  await createMockOrder({ userId: c[5].id, addressId: a[5].id, createdAt: daysAgo(10), trackingNumber: "JNE0001234575", lines: [{ productId: tehPelancar.id, price: 40000, quantity: 6 }, { productId: zoyaMix.id,    price: 38000, quantity: 4 }], reviewData: [reviewsTeh[8],    reviewsZoyaMix[4]] });
+  await createMockOrder({ userId: c[6].id, addressId: a[6].id, createdAt: daysAgo(8),  trackingNumber: "JNE0001234576", lines: [{ productId: almonMix.id,   price: 40000, quantity: 10 }],                                                             reviewData: [reviewsAlmonMix[8]] });
+  await createMockOrder({ userId: c[7].id, addressId: a[7].id, createdAt: daysAgo(6),  trackingNumber: "JNE0001234577", lines: [{ productId: tehPelancar.id, price: 40000, quantity: 4 }, { productId: kukis.id,      price: 40000, quantity: 4 }], reviewData: [reviewsTeh[9],    reviewsKukis[4]] });
+  await createMockOrder({ userId: c[8].id, addressId: a[8].id, createdAt: daysAgo(4),  trackingNumber: "JNE0001234578", lines: [{ productId: almonMix.id,   price: 40000, quantity: 6 }],                                                              reviewData: [reviewsAlmonMix[9]] });
+  await createMockOrder({ userId: c[9].id, addressId: a[9].id, createdAt: daysAgo(2),  trackingNumber: "JNE0001234579", lines: [{ productId: zoyaMix.id,    price: 38000, quantity: 5 }, { productId: almonMix.id,   price: 40000, quantity: 4 }], reviewData: [null, null] });
 
   // ─── Seed Helpful Votes ───────────────────────────────────────────────────
-  // Setiap review mendapat helpful vote dari customers lain (bukan penulisnya).
-  // Jumlah voter per review: review lama (index kecil) dapat lebih banyak vote
-  // karena sudah ada lebih lama — makin realistis.
 
   const allCustomerIds = customers.map((cu) => cu.id);
 
-  // Bobot helpful vote per review berdasarkan urutan review (index 0 = paling lama)
-  // range antara 2–8 voter per review
-  const helpfulWeights = [8, 7, 6, 8, 9, 5, 7, 3, 8, 6]; // almonMix (10 review)
-  const tehWeights     = [9, 8, 5, 7, 4, 8, 6, 4, 7, 2]; // teh (10 review)
-  const zoyaWeights    = [6, 4, 7, 3, 5];                 // zoyaMix (5 review)
-  const kukisWeights   = [7, 4, 8, 3, 6];                 // kukis (5 review)
-  const kapsulWeights  = [8, 7, 4, 6];                    // kapsul (4 review)
+  const helpfulWeights = [8, 7, 6, 8, 9, 5, 7, 3, 8, 6];
+  const tehWeights     = [9, 8, 5, 7, 4, 8, 6, 4, 7, 2];
+  const zoyaWeights    = [6, 4, 7, 3, 5];
+  const kukisWeights   = [7, 4, 8, 3, 6];
+  const kapsulWeights  = [8, 7, 4, 6];
 
-  // Gabungkan semua weight sesuai urutan review dibuat
-  // Urutan: almon[0], teh[0], almon[1], teh[1]+zoya[0], almon[2]+kukis[0],
-  //         teh[2]+kapsul[0], almon[3]+zoya[1], almon[4], zoya[2]+kukis[2],
-  //         teh[4]+almon[5]+kapsul[2], teh[5], teh[6]+zoya[3], almon[6],
-  //         kapsul[3]+teh[7], almon[7]+kukis[3], teh[8]+zoya[4], almon[8],
-  //         teh[9]+kukis[4], almon[9]
   const allWeights = [
     ...helpfulWeights,
     ...tehWeights,
@@ -223,31 +223,20 @@ export async function seedOrders(
   for (let i = 0; i < createdReviews.length; i++) {
     const { reviewId, authorUserId } = createdReviews[i];
 
-    // Ambil voters: semua customers kecuali penulis review
     const eligibleVoters = allCustomerIds.filter((id) => id !== authorUserId);
+    const targetVotes    = Math.min(allWeights[i] ?? 3, eligibleVoters.length);
+    const shuffled       = [...eligibleVoters].sort(() => Math.random() - 0.5);
+    const voters         = shuffled.slice(0, targetVotes);
 
-    // Jumlah voter untuk review ini (max = jumlah eligible voters)
-    const targetVotes = Math.min(allWeights[i] ?? 3, eligibleVoters.length);
-
-    // Shuffle eligible voters dan ambil sejumlah targetVotes
-    const shuffled = [...eligibleVoters].sort(() => Math.random() - 0.5);
-    const voters = shuffled.slice(0, targetVotes);
-
-    // Insert ke ProductReviewHelpful
     for (const voterId of voters) {
       await prisma.productReviewHelpful.create({
-        data: {
-          reviewId,
-          userId: voterId,
-          isHelpful: true,
-        },
+        data: { reviewId, userId: voterId, isHelpful: true },
       });
     }
 
-    // Update helpfulCount di ProductReview sesuai jumlah actual votes
     await prisma.productReview.update({
       where: { id: reviewId },
-      data: { helpfulCount: voters.length },
+      data:  { helpfulCount: voters.length },
     });
   }
 
@@ -258,18 +247,18 @@ export async function seedOrders(
   for (const productId of allProductIds) {
     const result = await prisma.productReview.aggregate({
       where: { productId },
-      _avg: { rating: true },
+      _avg:   { rating: true },
       _count: { rating: true },
     });
 
     await prisma.product.update({
       where: { id: productId },
-      data: {
-        avgRating: result._avg.rating ?? 0,
+      data:  {
+        avgRating:   result._avg.rating ?? 0,
         reviewCount: result._count.rating,
       },
     });
   }
 
   console.log("✅ Orders, payments, reviews, helpful votes & avgRating seeded");
-}
+} 
