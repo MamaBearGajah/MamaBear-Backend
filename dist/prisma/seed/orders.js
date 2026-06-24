@@ -2,9 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.seedOrders = seedOrders;
 const client_1 = require("../../generated/prisma/client");
-function daysAgo(days) {
+function daysAgo(n) {
     const d = new Date();
-    d.setDate(d.getDate() - days);
+    d.setDate(d.getDate() - n);
     return d;
 }
 function generateOrderNumber(createdAt, index) {
@@ -16,6 +16,11 @@ function generateOrderNumber(createdAt, index) {
 }
 async function seedOrders(prisma, { customers, addresses, products }) {
     const { almonMix, zoyaMix, tehPelancar, kukis, kapsul } = products;
+    await prisma.payment.deleteMany({});
+    await prisma.productReviewHelpful.deleteMany({});
+    await prisma.productReviewImage.deleteMany({});
+    await prisma.productReview.deleteMany({});
+    await prisma.order.deleteMany({});
     const reviewsAlmonMix = [
         { rating: 5, review: "Suka banget sama AlmonMix rasa Cokelat! ASI langsung berasa lebih deras setelah rutin minum 3 hari. Recommended banget buat busui!" },
         { rating: 5, review: "Rasa Choco Hazelnut favoritnya, apalagi dicampur es batu. ASI makin lancar, mood juga ikut membaik." },
@@ -72,7 +77,7 @@ async function seedOrders(prisma, { customers, addresses, products }) {
     let orderIndex = 1;
     const createdReviews = [];
     async function createMockOrder(opts) {
-        const shippingCost = 15000;
+        const shippingCost = 15_000;
         const subtotal = opts.lines.reduce((sum, l) => sum + l.price * l.quantity, 0);
         const total = subtotal + shippingCost;
         const orderNumber = generateOrderNumber(opts.createdAt, orderIndex++);
@@ -91,7 +96,7 @@ async function seedOrders(prisma, { customers, addresses, products }) {
                 items: {
                     create: opts.lines.map((l) => ({
                         productId: l.productId,
-                        productName: productNameMap.get(l.productId) ?? '',
+                        productName: productNameMap.get(l.productId) ?? "",
                         quantity: l.quantity,
                         price: l.price,
                         createdAt: opts.createdAt,
@@ -175,11 +180,7 @@ async function seedOrders(prisma, { customers, addresses, products }) {
         const voters = shuffled.slice(0, targetVotes);
         for (const voterId of voters) {
             await prisma.productReviewHelpful.create({
-                data: {
-                    reviewId,
-                    userId: voterId,
-                    isHelpful: true,
-                },
+                data: { reviewId, userId: voterId, isHelpful: true },
             });
         }
         await prisma.productReview.update({

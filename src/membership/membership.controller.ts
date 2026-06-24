@@ -7,6 +7,7 @@ import {
   Query,
   DefaultValuePipe,
   ParseIntPipe,
+  Param,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -17,6 +18,7 @@ import {
 } from '@nestjs/swagger';
 import { MembershipService } from './membership.service';
 import { RedeemPointsDto } from './dto/redeem-points.dto';
+import { AdminAdjustPointsDto } from './dto/admin-adjust-points.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { GetUser, Roles } from '../auth/decorators';
@@ -58,8 +60,8 @@ export class MembershipController {
     summary: 'Redeem point jadi voucher potongan harga',
     description: `
       Konversi point menjadi voucher diskon.
-      - 1 point = Rp 1.000 potongan harga
-      - Minimal redeem 10 point (= Rp 10.000)
+      - 1 point = Rp 100 potongan harga
+      - Minimal redeem 100 point (= Rp 10.000)
       - Voucher berlaku 30 hari
     `,
   })
@@ -111,11 +113,55 @@ export class MembershipController {
   @ApiQuery({ name: 'page', required: false, example: 1 })
   @ApiQuery({ name: 'limit', required: false, example: 20 })
   @ApiQuery({ name: 'tier', required: false, enum: MembershipTier })
+  @ApiQuery({ name: 'search', required: false, description: 'Cari by nama/email user' })
   findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
     @Query('tier') tier?: MembershipTier,
+    @Query('search') search?: string,
   ) {
-    return this.membershipService.findAll(page, limit, tier);
+    return this.membershipService.findAll(page, limit, tier, search);
+  }
+
+  @Get('stats')
+  @UseGuards(RolesGuard)
+  @Roles(Role.admin, Role.super_admin)
+  @ApiOperation({ summary: '[Admin] Statistik membership (jumlah per tier, total point beredar)' })
+  getMembershipStats() {
+    return this.membershipService.getStats();
+  }
+
+  @Get('user/:userId')
+  @UseGuards(RolesGuard)
+  @Roles(Role.admin, Role.super_admin)
+  @ApiOperation({ summary: '[Admin] Detail membership satu user' })
+  getMembershipByUser(@Param('userId') userId: string) {
+    return this.membershipService.getMyMembership(userId);
+  }
+
+  @Get('user/:userId/points/history')
+  @UseGuards(RolesGuard)
+  @Roles(Role.admin, Role.super_admin)
+  @ApiOperation({ summary: '[Admin] Riwayat point satu user' })
+  @ApiQuery({ name: 'page', required: false, example: 1 })
+  @ApiQuery({ name: 'limit', required: false, example: 20 })
+  getPointHistoryByUser(
+    @Param('userId') userId: string,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
+  ) {
+    return this.membershipService.getPointHistory(userId, page, limit);
+  }
+
+  @Post('admin/adjust-points')
+  @UseGuards(RolesGuard)
+  @Roles(Role.admin, Role.super_admin)
+  @ApiOperation({
+    summary: '[Admin] Tambah/kurangi point user secara manual',
+    description: 'Gunakan untuk kompensasi, koreksi, atau reward manual. Nilai negatif = kurangi.',
+  })
+  @ApiResponse({ status: 201, description: 'Point berhasil disesuaikan' })
+  adminAdjustPoints(@Body() dto: AdminAdjustPointsDto) {
+    return this.membershipService.adminAdjustPoints(dto);
   }
 }
