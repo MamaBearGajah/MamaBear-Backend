@@ -7,11 +7,11 @@ export declare class VoucherController {
     constructor(voucherService: VoucherService);
     getMyVouchers(userId: string): Promise<{
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         isActive: boolean;
         startDate: Date | null;
         endDate: Date | null;
-        createdAt: Date;
-        updatedAt: Date;
         value: import("@prisma/client-runtime-utils").Decimal;
         code: string;
         type: import("../../generated/prisma/enums").VoucherType;
@@ -26,11 +26,11 @@ export declare class VoucherController {
         valid: boolean;
         voucher: {
             id: string;
+            createdAt: Date;
+            updatedAt: Date;
             isActive: boolean;
             startDate: Date | null;
             endDate: Date | null;
-            createdAt: Date;
-            updatedAt: Date;
             value: import("@prisma/client-runtime-utils").Decimal;
             code: string;
             type: import("../../generated/prisma/enums").VoucherType;
@@ -49,11 +49,11 @@ export declare class VoucherController {
         valid: boolean;
         voucher: {
             id: string;
+            createdAt: Date;
+            updatedAt: Date;
             isActive: boolean;
             startDate: Date | null;
             endDate: Date | null;
-            createdAt: Date;
-            updatedAt: Date;
             value: import("@prisma/client-runtime-utils").Decimal;
             code: string;
             type: import("../../generated/prisma/enums").VoucherType;
@@ -77,11 +77,11 @@ export declare class VoucherController {
             } | null;
         } & {
             id: string;
+            createdAt: Date;
+            updatedAt: Date;
             isActive: boolean;
             startDate: Date | null;
             endDate: Date | null;
-            createdAt: Date;
-            updatedAt: Date;
             value: import("@prisma/client-runtime-utils").Decimal;
             code: string;
             type: import("../../generated/prisma/enums").VoucherType;
@@ -101,11 +101,11 @@ export declare class VoucherController {
     }>;
     create(dto: CreateVoucherDto): Promise<{
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         isActive: boolean;
         startDate: Date | null;
         endDate: Date | null;
-        createdAt: Date;
-        updatedAt: Date;
         value: import("@prisma/client-runtime-utils").Decimal;
         code: string;
         type: import("../../generated/prisma/enums").VoucherType;
@@ -118,11 +118,11 @@ export declare class VoucherController {
     }>;
     update(id: string, dto: CreateVoucherDto): Promise<{
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         isActive: boolean;
         startDate: Date | null;
         endDate: Date | null;
-        createdAt: Date;
-        updatedAt: Date;
         value: import("@prisma/client-runtime-utils").Decimal;
         code: string;
         type: import("../../generated/prisma/enums").VoucherType;
@@ -135,11 +135,11 @@ export declare class VoucherController {
     }>;
     deactivate(id: string): Promise<{
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         isActive: boolean;
         startDate: Date | null;
         endDate: Date | null;
-        createdAt: Date;
-        updatedAt: Date;
         value: import("@prisma/client-runtime-utils").Decimal;
         code: string;
         type: import("../../generated/prisma/enums").VoucherType;

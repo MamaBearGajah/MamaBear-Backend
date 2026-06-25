@@ -7,15 +7,15 @@ export declare class ConsultationsController {
     constructor(consultationsService: ConsultationsService);
     create(dto: CreateConsultationDto): Promise<{
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         name: string;
-        status: import("generated/prisma/enums").ConsultationStatus;
         email: string;
         phone: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+        status: import("generated/prisma/enums").ConsultationStatus;
         message: string;
-        response: string | null;
         respondedBy: string | null;
+        response: string | null;
         respondedAt: Date | null;
     }>;
     findAll(query: ConsultationQueryDto): Promise<{
@@ -27,15 +27,15 @@ export declare class ConsultationsController {
             } | null;
         } & {
             id: string;
-            createdAt: Date;
-            updatedAt: Date;
             name: string;
-            status: import("generated/prisma/enums").ConsultationStatus;
             email: string;
             phone: string | null;
+            createdAt: Date;
+            updatedAt: Date;
+            status: import("generated/prisma/enums").ConsultationStatus;
             message: string;
-            response: string | null;
             respondedBy: string | null;
+            response: string | null;
             respondedAt: Date | null;
         })[];
         meta: {
@@ -53,15 +53,15 @@ export declare class ConsultationsController {
         } | null;
     } & {
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         name: string;
-        status: import("generated/prisma/enums").ConsultationStatus;
         email: string;
         phone: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+        status: import("generated/prisma/enums").ConsultationStatus;
         message: string;
-        response: string | null;
         respondedBy: string | null;
+        response: string | null;
         respondedAt: Date | null;
     }>;
     update(id: string, dto: UpdateConsultationDto, adminId: string, { id: string }: {
@@ -74,15 +74,15 @@ export declare class ConsultationsController {
         } | null;
     } & {
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         name: string;
-        status: import("generated/prisma/enums").ConsultationStatus;
         email: string;
         phone: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+        status: import("generated/prisma/enums").ConsultationStatus;
         message: string;
-        response: string | null;
         respondedBy: string | null;
+        response: string | null;
         respondedAt: Date | null;
     }>;
 }

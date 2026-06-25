@@ -32,11 +32,11 @@ export declare class ReviewsController {
         updatedAt: Date;
         userId: string;
         productId: string;
+        orderId: string;
         rating: number | null;
         review: string | null;
         isVerifiedPurchase: boolean;
         helpfulCount: number;
-        orderId: string;
     }>;
     updateReview(reviewId: string, dto: UpdateReviewDto, userId: string): Promise<{
         user: {
@@ -49,11 +49,11 @@ export declare class ReviewsController {
         updatedAt: Date;
         userId: string;
         productId: string;
+        orderId: string;
         rating: number | null;
         review: string | null;
         isVerifiedPurchase: boolean;
         helpfulCount: number;
-        orderId: string;
     }>;
     deleteReview(reviewId: string, userId: string, role: Role): Promise<{
         message: string;

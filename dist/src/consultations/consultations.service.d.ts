@@ -7,15 +7,15 @@ export declare class ConsultationsService {
     constructor(prisma: PrismaService);
     create(dto: CreateConsultationDto): Promise<{
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         name: string;
-        status: import("generated/prisma/client").ConsultationStatus;
         email: string;
         phone: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+        status: import("generated/prisma/client").ConsultationStatus;
         message: string;
-        response: string | null;
         respondedBy: string | null;
+        response: string | null;
         respondedAt: Date | null;
     }>;
     findAll(query: ConsultationQueryDto): Promise<{
@@ -27,15 +27,15 @@ export declare class ConsultationsService {
             } | null;
         } & {
             id: string;
-            createdAt: Date;
-            updatedAt: Date;
             name: string;
-            status: import("generated/prisma/client").ConsultationStatus;
             email: string;
             phone: string | null;
+            createdAt: Date;
+            updatedAt: Date;
+            status: import("generated/prisma/client").ConsultationStatus;
             message: string;
-            response: string | null;
             respondedBy: string | null;
+            response: string | null;
             respondedAt: Date | null;
         })[];
         meta: {
@@ -53,15 +53,15 @@ export declare class ConsultationsService {
         } | null;
     } & {
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         name: string;
-        status: import("generated/prisma/client").ConsultationStatus;
         email: string;
         phone: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+        status: import("generated/prisma/client").ConsultationStatus;
         message: string;
-        response: string | null;
         respondedBy: string | null;
+        response: string | null;
         respondedAt: Date | null;
     }>;
     updateStatus(id: string, dto: UpdateConsultationDto, adminId: string): Promise<{
@@ -72,15 +72,15 @@ export declare class ConsultationsService {
         } | null;
     } & {
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         name: string;
-        status: import("generated/prisma/client").ConsultationStatus;
         email: string;
         phone: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+        status: import("generated/prisma/client").ConsultationStatus;
         message: string;
-        response: string | null;
         respondedBy: string | null;
+        response: string | null;
         respondedAt: Date | null;
     }>;
 }
