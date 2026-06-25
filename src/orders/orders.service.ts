@@ -114,16 +114,7 @@ export class OrdersService {
 
     // ── Voucher ─────────────────────────────────────────────────────────────
     let discountAmount = 0;
-    let finalShippingCost = shippingCost;
     const resolvedVoucherId = dto.voucherId ?? null;
-
-    if (resolvedVoucherId) {
-      const v = await this.voucherService.validate(resolvedVoucherId, subtotal, shippingCost, userId);
-      discountAmount = v.discountAmount;
-      finalShippingCost = v.finalShippingCost;
-    }
-
-    const total = Math.max(0, subtotal + finalShippingCost - discountAmount);
     const orderNumber = await this.generateOrderNumber();
 
     // ── Deadline timestamps ──────────────────────────────────────────────────
@@ -133,10 +124,11 @@ export class OrdersService {
 
     const order = await this.prisma.$transaction(async (tx) => {
       if (resolvedVoucherId) {
-        const applied = await this.voucherService.applyVoucher(tx, resolvedVoucherId, subtotal, shippingCost);
-        discountAmount      = applied.discountAmount;
-        finalShippingCost   = applied.finalShippingCost;
+        const applied = await this.voucherService.applyVoucher(tx, resolvedVoucherId, subtotal, userId);
+        discountAmount = applied.discountAmount;
       }
+
+      const total = Math.max(0, subtotal + shippingCost - discountAmount);
 
       const newOrder = await tx.order.create({
         data: {
@@ -149,7 +141,7 @@ export class OrdersService {
           notes: dto.notes ?? null,
           subtotal:          new Prisma.Decimal(subtotal),
           discountAmount:    new Prisma.Decimal(discountAmount),
-          shippingCost:      new Prisma.Decimal(finalShippingCost),
+          shippingCost:      new Prisma.Decimal(shippingCost),
           total:             new Prisma.Decimal(total),
           status:            'pending',
           paymentStatus:     'pending',
