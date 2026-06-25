@@ -18,18 +18,73 @@ let ConsultationsService = class ConsultationsService {
         this.prisma = prisma;
     }
     async create(dto) {
-        return this.prisma.consultation.create({ data: dto });
+        return this.prisma.consultation.create({
+            data: {
+                name: dto.name,
+                email: dto.email,
+                phone: dto.phone,
+                message: dto.message,
+            },
+        });
     }
     async findAll(query) {
-        const { page = 1, limit = 20 } = query;
+        const page = query.page ?? 1;
+        const limit = query.limit ?? 20;
         const skip = (page - 1) * limit;
+        const where = {
+            ...(query.status && {
+                status: query.status,
+            }),
+            ...(query.search && {
+                OR: [
+                    {
+                        name: {
+                            contains: query.search,
+                            mode: 'insensitive',
+                        },
+                    },
+                    {
+                        email: {
+                            contains: query.search,
+                            mode: 'insensitive',
+                        },
+                    },
+                    {
+                        phone: {
+                            contains: query.search,
+                            mode: 'insensitive',
+                        },
+                    },
+                    {
+                        message: {
+                            contains: query.search,
+                            mode: 'insensitive',
+                        },
+                    },
+                ],
+            }),
+        };
         const [data, total] = await Promise.all([
             this.prisma.consultation.findMany({
+                where,
                 skip,
                 take: limit,
-                orderBy: { createdAt: 'desc' },
+                orderBy: {
+                    createdAt: 'desc',
+                },
+                include: {
+                    admin: {
+                        select: {
+                            id: true,
+                            name: true,
+                            email: true,
+                        },
+                    },
+                },
             }),
-            this.prisma.consultation.count(),
+            this.prisma.consultation.count({
+                where,
+            }),
         ]);
         return {
             data,
@@ -41,13 +96,56 @@ let ConsultationsService = class ConsultationsService {
             },
         };
     }
-    async updateStatus(id, dto) {
-        const consultation = await this.prisma.consultation.findUnique({ where: { id } });
-        if (!consultation)
+    async findOne(id) {
+        const consultation = await this.prisma.consultation.findUnique({
+            where: {
+                id,
+            },
+            include: {
+                admin: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                    },
+                },
+            },
+        });
+        if (!consultation) {
             throw new common_1.NotFoundException(`Konsultasi dengan id ${id} tidak ditemukan`);
+        }
+        return consultation;
+    }
+    async updateStatus(id, dto, adminId) {
+        const consultation = await this.prisma.consultation.findUnique({
+            where: {
+                id,
+            },
+        });
+        if (!consultation) {
+            throw new common_1.NotFoundException(`Konsultasi dengan id ${id} tidak ditemukan`);
+        }
         return this.prisma.consultation.update({
-            where: { id },
-            data: { status: dto.status },
+            where: {
+                id,
+            },
+            data: {
+                status: dto.status,
+                respondedBy: adminId,
+                ...(dto.response && {
+                    response: dto.response,
+                    respondedAt: new Date(),
+                }),
+            },
+            include: {
+                admin: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                    },
+                },
+            },
         });
     }
 };

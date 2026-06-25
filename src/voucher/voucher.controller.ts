@@ -27,6 +27,7 @@ import { ValidateVoucherDto } from './dto/validate-voucher.dto';
 import { ApplyVoucherDto } from './dto/apply-voucher.dto';
 import { GetUser, Roles } from '../auth/decorators';
 import { RolesGuard } from '../auth/guards/roles.guard';
+import { Public } from '../auth/decorators';
 import { Role } from '../../generated/prisma/enums';
 
 @ApiTags('Voucher')
@@ -40,8 +41,7 @@ export class VoucherController {
   @Get('my')
   @ApiOperation({
     summary: 'Daftar voucher milik saya (aktif)',
-    description:
-      'Menampilkan voucher personal (dari redeem point atau tier benefit) yang masih aktif dan belum kadaluarsa.',
+    description: 'Menampilkan voucher personal (dari redeem point atau tier benefit) yang masih aktif dan belum kadaluarsa.',
   })
   @ApiResponse({ status: 200, description: 'List voucher berhasil diambil' })
   getMyVouchers(@GetUser('id') userId: string) {
@@ -58,7 +58,7 @@ export class VoucherController {
       Cek apakah voucher valid dan hitung nilai diskonnya.
       Tidak mengubah state DB (tidak mengurangi usedCount).
 
-      Voucher hanya mengurangi total harga produk. Ongkir tidak terpengaruh.
+      Kirim totalAmount dan shippingCost untuk mendapat kalkulasi diskon yang akurat.
     `,
   })
   @ApiResponse({
@@ -76,7 +76,10 @@ export class VoucherController {
   })
   @ApiResponse({ status: 400, description: 'Voucher tidak valid / kadaluarsa / tidak cukup belanja' })
   @ApiResponse({ status: 404, description: 'Voucher tidak ditemukan' })
-  validate(@Body() dto: ValidateVoucherDto, @GetUser('id') userId: string) {
+  validate(
+    @Body() dto: ValidateVoucherDto,
+    @GetUser('id') userId: string,
+  ) {
     return this.voucherService.validate(
       dto.code,
       dto.totalAmount,
@@ -85,7 +88,7 @@ export class VoucherController {
     );
   }
 
-  // ─── User: Apply voucher saat checkout ───────────────────────────────────
+  // ─── User: Apply voucher untuk cart / preview order ───────────────────────
 
   @Post('apply')
   @HttpCode(HttpStatus.OK)
@@ -140,11 +143,11 @@ export class VoucherController {
     summary: '[Admin] Buat voucher baru',
     description: `
       Tipe voucher:
-      - **percentage** — diskon % dari subtotal (gunakan \`maxDiscount\` untuk batasi nominal)
+      - **percentage** — diskon % dari subtotal (gunakan maxDiscount untuk batasi nominal)
       - **fixed** — potongan nominal tetap dari subtotal
-      - **free_shipping** — potongan ongkir sebesar \`value\`
-      
-      Jika \`ownerId\` diisi, voucher hanya bisa dipakai user tersebut.
+      - **free_shipping** — potongan ongkir sebesar value
+
+      Jika ownerId diisi, voucher hanya bisa dipakai user tersebut.
     `,
   })
   @ApiResponse({ status: 201, description: 'Voucher berhasil dibuat' })

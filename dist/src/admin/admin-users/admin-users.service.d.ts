@@ -6,13 +6,13 @@ export declare class AdminUsersService {
     findAll(): Promise<{
         data: {
             id: string;
+            createdAt: Date;
+            updatedAt: Date;
             name: string;
             email: string;
             phone: string | null;
             role: import("../../../generated/prisma/enums").Role;
             isVerified: boolean;
-            createdAt: Date;
-            updatedAt: Date;
             bannedAt: Date | null;
         }[];
         total: number;
@@ -21,11 +21,11 @@ export declare class AdminUsersService {
         message: string;
         data: {
             id: string;
+            createdAt: Date;
             name: string;
             email: string;
             role: import("../../../generated/prisma/enums").Role;
             isVerified: boolean;
-            createdAt: Date;
         };
     }>;
     updateRole(targetId: string, dto: UpdateAdminUserRoleDto, requesterId: string): Promise<{

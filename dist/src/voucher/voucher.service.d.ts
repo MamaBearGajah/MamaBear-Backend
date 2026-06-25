@@ -13,11 +13,11 @@ export declare class VoucherService {
     constructor(prisma: PrismaService);
     create(dto: CreateVoucherDto): Promise<{
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         isActive: boolean;
         startDate: Date | null;
         endDate: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
         value: import("@prisma/client-runtime-utils").Decimal;
         code: string;
         type: VoucherType;
@@ -30,11 +30,11 @@ export declare class VoucherService {
     }>;
     update(id: string, dto: UpdateVoucherDto): Promise<{
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         isActive: boolean;
         startDate: Date | null;
         endDate: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
         value: import("@prisma/client-runtime-utils").Decimal;
         code: string;
         type: VoucherType;
@@ -54,11 +54,11 @@ export declare class VoucherService {
             } | null;
         } & {
             id: string;
-            createdAt: Date;
-            updatedAt: Date;
             isActive: boolean;
             startDate: Date | null;
             endDate: Date | null;
+            createdAt: Date;
+            updatedAt: Date;
             value: import("@prisma/client-runtime-utils").Decimal;
             code: string;
             type: VoucherType;
@@ -78,11 +78,11 @@ export declare class VoucherService {
     }>;
     deactivate(id: string): Promise<{
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         isActive: boolean;
         startDate: Date | null;
         endDate: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
         value: import("@prisma/client-runtime-utils").Decimal;
         code: string;
         type: VoucherType;
@@ -95,11 +95,11 @@ export declare class VoucherService {
     }>;
     getMyVouchers(userId: string): Promise<{
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         isActive: boolean;
         startDate: Date | null;
         endDate: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
         value: import("@prisma/client-runtime-utils").Decimal;
         code: string;
         type: VoucherType;
@@ -114,11 +114,11 @@ export declare class VoucherService {
         valid: boolean;
         voucher: {
             id: string;
-            createdAt: Date;
-            updatedAt: Date;
             isActive: boolean;
             startDate: Date | null;
             endDate: Date | null;
+            createdAt: Date;
+            updatedAt: Date;
             value: import("@prisma/client-runtime-utils").Decimal;
             code: string;
             type: VoucherType;
@@ -137,11 +137,11 @@ export declare class VoucherService {
         valid: boolean;
         voucher: {
             id: string;
-            createdAt: Date;
-            updatedAt: Date;
             isActive: boolean;
             startDate: Date | null;
             endDate: Date | null;
+            createdAt: Date;
+            updatedAt: Date;
             value: import("@prisma/client-runtime-utils").Decimal;
             code: string;
             type: VoucherType;
@@ -160,11 +160,11 @@ export declare class VoucherService {
         valid: boolean;
         voucher: {
             id: string;
-            createdAt: Date;
-            updatedAt: Date;
             isActive: boolean;
             startDate: Date | null;
             endDate: Date | null;
+            createdAt: Date;
+            updatedAt: Date;
             value: import("@prisma/client-runtime-utils").Decimal;
             code: string;
             type: VoucherType;

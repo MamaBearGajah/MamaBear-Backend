@@ -5,12 +5,12 @@ export declare class UsersService {
     constructor(prisma: PrismaService);
     getProfile(userId: string): Promise<{
         id: string;
+        createdAt: Date;
         name: string;
         email: string;
         phone: string | null;
         role: import("../../generated/prisma/enums").Role;
         isVerified: boolean;
-        createdAt: Date;
         membership: {
             points: number;
             lastDailyLoginAt: Date | null;
@@ -31,11 +31,10 @@ export declare class UsersService {
     }>;
     getAddresses(userId: string): Promise<{
         id: string;
-        phone: string;
+        label: string | null;
         createdAt: Date;
         updatedAt: Date;
-        userId: string;
-        label: string | null;
+        phone: string;
         receiverName: string;
         address: string;
         notes: string | null;
@@ -43,14 +42,14 @@ export declare class UsersService {
         provinceId: string;
         postalCode: string;
         isDefault: boolean;
+        userId: string;
     }[]>;
     getAddressById(userId: string, addressId: string): Promise<{
         id: string;
-        phone: string;
+        label: string | null;
         createdAt: Date;
         updatedAt: Date;
-        userId: string;
-        label: string | null;
+        phone: string;
         receiverName: string;
         address: string;
         notes: string | null;
@@ -58,16 +57,16 @@ export declare class UsersService {
         provinceId: string;
         postalCode: string;
         isDefault: boolean;
+        userId: string;
     }>;
     createAddress(userId: string, dto: CreateAddressDto): Promise<{
         message: string;
         address: {
             id: string;
-            phone: string;
+            label: string | null;
             createdAt: Date;
             updatedAt: Date;
-            userId: string;
-            label: string | null;
+            phone: string;
             receiverName: string;
             address: string;
             notes: string | null;
@@ -75,17 +74,17 @@ export declare class UsersService {
             provinceId: string;
             postalCode: string;
             isDefault: boolean;
+            userId: string;
         };
     }>;
     updateAddress(userId: string, addressId: string, dto: UpdateAddressDto): Promise<{
         message: string;
         address: {
             id: string;
-            phone: string;
+            label: string | null;
             createdAt: Date;
             updatedAt: Date;
-            userId: string;
-            label: string | null;
+            phone: string;
             receiverName: string;
             address: string;
             notes: string | null;
@@ -93,6 +92,7 @@ export declare class UsersService {
             provinceId: string;
             postalCode: string;
             isDefault: boolean;
+            userId: string;
         };
     }>;
     setDefaultAddress(userId: string, addressId: string): Promise<{
@@ -124,12 +124,12 @@ export declare class UsersService {
             notes: string | null;
             productId: string;
             bundleId: string | null;
-            quantity: number;
-            orderId: string;
-            variantId: string | null;
-            price: import("@prisma/client-runtime-utils").Decimal;
             productName: string;
             variantName: string | null;
+            quantity: number;
+            price: import("@prisma/client-runtime-utils").Decimal;
+            variantId: string | null;
+            orderId: string;
         })[];
         payment: {
             status: import("../../generated/prisma/enums").PaymentStatus;
@@ -140,13 +140,10 @@ export declare class UsersService {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        userId: string;
-        notes: string | null;
         status: import("../../generated/prisma/enums").OrderStatus;
-        bundleId: string | null;
+        notes: string | null;
+        userId: string;
         orderNumber: string;
-        addressId: string;
-        voucherId: string | null;
         paymentStatus: import("../../generated/prisma/enums").PaymentStatus;
         subtotal: import("@prisma/client-runtime-utils").Decimal;
         discountAmount: import("@prisma/client-runtime-utils").Decimal;
@@ -162,15 +159,17 @@ export declare class UsersService {
         cancelReason: string | null;
         paymentDeadline: Date | null;
         cancelDeadline: Date | null;
+        addressId: string;
+        voucherId: string | null;
+        bundleId: string | null;
     })[]>;
     getOrderById(userId: string, orderId: string): Promise<{
         address: {
             id: string;
-            phone: string;
+            label: string | null;
             createdAt: Date;
             updatedAt: Date;
-            userId: string;
-            label: string | null;
+            phone: string;
             receiverName: string;
             address: string;
             notes: string | null;
@@ -178,6 +177,7 @@ export declare class UsersService {
             provinceId: string;
             postalCode: string;
             isDefault: boolean;
+            userId: string;
         };
         items: ({
             product: {
@@ -196,19 +196,18 @@ export declare class UsersService {
             notes: string | null;
             productId: string;
             bundleId: string | null;
-            quantity: number;
-            orderId: string;
-            variantId: string | null;
-            price: import("@prisma/client-runtime-utils").Decimal;
             productName: string;
             variantName: string | null;
+            quantity: number;
+            price: import("@prisma/client-runtime-utils").Decimal;
+            variantId: string | null;
+            orderId: string;
         })[];
         payment: {
             id: string;
             createdAt: Date;
             updatedAt: Date;
             status: import("../../generated/prisma/enums").PaymentStatus;
-            orderId: string;
             provider: import("../../generated/prisma/enums").PaymentProvider;
             amount: import("@prisma/client-runtime-utils").Decimal;
             externalId: string | null;
@@ -219,18 +218,16 @@ export declare class UsersService {
             refundedAt: Date | null;
             refundReason: string | null;
             metadata: import("@prisma/client/runtime/client").JsonValue | null;
+            orderId: string;
         } | null;
     } & {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        userId: string;
-        notes: string | null;
         status: import("../../generated/prisma/enums").OrderStatus;
-        bundleId: string | null;
+        notes: string | null;
+        userId: string;
         orderNumber: string;
-        addressId: string;
-        voucherId: string | null;
         paymentStatus: import("../../generated/prisma/enums").PaymentStatus;
         subtotal: import("@prisma/client-runtime-utils").Decimal;
         discountAmount: import("@prisma/client-runtime-utils").Decimal;
@@ -246,5 +243,8 @@ export declare class UsersService {
         cancelReason: string | null;
         paymentDeadline: Date | null;
         cancelDeadline: Date | null;
+        addressId: string;
+        voucherId: string | null;
+        bundleId: string | null;
     }>;
 }

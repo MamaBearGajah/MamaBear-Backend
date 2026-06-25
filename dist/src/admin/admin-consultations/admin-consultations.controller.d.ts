@@ -6,15 +6,15 @@ export declare class AdminConsultationsController {
     getAll(query: AdminConsultationQueryDto): Promise<{
         data: {
             id: string;
-            name: string;
-            email: string;
-            phone: string | null;
             createdAt: Date;
             updatedAt: Date;
+            name: string;
             status: import("../../../generated/prisma/enums").ConsultationStatus;
+            email: string;
+            phone: string | null;
             message: string;
-            respondedBy: string | null;
             response: string | null;
+            respondedBy: string | null;
             respondedAt: Date | null;
         }[];
         meta: {
@@ -26,15 +26,15 @@ export declare class AdminConsultationsController {
     }>;
     updateStatus(id: string, dto: UpdateConsultationStatusDto, req: any): Promise<{
         id: string;
-        name: string;
-        email: string;
-        phone: string | null;
         createdAt: Date;
         updatedAt: Date;
+        name: string;
         status: import("../../../generated/prisma/enums").ConsultationStatus;
+        email: string;
+        phone: string | null;
         message: string;
-        respondedBy: string | null;
         response: string | null;
+        respondedBy: string | null;
         respondedAt: Date | null;
     }>;
 }

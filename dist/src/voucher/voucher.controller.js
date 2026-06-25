@@ -71,7 +71,7 @@ __decorate([
       Cek apakah voucher valid dan hitung nilai diskonnya.
       Tidak mengubah state DB (tidak mengurangi usedCount).
 
-      Voucher hanya mengurangi total harga produk. Ongkir tidak terpengaruh.
+      Kirim totalAmount dan shippingCost untuk mendapat kalkulasi diskon yang akurat.
     `,
     }),
     (0, swagger_1.ApiResponse)({
@@ -148,11 +148,11 @@ __decorate([
         summary: '[Admin] Buat voucher baru',
         description: `
       Tipe voucher:
-      - **percentage** — diskon % dari subtotal (gunakan \`maxDiscount\` untuk batasi nominal)
+      - **percentage** — diskon % dari subtotal (gunakan maxDiscount untuk batasi nominal)
       - **fixed** — potongan nominal tetap dari subtotal
-      - **free_shipping** — potongan ongkir sebesar \`value\`
-      
-      Jika \`ownerId\` diisi, voucher hanya bisa dipakai user tersebut.
+      - **free_shipping** — potongan ongkir sebesar value
+
+      Jika ownerId diisi, voucher hanya bisa dipakai user tersebut.
     `,
     }),
     (0, swagger_1.ApiResponse)({ status: 201, description: 'Voucher berhasil dibuat' }),

@@ -21,20 +21,20 @@ export declare class PromotionService {
                 })[];
             } & {
                 id: string;
-                name: string;
-                createdAt: Date;
-                updatedAt: Date;
                 imageUrl: string | null;
                 isActive: boolean;
                 sortOrder: number;
                 startDate: Date | null;
                 endDate: Date | null;
+                createdAt: Date;
+                updatedAt: Date;
+                name: string;
                 slug: string;
                 description: string | null;
                 discountPrice: import("@prisma/client-runtime-utils").Decimal | null;
                 stock: number;
-                soldCount: number;
                 publicId: string | null;
+                soldCount: number;
                 bundlePrice: import("@prisma/client-runtime-utils").Decimal;
             }) | null;
             collectionBundles: ({
@@ -52,20 +52,20 @@ export declare class PromotionService {
                 })[];
             } & {
                 id: string;
-                name: string;
-                createdAt: Date;
-                updatedAt: Date;
                 imageUrl: string | null;
                 isActive: boolean;
                 sortOrder: number;
                 startDate: Date | null;
                 endDate: Date | null;
+                createdAt: Date;
+                updatedAt: Date;
+                name: string;
                 slug: string;
                 description: string | null;
                 discountPrice: import("@prisma/client-runtime-utils").Decimal | null;
                 stock: number;
-                soldCount: number;
                 publicId: string | null;
+                soldCount: number;
                 bundlePrice: import("@prisma/client-runtime-utils").Decimal;
             })[];
             allBundles: ({
@@ -83,30 +83,30 @@ export declare class PromotionService {
                 })[];
             } & {
                 id: string;
-                name: string;
-                createdAt: Date;
-                updatedAt: Date;
                 imageUrl: string | null;
                 isActive: boolean;
                 sortOrder: number;
                 startDate: Date | null;
                 endDate: Date | null;
+                createdAt: Date;
+                updatedAt: Date;
+                name: string;
                 slug: string;
                 description: string | null;
                 discountPrice: import("@prisma/client-runtime-utils").Decimal | null;
                 stock: number;
-                soldCount: number;
                 publicId: string | null;
+                soldCount: number;
                 bundlePrice: import("@prisma/client-runtime-utils").Decimal;
             })[];
         };
         sections: {
             id: string;
-            createdAt: Date;
-            updatedAt: Date;
             title: string;
             isActive: boolean;
             sortOrder: number;
+            createdAt: Date;
+            updatedAt: Date;
             subtitle: string | null;
             promotionId: string;
         }[];
@@ -115,18 +115,18 @@ export declare class PromotionService {
             title: string;
             sortOrder: number;
             description: string;
-            promotionId: string;
             icon: string | null;
+            promotionId: string;
         }[];
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         title: string;
         startDate: Date | null;
         endDate: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
         slug: string;
-        description: string | null;
         status: import("../../generated/prisma/enums").PromotionStatus;
+        description: string | null;
         subtitle: string | null;
         badgeText: string | null;
         heroBundleId: string | null;
@@ -148,20 +148,20 @@ export declare class PromotionService {
                 })[];
             } & {
                 id: string;
-                name: string;
-                createdAt: Date;
-                updatedAt: Date;
                 imageUrl: string | null;
                 isActive: boolean;
                 sortOrder: number;
                 startDate: Date | null;
                 endDate: Date | null;
+                createdAt: Date;
+                updatedAt: Date;
+                name: string;
                 slug: string;
                 description: string | null;
                 discountPrice: import("@prisma/client-runtime-utils").Decimal | null;
                 stock: number;
-                soldCount: number;
                 publicId: string | null;
+                soldCount: number;
                 bundlePrice: import("@prisma/client-runtime-utils").Decimal;
             }) | null;
             collectionBundles: ({
@@ -179,20 +179,20 @@ export declare class PromotionService {
                 })[];
             } & {
                 id: string;
-                name: string;
-                createdAt: Date;
-                updatedAt: Date;
                 imageUrl: string | null;
                 isActive: boolean;
                 sortOrder: number;
                 startDate: Date | null;
                 endDate: Date | null;
+                createdAt: Date;
+                updatedAt: Date;
+                name: string;
                 slug: string;
                 description: string | null;
                 discountPrice: import("@prisma/client-runtime-utils").Decimal | null;
                 stock: number;
-                soldCount: number;
                 publicId: string | null;
+                soldCount: number;
                 bundlePrice: import("@prisma/client-runtime-utils").Decimal;
             })[];
             allBundles: ({
@@ -210,30 +210,30 @@ export declare class PromotionService {
                 })[];
             } & {
                 id: string;
-                name: string;
-                createdAt: Date;
-                updatedAt: Date;
                 imageUrl: string | null;
                 isActive: boolean;
                 sortOrder: number;
                 startDate: Date | null;
                 endDate: Date | null;
+                createdAt: Date;
+                updatedAt: Date;
+                name: string;
                 slug: string;
                 description: string | null;
                 discountPrice: import("@prisma/client-runtime-utils").Decimal | null;
                 stock: number;
-                soldCount: number;
                 publicId: string | null;
+                soldCount: number;
                 bundlePrice: import("@prisma/client-runtime-utils").Decimal;
             })[];
         };
         sections: {
             id: string;
-            createdAt: Date;
-            updatedAt: Date;
             title: string;
             isActive: boolean;
             sortOrder: number;
+            createdAt: Date;
+            updatedAt: Date;
             subtitle: string | null;
             promotionId: string;
         }[];
@@ -242,18 +242,18 @@ export declare class PromotionService {
             title: string;
             sortOrder: number;
             description: string;
-            promotionId: string;
             icon: string | null;
+            promotionId: string;
         }[];
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         title: string;
         startDate: Date | null;
         endDate: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
         slug: string;
-        description: string | null;
         status: import("../../generated/prisma/enums").PromotionStatus;
+        description: string | null;
         subtitle: string | null;
         badgeText: string | null;
         heroBundleId: string | null;
@@ -261,11 +261,11 @@ export declare class PromotionService {
     findAll(): Promise<({
         sections: {
             id: string;
-            createdAt: Date;
-            updatedAt: Date;
             title: string;
             isActive: boolean;
             sortOrder: number;
+            createdAt: Date;
+            updatedAt: Date;
             subtitle: string | null;
             promotionId: string;
         }[];
@@ -274,19 +274,19 @@ export declare class PromotionService {
             title: string;
             sortOrder: number;
             description: string;
-            promotionId: string;
             icon: string | null;
+            promotionId: string;
         }[];
     } & {
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         title: string;
         startDate: Date | null;
         endDate: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
         slug: string;
-        description: string | null;
         status: import("../../generated/prisma/enums").PromotionStatus;
+        description: string | null;
         subtitle: string | null;
         badgeText: string | null;
         heroBundleId: string | null;
@@ -294,11 +294,11 @@ export declare class PromotionService {
     findOne(id: string): Promise<{
         sections: {
             id: string;
-            createdAt: Date;
-            updatedAt: Date;
             title: string;
             isActive: boolean;
             sortOrder: number;
+            createdAt: Date;
+            updatedAt: Date;
             subtitle: string | null;
             promotionId: string;
         }[];
@@ -307,19 +307,19 @@ export declare class PromotionService {
             title: string;
             sortOrder: number;
             description: string;
-            promotionId: string;
             icon: string | null;
+            promotionId: string;
         }[];
     } & {
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         title: string;
         startDate: Date | null;
         endDate: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
         slug: string;
-        description: string | null;
         status: import("../../generated/prisma/enums").PromotionStatus;
+        description: string | null;
         subtitle: string | null;
         badgeText: string | null;
         heroBundleId: string | null;
@@ -327,11 +327,11 @@ export declare class PromotionService {
     create(dto: CreatePromotionDto): Promise<{
         sections: {
             id: string;
-            createdAt: Date;
-            updatedAt: Date;
             title: string;
             isActive: boolean;
             sortOrder: number;
+            createdAt: Date;
+            updatedAt: Date;
             subtitle: string | null;
             promotionId: string;
         }[];
@@ -340,19 +340,19 @@ export declare class PromotionService {
             title: string;
             sortOrder: number;
             description: string;
-            promotionId: string;
             icon: string | null;
+            promotionId: string;
         }[];
     } & {
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         title: string;
         startDate: Date | null;
         endDate: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
         slug: string;
-        description: string | null;
         status: import("../../generated/prisma/enums").PromotionStatus;
+        description: string | null;
         subtitle: string | null;
         badgeText: string | null;
         heroBundleId: string | null;
@@ -360,11 +360,11 @@ export declare class PromotionService {
     update(id: string, dto: UpdatePromotionDto): Promise<{
         sections: {
             id: string;
-            createdAt: Date;
-            updatedAt: Date;
             title: string;
             isActive: boolean;
             sortOrder: number;
+            createdAt: Date;
+            updatedAt: Date;
             subtitle: string | null;
             promotionId: string;
         }[];
@@ -373,19 +373,19 @@ export declare class PromotionService {
             title: string;
             sortOrder: number;
             description: string;
-            promotionId: string;
             icon: string | null;
+            promotionId: string;
         }[];
     } & {
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         title: string;
         startDate: Date | null;
         endDate: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
         slug: string;
-        description: string | null;
         status: import("../../generated/prisma/enums").PromotionStatus;
+        description: string | null;
         subtitle: string | null;
         badgeText: string | null;
         heroBundleId: string | null;
