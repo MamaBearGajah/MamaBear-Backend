@@ -24,9 +24,9 @@ import {
 import { VoucherService } from './voucher.service';
 import { CreateVoucherDto } from './dto/create-voucher.dto';
 import { ValidateVoucherDto } from './dto/validate-voucher.dto';
+import { ApplyVoucherDto } from './dto/apply-voucher.dto';
 import { GetUser, Roles } from '../auth/decorators';
 import { RolesGuard } from '../auth/guards/roles.guard';
-import { Public } from '../auth/decorators';
 import { Role } from '../../generated/prisma/enums';
 
 @ApiTags('Voucher')
@@ -40,7 +40,8 @@ export class VoucherController {
   @Get('my')
   @ApiOperation({
     summary: 'Daftar voucher milik saya (aktif)',
-    description: 'Menampilkan voucher personal (dari redeem point atau tier benefit) yang masih aktif dan belum kadaluarsa.',
+    description:
+      'Menampilkan voucher personal (dari redeem point atau tier benefit) yang masih aktif dan belum kadaluarsa.',
   })
   @ApiResponse({ status: 200, description: 'List voucher berhasil diambil' })
   getMyVouchers(@GetUser('id') userId: string) {
@@ -74,15 +75,47 @@ export class VoucherController {
   })
   @ApiResponse({ status: 400, description: 'Voucher tidak valid / kadaluarsa / tidak cukup belanja' })
   @ApiResponse({ status: 404, description: 'Voucher tidak ditemukan' })
-  validate(
-    @Body() dto: ValidateVoucherDto,
-    @GetUser('id') userId: string,
-  ) {
+  validate(@Body() dto: ValidateVoucherDto, @GetUser('id') userId: string) {
     return this.voucherService.validate(
       dto.code,
       dto.totalAmount,
       dto.shippingCost ?? 0,
       userId,
+    );
+  }
+
+  // ─── User: Apply voucher saat checkout ───────────────────────────────────
+
+  @Post('apply')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Apply voucher saat checkout',
+    description: `
+      Menerapkan voucher ke order dan menambah usedCount.
+      Berbeda dengan \`/validate\`, endpoint ini mengubah state DB.
+      Dipanggil hanya saat checkout dikonfirmasi.
+    `,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Voucher berhasil diapply',
+    schema: {
+      example: {
+        discountAmount: 25000,
+        finalShippingCost: 15000,
+      },
+    },
+  })
+  @ApiResponse({ status: 400, description: 'Voucher tidak aktif atau sudah habis' })
+  @ApiResponse({ status: 404, description: 'Voucher tidak ditemukan' })
+  async applyVoucher(
+    @Body() dto: ApplyVoucherDto,
+  ): Promise<{ discountAmount: number; finalShippingCost: number }> {
+    return this.voucherService.applyVoucher(
+      null, // tx — injected by the order service when called inside a transaction
+      dto.voucherId,
+      dto.subtotal,
+      dto.shippingCost,
     );
   }
 
