@@ -24,6 +24,7 @@ import {
 import { VoucherService } from './voucher.service';
 import { CreateVoucherDto } from './dto/create-voucher.dto';
 import { ValidateVoucherDto } from './dto/validate-voucher.dto';
+import { ApplyVoucherDto } from './dto/apply-voucher.dto';
 import { GetUser, Roles } from '../auth/decorators';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Public } from '../auth/decorators';
@@ -56,8 +57,8 @@ export class VoucherController {
     description: `
       Cek apakah voucher valid dan hitung nilai diskonnya.
       Tidak mengubah state DB (tidak mengurangi usedCount).
-      
-      Kirim \`subtotal\` dan \`shippingCost\` untuk mendapat kalkulasi diskon yang akurat.
+
+      Kirim totalAmount dan shippingCost untuk mendapat kalkulasi diskon yang akurat.
     `,
   })
   @ApiResponse({
@@ -69,6 +70,7 @@ export class VoucherController {
         voucher: { code: 'HEMAT25K', type: 'fixed', value: 25000 },
         discountAmount: 25000,
         finalShippingCost: 15000,
+        usedCount: 3,
       },
     },
   })
@@ -84,6 +86,36 @@ export class VoucherController {
       dto.shippingCost ?? 0,
       userId,
     );
+  }
+
+  // ─── User: Apply voucher untuk cart / preview order ───────────────────────
+
+  @Post('apply')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Apply voucher untuk cart atau ringkasan order',
+    description: `
+      Menerapkan voucher ke subtotal produk untuk kebutuhan cart atau preview order.
+      Endpoint ini tidak mengubah state DB dan tidak memengaruhi ongkir.
+    `,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Voucher berhasil diapply',
+    schema: {
+      example: {
+        valid: true,
+        voucher: { id: 'clx1abc2def3ghi4jkl5', code: 'HEMAT25K', type: 'fixed', value: 25000 },
+        discountAmount: 25000,
+        finalShippingCost: 0,
+        usedCount: 3,
+      },
+    },
+  })
+  @ApiResponse({ status: 400, description: 'Voucher tidak aktif atau tidak memenuhi syarat' })
+  @ApiResponse({ status: 404, description: 'Voucher tidak ditemukan' })
+  applyVoucher(@Body() dto: ApplyVoucherDto, @GetUser('id') userId: string) {
+    return this.voucherService.apply(dto.code, dto.totalAmount, userId);
   }
 
   // ─── Admin: List semua voucher ────────────────────────────────────────────
@@ -111,11 +143,11 @@ export class VoucherController {
     summary: '[Admin] Buat voucher baru',
     description: `
       Tipe voucher:
-      - **percentage** — diskon % dari subtotal (gunakan \`maxDiscount\` untuk batasi nominal)
+      - **percentage** — diskon % dari subtotal (gunakan maxDiscount untuk batasi nominal)
       - **fixed** — potongan nominal tetap dari subtotal
-      - **free_shipping** — potongan ongkir sebesar \`value\`
-      
-      Jika \`ownerId\` diisi, voucher hanya bisa dipakai user tersebut.
+      - **free_shipping** — potongan ongkir sebesar value
+
+      Jika ownerId diisi, voucher hanya bisa dipakai user tersebut.
     `,
   })
   @ApiResponse({ status: 201, description: 'Voucher berhasil dibuat' })

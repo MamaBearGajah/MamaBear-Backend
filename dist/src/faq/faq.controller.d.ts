@@ -6,41 +6,41 @@ export declare class FaqController {
     constructor(faqService: FaqService);
     findAll(): Promise<{
         id: string;
+        isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
-        isActive: boolean;
         question: string;
         answer: string;
     }[]>;
     findOne(id: string): Promise<{
         id: string;
+        isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
-        isActive: boolean;
         question: string;
         answer: string;
     }>;
     create(dto: CreateFaqDto): Promise<{
         id: string;
+        isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
-        isActive: boolean;
         question: string;
         answer: string;
     }>;
     update(id: string, dto: UpdateFaqDto): Promise<{
         id: string;
+        isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
-        isActive: boolean;
         question: string;
         answer: string;
     }>;
     remove(id: string): Promise<{
         id: string;
+        isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
-        isActive: boolean;
         question: string;
         answer: string;
     }>;

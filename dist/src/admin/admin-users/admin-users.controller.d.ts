@@ -7,13 +7,13 @@ export declare class AdminUsersController {
     findAll(): Promise<{
         data: {
             id: string;
+            createdAt: Date;
+            updatedAt: Date;
             name: string;
             email: string;
             phone: string | null;
             role: Role;
             isVerified: boolean;
-            createdAt: Date;
-            updatedAt: Date;
             bannedAt: Date | null;
         }[];
         total: number;
@@ -22,11 +22,11 @@ export declare class AdminUsersController {
         message: string;
         data: {
             id: string;
+            createdAt: Date;
             name: string;
             email: string;
             role: Role;
             isVerified: boolean;
-            createdAt: Date;
         };
     }>;
     updateRole(targetId: string, dto: UpdateAdminUserRoleDto, requesterId: string): Promise<{

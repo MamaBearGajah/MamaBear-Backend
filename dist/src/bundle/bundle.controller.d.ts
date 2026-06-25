@@ -8,11 +8,11 @@ export declare class BundleController {
             product: {
                 images: {
                     id: string;
-                    createdAt: Date;
-                    updatedAt: Date;
                     imageUrl: string;
                     altText: string | null;
                     sortOrder: number;
+                    createdAt: Date;
+                    updatedAt: Date;
                     productId: string;
                     publicId: string | null;
                     imageType: import("../../generated/prisma/enums").ImageType;
@@ -20,23 +20,23 @@ export declare class BundleController {
                 }[];
             } & {
                 id: string;
-                name: string;
                 createdAt: Date;
                 updatedAt: Date;
+                name: string;
+                slug: string;
+                status: import("../../generated/prisma/enums").ProductStatus;
+                description: string | null;
                 deletedAt: Date | null;
                 notes: string | null;
-                slug: string;
-                description: string | null;
-                categoryId: string | null;
                 basePrice: import("@prisma/client-runtime-utils").Decimal;
                 discountPrice: import("@prisma/client-runtime-utils").Decimal | null;
-                weight: number;
-                sku: string;
-                mainImage: string;
                 stock: number;
                 reservedStock: number;
+                weight: number;
+                sku: string;
+                categoryId: string | null;
+                mainImage: string;
                 soldCount: number;
-                status: import("../../generated/prisma/enums").ProductStatus;
                 metaTitle: string | null;
                 metaDescription: string | null;
                 avgRating: import("@prisma/client-runtime-utils").Decimal | null;
@@ -50,20 +50,20 @@ export declare class BundleController {
         })[];
     } & {
         id: string;
-        name: string;
-        createdAt: Date;
-        updatedAt: Date;
         imageUrl: string | null;
         isActive: boolean;
         sortOrder: number;
         startDate: Date | null;
         endDate: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
+        name: string;
         slug: string;
         description: string | null;
         discountPrice: import("@prisma/client-runtime-utils").Decimal | null;
         stock: number;
-        soldCount: number;
         publicId: string | null;
+        soldCount: number;
         bundlePrice: import("@prisma/client-runtime-utils").Decimal;
     })[]>;
     getBySlug(slug: string): Promise<{
@@ -71,11 +71,11 @@ export declare class BundleController {
             product: {
                 images: {
                     id: string;
-                    createdAt: Date;
-                    updatedAt: Date;
                     imageUrl: string;
                     altText: string | null;
                     sortOrder: number;
+                    createdAt: Date;
+                    updatedAt: Date;
                     productId: string;
                     publicId: string | null;
                     imageType: import("../../generated/prisma/enums").ImageType;
@@ -83,23 +83,23 @@ export declare class BundleController {
                 }[];
             } & {
                 id: string;
-                name: string;
                 createdAt: Date;
                 updatedAt: Date;
+                name: string;
+                slug: string;
+                status: import("../../generated/prisma/enums").ProductStatus;
+                description: string | null;
                 deletedAt: Date | null;
                 notes: string | null;
-                slug: string;
-                description: string | null;
-                categoryId: string | null;
                 basePrice: import("@prisma/client-runtime-utils").Decimal;
                 discountPrice: import("@prisma/client-runtime-utils").Decimal | null;
-                weight: number;
-                sku: string;
-                mainImage: string;
                 stock: number;
                 reservedStock: number;
+                weight: number;
+                sku: string;
+                categoryId: string | null;
+                mainImage: string;
                 soldCount: number;
-                status: import("../../generated/prisma/enums").ProductStatus;
                 metaTitle: string | null;
                 metaDescription: string | null;
                 avgRating: import("@prisma/client-runtime-utils").Decimal | null;
@@ -113,20 +113,20 @@ export declare class BundleController {
         })[];
     } & {
         id: string;
-        name: string;
-        createdAt: Date;
-        updatedAt: Date;
         imageUrl: string | null;
         isActive: boolean;
         sortOrder: number;
         startDate: Date | null;
         endDate: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
+        name: string;
         slug: string;
         description: string | null;
         discountPrice: import("@prisma/client-runtime-utils").Decimal | null;
         stock: number;
-        soldCount: number;
         publicId: string | null;
+        soldCount: number;
         bundlePrice: import("@prisma/client-runtime-utils").Decimal;
     }>;
     findAll(): Promise<({
@@ -134,11 +134,11 @@ export declare class BundleController {
             product: {
                 images: {
                     id: string;
-                    createdAt: Date;
-                    updatedAt: Date;
                     imageUrl: string;
                     altText: string | null;
                     sortOrder: number;
+                    createdAt: Date;
+                    updatedAt: Date;
                     productId: string;
                     publicId: string | null;
                     imageType: import("../../generated/prisma/enums").ImageType;
@@ -146,23 +146,23 @@ export declare class BundleController {
                 }[];
             } & {
                 id: string;
-                name: string;
                 createdAt: Date;
                 updatedAt: Date;
+                name: string;
+                slug: string;
+                status: import("../../generated/prisma/enums").ProductStatus;
+                description: string | null;
                 deletedAt: Date | null;
                 notes: string | null;
-                slug: string;
-                description: string | null;
-                categoryId: string | null;
                 basePrice: import("@prisma/client-runtime-utils").Decimal;
                 discountPrice: import("@prisma/client-runtime-utils").Decimal | null;
-                weight: number;
-                sku: string;
-                mainImage: string;
                 stock: number;
                 reservedStock: number;
+                weight: number;
+                sku: string;
+                categoryId: string | null;
+                mainImage: string;
                 soldCount: number;
-                status: import("../../generated/prisma/enums").ProductStatus;
                 metaTitle: string | null;
                 metaDescription: string | null;
                 avgRating: import("@prisma/client-runtime-utils").Decimal | null;
@@ -176,20 +176,20 @@ export declare class BundleController {
         })[];
     } & {
         id: string;
-        name: string;
-        createdAt: Date;
-        updatedAt: Date;
         imageUrl: string | null;
         isActive: boolean;
         sortOrder: number;
         startDate: Date | null;
         endDate: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
+        name: string;
         slug: string;
         description: string | null;
         discountPrice: import("@prisma/client-runtime-utils").Decimal | null;
         stock: number;
-        soldCount: number;
         publicId: string | null;
+        soldCount: number;
         bundlePrice: import("@prisma/client-runtime-utils").Decimal;
     })[]>;
     create(dto: CreateBundleDto): Promise<{
@@ -197,11 +197,11 @@ export declare class BundleController {
             product: {
                 images: {
                     id: string;
-                    createdAt: Date;
-                    updatedAt: Date;
                     imageUrl: string;
                     altText: string | null;
                     sortOrder: number;
+                    createdAt: Date;
+                    updatedAt: Date;
                     productId: string;
                     publicId: string | null;
                     imageType: import("../../generated/prisma/enums").ImageType;
@@ -209,23 +209,23 @@ export declare class BundleController {
                 }[];
             } & {
                 id: string;
-                name: string;
                 createdAt: Date;
                 updatedAt: Date;
+                name: string;
+                slug: string;
+                status: import("../../generated/prisma/enums").ProductStatus;
+                description: string | null;
                 deletedAt: Date | null;
                 notes: string | null;
-                slug: string;
-                description: string | null;
-                categoryId: string | null;
                 basePrice: import("@prisma/client-runtime-utils").Decimal;
                 discountPrice: import("@prisma/client-runtime-utils").Decimal | null;
-                weight: number;
-                sku: string;
-                mainImage: string;
                 stock: number;
                 reservedStock: number;
+                weight: number;
+                sku: string;
+                categoryId: string | null;
+                mainImage: string;
                 soldCount: number;
-                status: import("../../generated/prisma/enums").ProductStatus;
                 metaTitle: string | null;
                 metaDescription: string | null;
                 avgRating: import("@prisma/client-runtime-utils").Decimal | null;
@@ -239,20 +239,20 @@ export declare class BundleController {
         })[];
     } & {
         id: string;
-        name: string;
-        createdAt: Date;
-        updatedAt: Date;
         imageUrl: string | null;
         isActive: boolean;
         sortOrder: number;
         startDate: Date | null;
         endDate: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
+        name: string;
         slug: string;
         description: string | null;
         discountPrice: import("@prisma/client-runtime-utils").Decimal | null;
         stock: number;
-        soldCount: number;
         publicId: string | null;
+        soldCount: number;
         bundlePrice: import("@prisma/client-runtime-utils").Decimal;
     }>;
     update(id: string, dto: UpdateBundleDto): Promise<{
@@ -260,11 +260,11 @@ export declare class BundleController {
             product: {
                 images: {
                     id: string;
-                    createdAt: Date;
-                    updatedAt: Date;
                     imageUrl: string;
                     altText: string | null;
                     sortOrder: number;
+                    createdAt: Date;
+                    updatedAt: Date;
                     productId: string;
                     publicId: string | null;
                     imageType: import("../../generated/prisma/enums").ImageType;
@@ -272,23 +272,23 @@ export declare class BundleController {
                 }[];
             } & {
                 id: string;
-                name: string;
                 createdAt: Date;
                 updatedAt: Date;
+                name: string;
+                slug: string;
+                status: import("../../generated/prisma/enums").ProductStatus;
+                description: string | null;
                 deletedAt: Date | null;
                 notes: string | null;
-                slug: string;
-                description: string | null;
-                categoryId: string | null;
                 basePrice: import("@prisma/client-runtime-utils").Decimal;
                 discountPrice: import("@prisma/client-runtime-utils").Decimal | null;
-                weight: number;
-                sku: string;
-                mainImage: string;
                 stock: number;
                 reservedStock: number;
+                weight: number;
+                sku: string;
+                categoryId: string | null;
+                mainImage: string;
                 soldCount: number;
-                status: import("../../generated/prisma/enums").ProductStatus;
                 metaTitle: string | null;
                 metaDescription: string | null;
                 avgRating: import("@prisma/client-runtime-utils").Decimal | null;
@@ -302,20 +302,20 @@ export declare class BundleController {
         })[];
     } & {
         id: string;
-        name: string;
-        createdAt: Date;
-        updatedAt: Date;
         imageUrl: string | null;
         isActive: boolean;
         sortOrder: number;
         startDate: Date | null;
         endDate: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
+        name: string;
         slug: string;
         description: string | null;
         discountPrice: import("@prisma/client-runtime-utils").Decimal | null;
         stock: number;
-        soldCount: number;
         publicId: string | null;
+        soldCount: number;
         bundlePrice: import("@prisma/client-runtime-utils").Decimal;
     }>;
     remove(id: string): Promise<{

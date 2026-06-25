@@ -7,31 +7,37 @@ export declare class ConsultationsController {
     constructor(consultationsService: ConsultationsService);
     create(dto: CreateConsultationDto): Promise<{
         id: string;
-        name: string;
-        email: string;
-        phone: string | null;
         createdAt: Date;
         updatedAt: Date;
+        name: string;
         status: import("generated/prisma/enums").ConsultationStatus;
+        email: string;
+        phone: string | null;
         message: string;
-        respondedBy: string | null;
         response: string | null;
+        respondedBy: string | null;
         respondedAt: Date | null;
     }>;
     findAll(query: ConsultationQueryDto): Promise<{
-        data: {
+        data: ({
+            admin: {
+                id: string;
+                name: string;
+                email: string;
+            } | null;
+        } & {
             id: string;
-            name: string;
-            email: string;
-            phone: string | null;
             createdAt: Date;
             updatedAt: Date;
+            name: string;
             status: import("generated/prisma/enums").ConsultationStatus;
+            email: string;
+            phone: string | null;
             message: string;
-            respondedBy: string | null;
             response: string | null;
+            respondedBy: string | null;
             respondedAt: Date | null;
-        }[];
+        })[];
         meta: {
             page: number;
             limit: number;
@@ -39,17 +45,44 @@ export declare class ConsultationsController {
             totalPages: number;
         };
     }>;
-    updateStatus(id: string, dto: UpdateConsultationDto): Promise<{
+    findOne(id: string): Promise<{
+        admin: {
+            id: string;
+            name: string;
+            email: string;
+        } | null;
+    } & {
         id: string;
-        name: string;
-        email: string;
-        phone: string | null;
         createdAt: Date;
         updatedAt: Date;
+        name: string;
         status: import("generated/prisma/enums").ConsultationStatus;
+        email: string;
+        phone: string | null;
         message: string;
-        respondedBy: string | null;
         response: string | null;
+        respondedBy: string | null;
+        respondedAt: Date | null;
+    }>;
+    update(id: string, dto: UpdateConsultationDto, adminId: string, { id: string }: {
+        id: any;
+    }): Promise<{
+        admin: {
+            id: string;
+            name: string;
+            email: string;
+        } | null;
+    } & {
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        name: string;
+        status: import("generated/prisma/enums").ConsultationStatus;
+        email: string;
+        phone: string | null;
+        message: string;
+        response: string | null;
+        respondedBy: string | null;
         respondedAt: Date | null;
     }>;
 }
