@@ -91,24 +91,17 @@ let OrdersService = OrdersService_1 = class OrdersService {
             return sum + Number(item.variant?.basePrice ?? item.price ?? 0) * item.quantity;
         }, 0);
         let discountAmount = 0;
-        let finalShippingCost = shippingCost;
         const resolvedVoucherId = dto.voucherId ?? null;
-        if (resolvedVoucherId) {
-            const v = await this.voucherService.validate(resolvedVoucherId, subtotal, shippingCost, userId);
-            discountAmount = v.discountAmount;
-            finalShippingCost = v.finalShippingCost;
-        }
-        const total = Math.max(0, subtotal + finalShippingCost - discountAmount);
         const orderNumber = await this.generateOrderNumber();
         const now = new Date();
         const paymentDeadline = new Date(now.getTime() + 2 * 60 * 60 * 1000);
         const cancelDeadline = new Date(now.getTime() + 30 * 60 * 1000);
         const order = await this.prisma.$transaction(async (tx) => {
             if (resolvedVoucherId) {
-                const applied = await this.voucherService.applyVoucher(tx, resolvedVoucherId, subtotal, shippingCost);
+                const applied = await this.voucherService.applyVoucher(tx, resolvedVoucherId, subtotal, userId);
                 discountAmount = applied.discountAmount;
-                finalShippingCost = applied.finalShippingCost;
             }
+            const total = Math.max(0, subtotal + shippingCost - discountAmount);
             const newOrder = await tx.order.create({
                 data: {
                     orderNumber,
@@ -120,7 +113,7 @@ let OrdersService = OrdersService_1 = class OrdersService {
                     notes: dto.notes ?? null,
                     subtotal: new client_1.Prisma.Decimal(subtotal),
                     discountAmount: new client_1.Prisma.Decimal(discountAmount),
-                    shippingCost: new client_1.Prisma.Decimal(finalShippingCost),
+                    shippingCost: new client_1.Prisma.Decimal(shippingCost),
                     total: new client_1.Prisma.Decimal(total),
                     status: 'pending',
                     paymentStatus: 'pending',

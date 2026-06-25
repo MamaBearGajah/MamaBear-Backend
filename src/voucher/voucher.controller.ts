@@ -57,8 +57,8 @@ export class VoucherController {
     description: `
       Cek apakah voucher valid dan hitung nilai diskonnya.
       Tidak mengubah state DB (tidak mengurangi usedCount).
-      
-      Kirim \`subtotal\` dan \`shippingCost\` untuk mendapat kalkulasi diskon yang akurat.
+
+      Voucher hanya mengurangi total harga produk. Ongkir tidak terpengaruh.
     `,
   })
   @ApiResponse({
@@ -70,6 +70,7 @@ export class VoucherController {
         voucher: { code: 'HEMAT25K', type: 'fixed', value: 25000 },
         discountAmount: 25000,
         finalShippingCost: 15000,
+        usedCount: 3,
       },
     },
   })
@@ -89,11 +90,10 @@ export class VoucherController {
   @Post('apply')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
-    summary: 'Apply voucher saat checkout',
+    summary: 'Apply voucher untuk cart atau ringkasan order',
     description: `
-      Menerapkan voucher ke order dan menambah usedCount.
-      Berbeda dengan \`/validate\`, endpoint ini mengubah state DB.
-      Dipanggil hanya saat checkout dikonfirmasi.
+      Menerapkan voucher ke subtotal produk untuk kebutuhan cart atau preview order.
+      Endpoint ini tidak mengubah state DB dan tidak memengaruhi ongkir.
     `,
   })
   @ApiResponse({
@@ -101,22 +101,18 @@ export class VoucherController {
     description: 'Voucher berhasil diapply',
     schema: {
       example: {
+        valid: true,
+        voucher: { id: 'clx1abc2def3ghi4jkl5', code: 'HEMAT25K', type: 'fixed', value: 25000 },
         discountAmount: 25000,
-        finalShippingCost: 15000,
+        finalShippingCost: 0,
+        usedCount: 3,
       },
     },
   })
-  @ApiResponse({ status: 400, description: 'Voucher tidak aktif atau sudah habis' })
+  @ApiResponse({ status: 400, description: 'Voucher tidak aktif atau tidak memenuhi syarat' })
   @ApiResponse({ status: 404, description: 'Voucher tidak ditemukan' })
-  async applyVoucher(
-    @Body() dto: ApplyVoucherDto,
-  ): Promise<{ discountAmount: number; finalShippingCost: number }> {
-    return this.voucherService.applyVoucher(
-      null, // tx — injected by the order service when called inside a transaction
-      dto.voucherId,
-      dto.subtotal,
-      dto.shippingCost,
-    );
+  applyVoucher(@Body() dto: ApplyVoucherDto, @GetUser('id') userId: string) {
+    return this.voucherService.apply(dto.code, dto.totalAmount, userId);
   }
 
   // ─── Admin: List semua voucher ────────────────────────────────────────────
