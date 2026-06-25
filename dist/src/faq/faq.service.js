@@ -40,6 +40,13 @@ let FaqService = class FaqService {
         await this.findOne(id);
         return this.prisma.faq.delete({ where: { id } });
     }
+    async findTopFaqs() {
+        return this.prisma.faq.findMany({
+            where: { isActive: true },
+            orderBy: { createdAt: 'asc' },
+            take: 3,
+        });
+    }
     async findByKeyword(keyword) {
         return this.prisma.faq.findMany({
             where: {
@@ -49,13 +56,6 @@ let FaqService = class FaqService {
                     { answer: { contains: keyword, mode: 'insensitive' } },
                 ],
             },
-            take: 3,
-        });
-    }
-    async findTopFaqs() {
-        return this.prisma.faq.findMany({
-            where: { isActive: true },
-            orderBy: { createdAt: 'asc' },
             take: 3,
         });
     }

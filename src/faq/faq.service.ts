@@ -34,7 +34,20 @@ export class FaqService {
     return this.prisma.faq.delete({ where: { id } });
   }
 
-  // Untuk chatbot — cari FAQ berdasarkan keyword
+  // Untuk chatbot fallback — ambil 3 FAQ pertama sebagai saran
+  async findTopFaqs() {
+    return this.prisma.faq.findMany({
+      where: { isActive: true },
+      orderBy: { createdAt: 'asc' },
+      take: 3,
+    });
+  }
+
+  /**
+   * @deprecated Tidak dipakai lagi oleh ChatbotService.
+   * ChatbotService sekarang pakai findAll() + scoring internal.
+   * Tetap ada untuk backward compatibility jika ada yang masih pakai.
+   */
   async findByKeyword(keyword: string) {
     return this.prisma.faq.findMany({
       where: {
@@ -44,15 +57,6 @@ export class FaqService {
           { answer: { contains: keyword, mode: 'insensitive' } },
         ],
       },
-      take: 3,
-    });
-  }
-
-  // Untuk chatbot — ambil top 3 FAQ aktif sebagai fallback
-  async findTopFaqs() {
-    return this.prisma.faq.findMany({
-      where: { isActive: true },
-      orderBy: { createdAt: 'asc' },
       take: 3,
     });
   }

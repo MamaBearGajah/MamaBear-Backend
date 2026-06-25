@@ -2,17 +2,17 @@ import { PrismaClient } from "generated/prisma/client";
 import * as bcrypt from "bcrypt";
 
 export async function seedUsers(prisma: PrismaClient) {
-  const hashedAdmin = await bcrypt.hash("Admin@12345", 10);
+  const hashedAdmin    = await bcrypt.hash("Admin@12345", 10);
   const hashedCustomer = await bcrypt.hash("Customer@123", 10);
 
   await prisma.user.upsert({
-    where: { email: "superadmin@mamabear.id" },
+    where:  { email: "superadmin@mamabear.id" },
     update: {},
     create: { name: "Super Admin", email: "superadmin@mamabear.id", password: hashedAdmin, role: "super_admin", isVerified: true },
   });
 
   await prisma.user.upsert({
-    where: { email: "admin@mamabear.id" },
+    where:  { email: "admin@mamabear.id" },
     update: {},
     create: { name: "Admin Mamabear", email: "admin@mamabear.id", password: hashedAdmin, role: "admin", isVerified: true },
   });
@@ -33,7 +33,7 @@ export async function seedUsers(prisma: PrismaClient) {
   const customers = await Promise.all(
     customerData.map((c) =>
       prisma.user.upsert({
-        where: { email: c.email },
+        where:  { email: c.email },
         update: {},
         create: { ...c, password: hashedCustomer, role: "customer", isVerified: true },
       })
@@ -52,6 +52,12 @@ export async function seedUsers(prisma: PrismaClient) {
     { label: "Rumah", receiverName: "Nur Azizah",       phone: "081234567009", address: "Jl. Teratai No. 4, Kel. Semarang Barat",  cityId: "399", provinceId: "14", postalCode: "50149" },
     { label: "Rumah", receiverName: "Lina Marlina",     phone: "081234567010", address: "Jl. Seruni No. 11, Kel. Gajahmungkur",    cityId: "399", provinceId: "14", postalCode: "50231" },
   ];
+
+  // FIX: address tidak punya unique key selain id, jadi tidak bisa upsert.
+  // Hapus address lama milik customers ini dulu, lalu buat ulang.
+  // Order sudah dihapus di seedOrders, jadi FK ke Order tidak masalah.
+  const customerIds = customers.map((c) => c.id);
+  await prisma.address.deleteMany({ where: { userId: { in: customerIds } } });
 
   const addresses = await Promise.all(
     customers.map((customer, i) =>

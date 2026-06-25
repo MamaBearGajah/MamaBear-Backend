@@ -15,6 +15,7 @@ export declare class CreateAddressDto {
     cityId: string;
     provinceId: string;
     postalCode: string;
+    isDefault?: boolean;
 }
 export declare class UpdateAddressDto {
     label?: string;
@@ -25,4 +26,5 @@ export declare class UpdateAddressDto {
     cityId?: string;
     provinceId?: string;
     postalCode?: string;
+    isDefault?: boolean;
 }

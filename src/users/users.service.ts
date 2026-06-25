@@ -15,6 +15,7 @@ export class UsersService {
   // ─────────────────────────────────────────────
   // PROFILE
   // ─────────────────────────────────────────────
+
   async getProfile(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -29,7 +30,6 @@ export class UsersService {
         membership: {
           select: {
             points: true,
-            // tier: true,
             lastDailyLoginAt: true,
           },
         },
@@ -44,13 +44,7 @@ export class UsersService {
     const user = await this.prisma.user.update({
       where: { id: userId },
       data: dto,
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        phone: true,
-        role: true,
-      },
+      select: { id: true, name: true, email: true, phone: true, role: true },
     });
 
     return { message: 'Profil berhasil diperbarui', user };
@@ -78,6 +72,7 @@ export class UsersService {
   // ─────────────────────────────────────────────
   // ADDRESSES
   // ─────────────────────────────────────────────
+
   async getAddresses(userId: string) {
     return this.prisma.address.findMany({
       where: { userId },
@@ -86,33 +81,65 @@ export class UsersService {
   }
 
   async getAddressById(userId: string, addressId: string) {
-    const address = await this.prisma.address.findUnique({
-      where: { id: addressId },
-    });
-
+    const address = await this.prisma.address.findUnique({ where: { id: addressId } });
     if (!address) throw new NotFoundException('Alamat tidak ditemukan');
     if (address.userId !== userId) throw new ForbiddenException('Akses ditolak');
-
     return address;
   }
 
   async createAddress(userId: string, dto: CreateAddressDto) {
+    const { isDefault: wantsDefault, ...addressData } = dto;
+
     const count = await this.prisma.address.count({ where: { userId } });
-    const isDefault = count === 0;
 
-    const address = await this.prisma.address.create({
-      data: { ...dto, userId, isDefault },
+    // FIX: alamat pertama selalu jadi default.
+    // Alamat berikutnya jadi default hanya kalau user mencentang checkbox.
+    const shouldBeDefault = count === 0 || wantsDefault === true;
+
+    return this.prisma.$transaction(async (tx) => {
+      // Jika akan jadi default, unset default yang lama dulu
+      if (shouldBeDefault) {
+        await tx.address.updateMany({
+          where: { userId, isDefault: true },
+          data: { isDefault: false },
+        });
+      }
+
+      const address = await tx.address.create({
+        data: { ...addressData, userId, isDefault: shouldBeDefault },
+      });
+
+      return { message: 'Alamat berhasil ditambahkan', address };
     });
-
-    return { message: 'Alamat berhasil ditambahkan', address };
   }
 
   async updateAddress(userId: string, addressId: string, dto: UpdateAddressDto) {
     await this.getAddressById(userId, addressId);
 
+    const { isDefault: wantsDefault, ...addressData } = dto;
+
+    // FIX: jika update dan user ingin set sebagai default,
+    // jalankan via setDefaultAddress agar unset default lama dengan benar
+    if (wantsDefault === true) {
+      return this.prisma.$transaction(async (tx) => {
+        await tx.address.updateMany({
+          where: { userId, isDefault: true },
+          data: { isDefault: false },
+        });
+
+        const address = await tx.address.update({
+          where: { id: addressId },
+          data: { ...addressData, isDefault: true },
+        });
+
+        return { message: 'Alamat berhasil diperbarui', address };
+      });
+    }
+
+    // Update biasa tanpa mengubah status default
     const address = await this.prisma.address.update({
       where: { id: addressId },
-      data: dto,
+      data: addressData,
     });
 
     return { message: 'Alamat berhasil diperbarui', address };
@@ -122,14 +149,8 @@ export class UsersService {
     await this.getAddressById(userId, addressId);
 
     await this.prisma.$transaction([
-      this.prisma.address.updateMany({
-        where: { userId },
-        data: { isDefault: false },
-      }),
-      this.prisma.address.update({
-        where: { id: addressId },
-        data: { isDefault: true },
-      }),
+      this.prisma.address.updateMany({ where: { userId }, data: { isDefault: false } }),
+      this.prisma.address.update({ where: { id: addressId }, data: { isDefault: true } }),
     ]);
 
     return { message: 'Alamat default berhasil diubah' };
@@ -151,6 +172,7 @@ export class UsersService {
   // ─────────────────────────────────────────────
   // ORDERS
   // ─────────────────────────────────────────────
+
   async getOrders(userId: string) {
     return this.prisma.order.findMany({
       where: { userId },
@@ -160,9 +182,7 @@ export class UsersService {
           include: {
             product: {
               select: {
-                id: true,
-                name: true,
-                slug: true,
+                id: true, name: true, slug: true,
                 images: {
                   where: { imageType: 'main' },
                   select: { imageUrl: true, altText: true },
@@ -187,9 +207,7 @@ export class UsersService {
           include: {
             product: {
               select: {
-                id: true,
-                name: true,
-                slug: true,
+                id: true, name: true, slug: true,
                 images: {
                   where: { imageType: 'main' },
                   select: { imageUrl: true, altText: true },

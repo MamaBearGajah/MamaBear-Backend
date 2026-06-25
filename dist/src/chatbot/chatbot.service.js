@@ -12,7 +12,35 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ChatbotService = void 0;
 const common_1 = require("@nestjs/common");
 const faq_service_1 = require("../faq/faq.service");
-const DEFAULT_MESSAGE = 'Maaf, saya tidak menemukan jawaban yang sesuai. Silakan hubungi tim kami untuk bantuan lebih lanjut.';
+const DEFAULT_MESSAGE = 'Maaf, saya tidak menemukan jawaban yang sesuai. Silakan hubungi tim kami melalui WhatsApp untuk bantuan lebih lanjut.';
+const STOPWORDS = new Set([
+    'apa', 'saja', 'yang', 'ada', 'bisa', 'untuk', 'dari', 'dengan',
+    'atau', 'dan', 'ini', 'itu', 'juga', 'sudah', 'belum', 'apakah',
+    'bagaimana', 'berapa', 'siapa', 'kapan', 'dimana', 'kenapa', 'mengapa',
+    'halo', 'hello', 'hai', 'selamat', 'tolong', 'mohon', 'tanya', 'tanyakan',
+    'boleh', 'mau', 'ingin', 'saya', 'kami', 'kamu', 'anda', 'kita',
+    'tidak', 'bukan', 'jangan', 'punya', 'dapat', 'mana', 'dong', 'yuk',
+    'ya', 'iya', 'okay', 'oke', 'yah', 'lama', 'lagi', 'mana', 'sama',
+]);
+function extractKeywords(text) {
+    return text
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, '')
+        .split(/\s+/)
+        .filter((word) => word.length > 2 && !STOPWORDS.has(word));
+}
+function scoreFaq(faq, keywords) {
+    const q = faq.question.toLowerCase();
+    const a = faq.answer.toLowerCase();
+    let score = 0;
+    for (const kw of keywords) {
+        if (q.includes(kw))
+            score += 3;
+        else if (a.includes(kw))
+            score += 1;
+    }
+    return score;
+}
 let ChatbotService = class ChatbotService {
     faqService;
     constructor(faqService) {
@@ -20,24 +48,25 @@ let ChatbotService = class ChatbotService {
     }
     async query(dto) {
         const { message } = dto;
-        const keywords = message
-            .toLowerCase()
-            .replace(/[^a-z0-9\s]/g, '')
-            .split(' ')
-            .filter((word) => word.length > 3);
-        let matchedFaqs = [];
-        for (const keyword of keywords) {
-            const results = await this.faqService.findByKeyword(keyword);
-            if (results.length > 0) {
-                matchedFaqs = results;
-                break;
-            }
+        const keywords = extractKeywords(message);
+        if (keywords.length === 0) {
+            const topFaqs = await this.faqService.findTopFaqs();
+            return {
+                reply: 'Halo! Ada yang bisa saya bantu? Silakan tanyakan seputar produk, pengiriman, atau pembayaran Mamabear.',
+                suggestedFaqIds: topFaqs.map((f) => f.id),
+            };
         }
-        if (matchedFaqs.length > 0) {
-            const topMatch = matchedFaqs[0];
+        const allFaqs = await this.faqService.findAll();
+        const scored = allFaqs
+            .map((faq) => ({ faq, score: scoreFaq(faq, keywords) }))
+            .filter(({ score }) => score > 0)
+            .sort((a, b) => b.score - a.score);
+        if (scored.length > 0) {
+            const topMatch = scored[0].faq;
+            const suggestedFaqs = scored.slice(0, 3).map(({ faq }) => faq);
             return {
                 reply: topMatch.answer,
-                suggestedFaqIds: matchedFaqs.map((f) => f.id),
+                suggestedFaqIds: suggestedFaqs.map((f) => f.id),
             };
         }
         const topFaqs = await this.faqService.findTopFaqs();

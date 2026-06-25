@@ -232,22 +232,98 @@ let MembershipService = MembershipService_1 = class MembershipService {
             meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
         };
     }
-    async findAll(page = 1, limit = 20, tier) {
+    async findAll(page = 1, limit = 20, tier, search) {
         const skip = (page - 1) * limit;
-        const where = tier ? { tier } : {};
+        const where = {};
+        if (tier)
+            where.tier = tier;
+        if (search) {
+            where.user = {
+                OR: [
+                    { name: { contains: search, mode: 'insensitive' } },
+                    { email: { contains: search, mode: 'insensitive' } },
+                ],
+            };
+        }
         const [members, total] = await Promise.all([
             this.prisma.membership.findMany({
                 where,
                 skip,
                 take: limit,
                 orderBy: { totalSpent: 'desc' },
-                include: { user: { select: { id: true, name: true, email: true } } },
+                include: { user: { select: { id: true, name: true, email: true, createdAt: true } } },
             }),
             this.prisma.membership.count({ where }),
         ]);
         return {
             data: members,
             meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+        };
+    }
+    async getStats() {
+        const [tierCounts, totalPointsResult, totalMembersResult] = await Promise.all([
+            this.prisma.membership.groupBy({
+                by: ['tier'],
+                _count: { tier: true },
+                _sum: { points: true },
+            }),
+            this.prisma.membership.aggregate({
+                _sum: { points: true },
+            }),
+            this.prisma.membership.count(),
+        ]);
+        const redeemedResult = await this.prisma.pointTransaction.aggregate({
+            where: { type: 'redeem' },
+            _sum: { points: true },
+        });
+        const tierStats = Object.fromEntries(tierCounts.map((t) => [
+            t.tier,
+            { count: t._count.tier, totalPoints: t._sum.points ?? 0 },
+        ]));
+        return {
+            totalMembers: totalMembersResult,
+            totalPointsCirculating: totalPointsResult._sum.points ?? 0,
+            totalPointsRedeemed: Math.abs(redeemedResult._sum.points ?? 0),
+            tierStats,
+        };
+    }
+    async adminAdjustPoints(dto) {
+        const membership = await this.prisma.membership.findUnique({
+            where: { userId: dto.userId },
+        });
+        if (!membership) {
+            throw new common_1.NotFoundException(`Membership untuk user ${dto.userId} tidak ditemukan`);
+        }
+        const newPoints = membership.points + dto.points;
+        if (newPoints < 0) {
+            throw new common_1.BadRequestException(`Tidak bisa mengurangi point. User hanya punya ${membership.points} point.`);
+        }
+        const type = dto.points >= 0 ? 'bonus' : 'expired';
+        const description = dto.description ??
+            (dto.points >= 0
+                ? `Penambahan point oleh admin (+${dto.points})`
+                : `Pengurangan point oleh admin (${dto.points})`);
+        await this.prisma.$transaction(async (tx) => {
+            await tx.membership.update({
+                where: { userId: dto.userId },
+                data: { points: { increment: dto.points } },
+            });
+            await tx.pointTransaction.create({
+                data: {
+                    userId: dto.userId,
+                    points: dto.points,
+                    type,
+                    description,
+                },
+            });
+        });
+        this.logger.log(`Admin adjusted points for user ${dto.userId}: ${dto.points > 0 ? '+' : ''}${dto.points}`);
+        return {
+            userId: dto.userId,
+            previousPoints: membership.points,
+            adjustment: dto.points,
+            newPoints,
+            message: `Point user berhasil disesuaikan dari ${membership.points} → ${newPoints}`,
         };
     }
     async issueShippingVoucher(tx, userId, tier, value) {

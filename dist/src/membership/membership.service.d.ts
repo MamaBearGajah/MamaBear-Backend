@@ -1,6 +1,7 @@
 import { PrismaService } from '../prisma/prisma.service';
 import { MembershipTier } from '../../generated/prisma/enums';
 import { RedeemPointsDto } from './dto/redeem-points.dto';
+import { AdminAdjustPointsDto } from './dto/admin-adjust-points.dto';
 export declare class MembershipService {
     private readonly prisma;
     private readonly logger;
@@ -133,12 +134,13 @@ export declare class MembershipService {
             totalPages: number;
         };
     }>;
-    findAll(page?: number, limit?: number, tier?: MembershipTier): Promise<{
+    findAll(page?: number, limit?: number, tier?: MembershipTier, search?: string): Promise<{
         data: ({
             user: {
                 id: string;
                 name: string;
                 email: string;
+                createdAt: Date;
             };
         } & {
             createdAt: Date;
@@ -157,6 +159,24 @@ export declare class MembershipService {
             limit: number;
             totalPages: number;
         };
+    }>;
+    getStats(): Promise<{
+        totalMembers: number;
+        totalPointsCirculating: number;
+        totalPointsRedeemed: number;
+        tierStats: {
+            [k: string]: {
+                count: number;
+                totalPoints: number;
+            };
+        };
+    }>;
+    adminAdjustPoints(dto: AdminAdjustPointsDto): Promise<{
+        userId: string;
+        previousPoints: number;
+        adjustment: number;
+        newPoints: number;
+        message: string;
     }>;
     private issueShippingVoucher;
     private generateVoucherCode;

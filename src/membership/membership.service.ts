@@ -14,6 +14,7 @@ import {
   MIN_REDEEM_POINTS,
 } from './membership.constants';
 import { RedeemPointsDto } from './dto/redeem-points.dto';
+import { AdminAdjustPointsDto } from './dto/admin-adjust-points.dto';
 
 @Injectable()
 export class MembershipService {
@@ -244,7 +245,7 @@ export class MembershipService {
     const streakCount = isConsecutive ? recentLoginTransactions + 1 : 1;
     const isStreakBonus = streakCount > 0 && streakCount % 7 === 0;
 
-    const basePoints = 5;          // DAILY_LOGIN_POINTS
+    const basePoints = 5;           // DAILY_LOGIN_POINTS
     const bonusPoints = isStreakBonus ? 20 : 0; // STREAK_BONUS_POINTS
     const totalPoints = basePoints + bonusPoints;
 
@@ -322,9 +323,19 @@ export class MembershipService {
 
   // ─── Admin: All Members ───────────────────────────────────────────────────
 
-  async findAll(page = 1, limit = 20, tier?: MembershipTier) {
+  async findAll(page = 1, limit = 20, tier?: MembershipTier, search?: string) {
     const skip = (page - 1) * limit;
-    const where = tier ? { tier } : {};
+
+    const where: any = {};
+    if (tier) where.tier = tier;
+    if (search) {
+      where.user = {
+        OR: [
+          { name: { contains: search, mode: 'insensitive' } },
+          { email: { contains: search, mode: 'insensitive' } },
+        ],
+      };
+    }
 
     const [members, total] = await Promise.all([
       this.prisma.membership.findMany({
@@ -332,7 +343,7 @@ export class MembershipService {
         skip,
         take: limit,
         orderBy: { totalSpent: 'desc' },
-        include: { user: { select: { id: true, name: true, email: true } } },
+        include: { user: { select: { id: true, name: true, email: true, createdAt: true } } },
       }),
       this.prisma.membership.count({ where }),
     ]);
@@ -340,6 +351,97 @@ export class MembershipService {
     return {
       data: members,
       meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+    };
+  }
+
+  // ─── Admin: Statistics ────────────────────────────────────────────────────
+
+  async getStats() {
+    const [tierCounts, totalPointsResult, totalMembersResult] = await Promise.all([
+      // Hitung jumlah member per tier
+      this.prisma.membership.groupBy({
+        by: ['tier'],
+        _count: { tier: true },
+        _sum: { points: true },
+      }),
+      // Total point beredar
+      this.prisma.membership.aggregate({
+        _sum: { points: true },
+      }),
+      // Total member
+      this.prisma.membership.count(),
+    ]);
+
+    // Total point yang sudah diredeem (dari PointTransaction type=redeem, nilai negatif)
+    const redeemedResult = await this.prisma.pointTransaction.aggregate({
+      where: { type: 'redeem' },
+      _sum: { points: true },
+    });
+
+    const tierStats = Object.fromEntries(
+      tierCounts.map((t) => [
+        t.tier,
+        { count: t._count.tier, totalPoints: t._sum.points ?? 0 },
+      ]),
+    );
+
+    return {
+      totalMembers: totalMembersResult,
+      totalPointsCirculating: totalPointsResult._sum.points ?? 0,
+      totalPointsRedeemed: Math.abs(redeemedResult._sum.points ?? 0),
+      tierStats,
+    };
+  }
+
+  // ─── Admin: Adjust Points ─────────────────────────────────────────────────
+
+  async adminAdjustPoints(dto: AdminAdjustPointsDto) {
+    const membership = await this.prisma.membership.findUnique({
+      where: { userId: dto.userId },
+    });
+
+    if (!membership) {
+      throw new NotFoundException(`Membership untuk user ${dto.userId} tidak ditemukan`);
+    }
+
+    const newPoints = membership.points + dto.points;
+    if (newPoints < 0) {
+      throw new BadRequestException(
+        `Tidak bisa mengurangi point. User hanya punya ${membership.points} point.`,
+      );
+    }
+
+    const type = dto.points >= 0 ? 'bonus' : 'expired'; // pakai 'expired' untuk pengurangan manual
+    const description =
+      dto.description ??
+      (dto.points >= 0
+        ? `Penambahan point oleh admin (+${dto.points})`
+        : `Pengurangan point oleh admin (${dto.points})`);
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.membership.update({
+        where: { userId: dto.userId },
+        data: { points: { increment: dto.points } },
+      });
+
+      await tx.pointTransaction.create({
+        data: {
+          userId: dto.userId,
+          points: dto.points,
+          type,
+          description,
+        },
+      });
+    });
+
+    this.logger.log(`Admin adjusted points for user ${dto.userId}: ${dto.points > 0 ? '+' : ''}${dto.points}`);
+
+    return {
+      userId: dto.userId,
+      previousPoints: membership.points,
+      adjustment: dto.points,
+      newPoints,
+      message: `Point user berhasil disesuaikan dari ${membership.points} → ${newPoints}`,
     };
   }
 
