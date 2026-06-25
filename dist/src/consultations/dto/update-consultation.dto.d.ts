@@ -1,9 +1,5 @@
-declare enum ConsultationStatus {
-    new = "new",
-    in_progress = "in_progress",
-    closed = "closed"
-}
+import { ConsultationStatus } from "../../../generated/prisma/enums";
 export declare class UpdateConsultationDto {
     status: ConsultationStatus;
+    response?: string;
 }
-export {};

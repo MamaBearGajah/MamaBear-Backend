@@ -32,20 +32,20 @@ export declare class MembershipService {
         recentTransactions: {
             id: string;
             createdAt: Date;
-            userId: string;
             description: string | null;
-            type: import("../../generated/prisma/enums").PointTransactionType;
+            userId: string;
             expiredAt: Date | null;
+            type: import("../../generated/prisma/enums").PointTransactionType;
             points: number;
             referenceId: string | null;
         }[];
         activeVouchers: {
             id: string;
-            createdAt: Date;
-            updatedAt: Date;
             isActive: boolean;
             startDate: Date | null;
             endDate: Date | null;
+            createdAt: Date;
+            updatedAt: Date;
             value: import("@prisma/client-runtime-utils").Decimal;
             code: string;
             type: import("../../generated/prisma/enums").VoucherType;
@@ -76,11 +76,11 @@ export declare class MembershipService {
     redeemPoints(userId: string, dto: RedeemPointsDto): Promise<{
         voucher: {
             id: string;
-            createdAt: Date;
-            updatedAt: Date;
             isActive: boolean;
             startDate: Date | null;
             endDate: Date | null;
+            createdAt: Date;
+            updatedAt: Date;
             value: import("@prisma/client-runtime-utils").Decimal;
             code: string;
             type: import("../../generated/prisma/enums").VoucherType;
@@ -120,10 +120,10 @@ export declare class MembershipService {
         data: {
             id: string;
             createdAt: Date;
-            userId: string;
             description: string | null;
-            type: import("../../generated/prisma/enums").PointTransactionType;
+            userId: string;
             expiredAt: Date | null;
+            type: import("../../generated/prisma/enums").PointTransactionType;
             points: number;
             referenceId: string | null;
         }[];
@@ -138,9 +138,9 @@ export declare class MembershipService {
         data: ({
             user: {
                 id: string;
+                createdAt: Date;
                 name: string;
                 email: string;
-                createdAt: Date;
             };
         } & {
             createdAt: Date;

@@ -9,31 +9,31 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UpdateConsultationDto = void 0;
+exports.ApplyVoucherDto = void 0;
 const swagger_1 = require("@nestjs/swagger");
-const enums_1 = require("../../../generated/prisma/enums");
 const class_validator_1 = require("class-validator");
-class UpdateConsultationDto {
-    status;
-    response;
+class ApplyVoucherDto {
+    code;
+    totalAmount;
 }
-exports.UpdateConsultationDto = UpdateConsultationDto;
+exports.ApplyVoucherDto = ApplyVoucherDto;
 __decorate([
     (0, swagger_1.ApiProperty)({
-        enum: enums_1.ConsultationStatus,
-        example: enums_1.ConsultationStatus.in_progress,
+        description: 'Kode voucher yang ingin diterapkan',
+        example: 'HEMAT25K',
     }),
-    (0, class_validator_1.IsEnum)(enums_1.ConsultationStatus),
-    __metadata("design:type", String)
-], UpdateConsultationDto.prototype, "status", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({
-        required: false,
-        example: 'Terima kasih telah menghubungi kami. Tim kami akan segera menghubungi Anda.',
-    }),
-    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
-    (0, class_validator_1.MaxLength)(5000),
+    (0, class_validator_1.MinLength)(3),
     __metadata("design:type", String)
-], UpdateConsultationDto.prototype, "response", void 0);
-//# sourceMappingURL=update-consultation.dto.js.map
+], ApplyVoucherDto.prototype, "code", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        description: 'Subtotal produk sebelum diskon. Ongkir tidak dipengaruhi voucher.',
+        example: 150000,
+        minimum: 0,
+    }),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(0),
+    __metadata("design:type", Number)
+], ApplyVoucherDto.prototype, "totalAmount", void 0);
+//# sourceMappingURL=apply-voucher.dto.js.map
