@@ -1,15 +1,27 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsNotEmpty } from 'class-validator';
-
-enum ConsultationStatus {
-  new = 'new',
-  in_progress = 'in_progress',
-  closed = 'closed',
-}
+import { ConsultationStatus } from 'generated/prisma/enums';
+import {
+  IsEnum,
+  IsOptional,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 
 export class UpdateConsultationDto {
-  @ApiProperty({ enum: ConsultationStatus, example: ConsultationStatus.in_progress })
+  @ApiProperty({
+    enum: ConsultationStatus,
+    example: ConsultationStatus.in_progress,
+  })
   @IsEnum(ConsultationStatus)
-  @IsNotEmpty()
   status!: ConsultationStatus;
+
+  @ApiProperty({
+    required: false,
+    example:
+      'Terima kasih telah menghubungi kami. Tim kami akan segera menghubungi Anda.',
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(5000)
+  response?: string;
 }
