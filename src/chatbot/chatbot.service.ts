@@ -30,7 +30,7 @@ function extractKeywords(text: string): string[] {
 /**
  * Hitung skor relevansi sebuah FAQ terhadap daftar keyword.
  * - Match di question → bobot 3x
- * - Match di answer → bobot 1x
+ * - Match di answer   → bobot 1x
  * Skor total = jumlah keyword yang match × bobot
  */
 function scoreFaq(
@@ -61,7 +61,8 @@ export class ChatbotService {
     if (keywords.length === 0) {
       const topFaqs = await this.faqService.findTopFaqs();
       return {
-        reply: 'Halo! Ada yang bisa saya bantu? Silakan tanyakan seputar produk, pengiriman, atau pembayaran Mamabear.',
+        // FIX: field diubah dari "reply" → "answer" agar konsisten dengan frontend
+        answer: 'Halo! Ada yang bisa saya bantu? Silakan tanyakan seputar produk, pengiriman, atau pembayaran Mamabear.',
         suggestedFaqIds: topFaqs.map((f) => f.id),
       };
     }
@@ -80,7 +81,8 @@ export class ChatbotService {
       const suggestedFaqs = scored.slice(0, 3).map(({ faq }) => faq);
 
       return {
-        reply: topMatch.answer,
+        // FIX: field diubah dari "reply" → "answer"
+        answer: topMatch.answer,
         suggestedFaqIds: suggestedFaqs.map((f) => f.id),
       };
     }
@@ -88,7 +90,8 @@ export class ChatbotService {
     // Tidak ada yang match → fallback dengan pesan default + top FAQ
     const topFaqs = await this.faqService.findTopFaqs();
     return {
-      reply: DEFAULT_MESSAGE,
+      // FIX: field diubah dari "reply" → "answer"
+      answer: DEFAULT_MESSAGE,
       suggestedFaqIds: topFaqs.map((f) => f.id),
     };
   }

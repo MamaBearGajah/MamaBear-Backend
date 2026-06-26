@@ -77,6 +77,17 @@ export class BundleService {
 
   async update(id: string, dto: UpdateBundleDto) {
     await this.findOne(id);
+
+    // FIX: validasi slug uniqueness saat update, konsisten dengan create()
+    if (dto.slug) {
+      const slugConflict = await this.prisma.bundle.findFirst({
+        where: { slug: dto.slug, NOT: { id } },
+      });
+      if (slugConflict) {
+        throw new BadRequestException(`Slug "${dto.slug}" sudah digunakan`);
+      }
+    }
+
     return this.prisma.$transaction(async (tx) => {
       if (dto.items) {
         await tx.bundleItem.deleteMany({ where: { bundleId: id } });

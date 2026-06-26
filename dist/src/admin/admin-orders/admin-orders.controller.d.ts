@@ -8,14 +8,14 @@ export declare class AdminOrdersController {
     constructor(ordersService: OrdersService);
     findAll(page: number, limit: number, status?: OrderStatus, q?: string): Promise<{
         data: ({
+            _count: {
+                items: number;
+            };
             user: {
                 id: string;
                 name: string;
                 email: string;
                 phone: string | null;
-            };
-            _count: {
-                items: number;
             };
             voucher: {
                 value: import("@prisma/client-runtime-utils").Decimal;

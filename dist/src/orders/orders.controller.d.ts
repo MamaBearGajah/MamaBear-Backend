@@ -21,16 +21,6 @@ export declare class OrdersController {
             postalCode: string;
             isDefault: boolean;
         };
-        user: {
-            id: string;
-            name: string;
-            email: string;
-        };
-        voucher: {
-            value: import("@prisma/client-runtime-utils").Decimal;
-            code: string;
-            type: import("../../generated/prisma/enums").VoucherType;
-        } | null;
         items: ({
             product: {
                 id: string;
@@ -82,6 +72,16 @@ export declare class OrdersController {
             productName: string;
             variantName: string | null;
         })[];
+        user: {
+            id: string;
+            name: string;
+            email: string;
+        };
+        voucher: {
+            value: import("@prisma/client-runtime-utils").Decimal;
+            code: string;
+            type: import("../../generated/prisma/enums").VoucherType;
+        } | null;
         payment: {
             id: string;
             createdAt: Date;
@@ -150,11 +150,6 @@ export declare class OrdersController {
                 postalCode: string;
                 isDefault: boolean;
             };
-            voucher: {
-                value: import("@prisma/client-runtime-utils").Decimal;
-                code: string;
-                type: import("../../generated/prisma/enums").VoucherType;
-            } | null;
             items: ({
                 variant: ({
                     product: {
@@ -214,6 +209,11 @@ export declare class OrdersController {
                 productName: string;
                 variantName: string | null;
             })[];
+            voucher: {
+                value: import("@prisma/client-runtime-utils").Decimal;
+                code: string;
+                type: import("../../generated/prisma/enums").VoucherType;
+            } | null;
             payment: {
                 id: string;
                 createdAt: Date;
@@ -267,14 +267,14 @@ export declare class OrdersController {
     }>;
     findAllAdmin(page: number, limit: number, status?: OrderStatus, q?: string): Promise<{
         data: ({
+            _count: {
+                items: number;
+            };
             user: {
                 id: string;
                 name: string;
                 email: string;
                 phone: string | null;
-            };
-            _count: {
-                items: number;
             };
             voucher: {
                 value: import("@prisma/client-runtime-utils").Decimal;
@@ -336,17 +336,6 @@ export declare class OrdersController {
             postalCode: string;
             isDefault: boolean;
         };
-        user: {
-            id: string;
-            name: string;
-            email: string;
-            phone: string | null;
-        };
-        voucher: {
-            value: import("@prisma/client-runtime-utils").Decimal;
-            code: string;
-            type: import("../../generated/prisma/enums").VoucherType;
-        } | null;
         items: ({
             product: {
                 id: string;
@@ -398,6 +387,17 @@ export declare class OrdersController {
             productName: string;
             variantName: string | null;
         })[];
+        user: {
+            id: string;
+            name: string;
+            email: string;
+            phone: string | null;
+        };
+        voucher: {
+            value: import("@prisma/client-runtime-utils").Decimal;
+            code: string;
+            type: import("../../generated/prisma/enums").VoucherType;
+        } | null;
         payment: {
             id: string;
             createdAt: Date;
@@ -484,16 +484,6 @@ export declare class OrdersController {
             postalCode: string;
             isDefault: boolean;
         };
-        user: {
-            id: string;
-            name: string;
-            email: string;
-        };
-        voucher: {
-            value: import("@prisma/client-runtime-utils").Decimal;
-            code: string;
-            type: import("../../generated/prisma/enums").VoucherType;
-        } | null;
         items: ({
             product: {
                 id: string;
@@ -545,6 +535,16 @@ export declare class OrdersController {
             productName: string;
             variantName: string | null;
         })[];
+        user: {
+            id: string;
+            name: string;
+            email: string;
+        };
+        voucher: {
+            value: import("@prisma/client-runtime-utils").Decimal;
+            code: string;
+            type: import("../../generated/prisma/enums").VoucherType;
+        } | null;
         payment: {
             id: string;
             createdAt: Date;

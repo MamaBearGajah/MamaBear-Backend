@@ -31,16 +31,6 @@ export declare class OrdersService {
             postalCode: string;
             isDefault: boolean;
         };
-        user: {
-            id: string;
-            name: string;
-            email: string;
-        };
-        voucher: {
-            value: import("@prisma/client-runtime-utils").Decimal;
-            code: string;
-            type: import("../../generated/prisma/enums").VoucherType;
-        } | null;
         items: ({
             product: {
                 id: string;
@@ -92,6 +82,16 @@ export declare class OrdersService {
             productName: string;
             variantName: string | null;
         })[];
+        user: {
+            id: string;
+            name: string;
+            email: string;
+        };
+        voucher: {
+            value: import("@prisma/client-runtime-utils").Decimal;
+            code: string;
+            type: import("../../generated/prisma/enums").VoucherType;
+        } | null;
         payment: {
             id: string;
             createdAt: Date;
@@ -160,11 +160,6 @@ export declare class OrdersService {
                 postalCode: string;
                 isDefault: boolean;
             };
-            voucher: {
-                value: import("@prisma/client-runtime-utils").Decimal;
-                code: string;
-                type: import("../../generated/prisma/enums").VoucherType;
-            } | null;
             items: ({
                 variant: ({
                     product: {
@@ -224,6 +219,11 @@ export declare class OrdersService {
                 productName: string;
                 variantName: string | null;
             })[];
+            voucher: {
+                value: import("@prisma/client-runtime-utils").Decimal;
+                code: string;
+                type: import("../../generated/prisma/enums").VoucherType;
+            } | null;
             payment: {
                 id: string;
                 createdAt: Date;
@@ -277,14 +277,14 @@ export declare class OrdersService {
     }>;
     findAllAdmin(status: OrderStatus, q: string, page?: number, limit?: number): Promise<{
         data: ({
+            _count: {
+                items: number;
+            };
             user: {
                 id: string;
                 name: string;
                 email: string;
                 phone: string | null;
-            };
-            _count: {
-                items: number;
             };
             voucher: {
                 value: import("@prisma/client-runtime-utils").Decimal;
@@ -346,16 +346,6 @@ export declare class OrdersService {
             postalCode: string;
             isDefault: boolean;
         };
-        user: {
-            id: string;
-            name: string;
-            email: string;
-        };
-        voucher: {
-            value: import("@prisma/client-runtime-utils").Decimal;
-            code: string;
-            type: import("../../generated/prisma/enums").VoucherType;
-        } | null;
         items: ({
             product: {
                 id: string;
@@ -407,6 +397,16 @@ export declare class OrdersService {
             productName: string;
             variantName: string | null;
         })[];
+        user: {
+            id: string;
+            name: string;
+            email: string;
+        };
+        voucher: {
+            value: import("@prisma/client-runtime-utils").Decimal;
+            code: string;
+            type: import("../../generated/prisma/enums").VoucherType;
+        } | null;
         payment: {
             id: string;
             createdAt: Date;
@@ -474,17 +474,6 @@ export declare class OrdersService {
             postalCode: string;
             isDefault: boolean;
         };
-        user: {
-            id: string;
-            name: string;
-            email: string;
-            phone: string | null;
-        };
-        voucher: {
-            value: import("@prisma/client-runtime-utils").Decimal;
-            code: string;
-            type: import("../../generated/prisma/enums").VoucherType;
-        } | null;
         items: ({
             product: {
                 id: string;
@@ -536,6 +525,17 @@ export declare class OrdersService {
             productName: string;
             variantName: string | null;
         })[];
+        user: {
+            id: string;
+            name: string;
+            email: string;
+            phone: string | null;
+        };
+        voucher: {
+            value: import("@prisma/client-runtime-utils").Decimal;
+            code: string;
+            type: import("../../generated/prisma/enums").VoucherType;
+        } | null;
         payment: {
             id: string;
             createdAt: Date;
@@ -662,6 +662,20 @@ export declare class OrdersService {
     }>;
     getAdminOrders(page?: number, limit?: number, status?: string, paymentStatus?: string): Promise<{
         data: ({
+            items: {
+                id: string;
+                createdAt: Date;
+                updatedAt: Date;
+                notes: string | null;
+                productId: string;
+                bundleId: string | null;
+                quantity: number;
+                orderId: string;
+                variantId: string | null;
+                price: import("@prisma/client-runtime-utils").Decimal;
+                productName: string;
+                variantName: string | null;
+            }[];
             user: {
                 id: string;
                 name: string;
@@ -681,20 +695,6 @@ export declare class OrdersService {
                 resetToken: string | null;
                 resetTokenExp: Date | null;
             };
-            items: {
-                id: string;
-                createdAt: Date;
-                updatedAt: Date;
-                notes: string | null;
-                productId: string;
-                bundleId: string | null;
-                quantity: number;
-                orderId: string;
-                variantId: string | null;
-                price: import("@prisma/client-runtime-utils").Decimal;
-                productName: string;
-                variantName: string | null;
-            }[];
             payment: {
                 id: string;
                 createdAt: Date;

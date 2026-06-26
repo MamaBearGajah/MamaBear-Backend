@@ -12,12 +12,12 @@ export declare class AdminController {
             name: string;
             email: string;
             createdAt: Date;
-            orders: {
-                total: import("@prisma/client-runtime-utils").Decimal;
-            }[];
             _count: {
                 orders: number;
             };
+            orders: {
+                total: import("@prisma/client-runtime-utils").Decimal;
+            }[];
         }[];
         meta: {
             totalItems: number;
@@ -28,14 +28,14 @@ export declare class AdminController {
     }>;
     getOrders(page: number, limit: number, status?: OrderStatus, q?: string): Promise<{
         data: ({
+            _count: {
+                items: number;
+            };
             user: {
                 id: string;
                 name: string;
                 email: string;
                 phone: string | null;
-            };
-            _count: {
-                items: number;
             };
             voucher: {
                 value: import("@prisma/client-runtime-utils").Decimal;

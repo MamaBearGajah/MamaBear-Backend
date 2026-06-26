@@ -17,6 +17,7 @@ const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const voucher_service_1 = require("./voucher.service");
 const create_voucher_dto_1 = require("./dto/create-voucher.dto");
+const update_voucher_dto_1 = require("./dto/update-voucher.dto");
 const validate_voucher_dto_1 = require("./dto/validate-voucher.dto");
 const apply_voucher_dto_1 = require("./dto/apply-voucher.dto");
 const decorators_1 = require("../auth/decorators");
@@ -166,14 +167,14 @@ __decorate([
     (0, common_1.Patch)(':id'),
     (0, common_1.UseGuards)(roles_guard_1.RolesGuard),
     (0, decorators_1.Roles)(enums_1.Role.admin, enums_1.Role.super_admin),
-    (0, swagger_1.ApiOperation)({ summary: '[Admin] Update voucher' }),
+    (0, swagger_1.ApiOperation)({ summary: '[Admin] Update voucher (partial)' }),
     (0, swagger_1.ApiParam)({ name: 'id' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Voucher berhasil diupdate' }),
     (0, swagger_1.ApiResponse)({ status: 404, description: 'Voucher tidak ditemukan' }),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, create_voucher_dto_1.CreateVoucherDto]),
+    __metadata("design:paramtypes", [String, update_voucher_dto_1.UpdateVoucherDto]),
     __metadata("design:returntype", void 0)
 ], VoucherController.prototype, "update", null);
 __decorate([

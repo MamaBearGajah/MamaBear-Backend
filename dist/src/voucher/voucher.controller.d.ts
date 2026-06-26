@@ -1,5 +1,6 @@
 import { VoucherService } from './voucher.service';
 import { CreateVoucherDto } from './dto/create-voucher.dto';
+import { UpdateVoucherDto } from './dto/update-voucher.dto';
 import { ValidateVoucherDto } from './dto/validate-voucher.dto';
 import { ApplyVoucherDto } from './dto/apply-voucher.dto';
 export declare class VoucherController {
@@ -116,7 +117,7 @@ export declare class VoucherController {
         usedCount: number;
         ownerId: string | null;
     }>;
-    update(id: string, dto: CreateVoucherDto): Promise<{
+    update(id: string, dto: UpdateVoucherDto): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
