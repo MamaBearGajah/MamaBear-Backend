@@ -6,15 +6,15 @@ export declare class AdminCustomersController {
     getAll(query: AdminBaseQueryDto): Promise<{
         data: {
             id: string;
-            createdAt: Date;
             name: string;
             email: string;
-            orders: {
-                total: import("@prisma/client-runtime-utils").Decimal;
-            }[];
+            createdAt: Date;
             _count: {
                 orders: number;
             };
+            orders: {
+                total: import("@prisma/client-runtime-utils").Decimal;
+            }[];
         }[];
         meta: {
             totalItems: number;
@@ -25,15 +25,18 @@ export declare class AdminCustomersController {
     }>;
     getById(id: string): Promise<{
         id: string;
-        createdAt: Date;
         name: string;
         email: string;
         phone: string | null;
         isVerified: boolean;
+        createdAt: Date;
+        _count: {
+            orders: number;
+        };
         addresses: {
             id: string;
-            label: string | null;
             phone: string;
+            label: string | null;
             receiverName: string;
             address: string;
             cityId: string;
@@ -45,15 +48,12 @@ export declare class AdminCustomersController {
             id: string;
             createdAt: Date;
             status: import("../../../generated/prisma/enums").OrderStatus;
-            _count: {
-                items: number;
-            };
             orderNumber: string;
             paymentStatus: import("../../../generated/prisma/enums").PaymentStatus;
             total: import("@prisma/client-runtime-utils").Decimal;
+            _count: {
+                items: number;
+            };
         }[];
-        _count: {
-            orders: number;
-        };
     }>;
 }

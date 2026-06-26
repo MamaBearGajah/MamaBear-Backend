@@ -18,6 +18,7 @@ const swagger_1 = require("@nestjs/swagger");
 const throttler_1 = require("@nestjs/throttler");
 const chatbot_service_1 = require("./chatbot.service");
 const chatbot_query_dto_1 = require("./dto/chatbot-query.dto");
+const decorators_1 = require("../auth/decorators");
 let ChatbotController = class ChatbotController {
     chatbotService;
     constructor(chatbotService) {
@@ -29,6 +30,7 @@ let ChatbotController = class ChatbotController {
 };
 exports.ChatbotController = ChatbotController;
 __decorate([
+    (0, decorators_1.Public)(),
     (0, throttler_1.Throttle)({ default: { limit: 10, ttl: 60000 } }),
     (0, swagger_1.ApiOperation)({ summary: 'Kirim pesan ke chatbot' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Respon chatbot berhasil' }),

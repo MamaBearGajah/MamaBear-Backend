@@ -32,20 +32,20 @@ export declare class MembershipService {
         recentTransactions: {
             id: string;
             createdAt: Date;
-            description: string | null;
             userId: string;
-            expiredAt: Date | null;
+            description: string | null;
             type: import("../../generated/prisma/enums").PointTransactionType;
+            expiredAt: Date | null;
             points: number;
             referenceId: string | null;
         }[];
         activeVouchers: {
             id: string;
+            createdAt: Date;
+            updatedAt: Date;
             isActive: boolean;
             startDate: Date | null;
             endDate: Date | null;
-            createdAt: Date;
-            updatedAt: Date;
             value: import("@prisma/client-runtime-utils").Decimal;
             code: string;
             type: import("../../generated/prisma/enums").VoucherType;
@@ -76,11 +76,11 @@ export declare class MembershipService {
     redeemPoints(userId: string, dto: RedeemPointsDto): Promise<{
         voucher: {
             id: string;
+            createdAt: Date;
+            updatedAt: Date;
             isActive: boolean;
             startDate: Date | null;
             endDate: Date | null;
-            createdAt: Date;
-            updatedAt: Date;
             value: import("@prisma/client-runtime-utils").Decimal;
             code: string;
             type: import("../../generated/prisma/enums").VoucherType;
@@ -120,10 +120,10 @@ export declare class MembershipService {
         data: {
             id: string;
             createdAt: Date;
-            description: string | null;
             userId: string;
-            expiredAt: Date | null;
+            description: string | null;
             type: import("../../generated/prisma/enums").PointTransactionType;
+            expiredAt: Date | null;
             points: number;
             referenceId: string | null;
         }[];
@@ -138,9 +138,9 @@ export declare class MembershipService {
         data: ({
             user: {
                 id: string;
-                createdAt: Date;
                 name: string;
                 email: string;
+                createdAt: Date;
             };
         } & {
             createdAt: Date;

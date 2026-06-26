@@ -23,6 +23,7 @@ import {
 } from '@nestjs/swagger';
 import { VoucherService } from './voucher.service';
 import { CreateVoucherDto } from './dto/create-voucher.dto';
+import { UpdateVoucherDto } from './dto/update-voucher.dto';
 import { ValidateVoucherDto } from './dto/validate-voucher.dto';
 import { ApplyVoucherDto } from './dto/apply-voucher.dto';
 import { GetUser, Roles } from '../auth/decorators';
@@ -161,11 +162,14 @@ export class VoucherController {
   @Patch(':id')
   @UseGuards(RolesGuard)
   @Roles(Role.admin, Role.super_admin)
-  @ApiOperation({ summary: '[Admin] Update voucher' })
+  @ApiOperation({ summary: '[Admin] Update voucher (partial)' })
   @ApiParam({ name: 'id' })
   @ApiResponse({ status: 200, description: 'Voucher berhasil diupdate' })
   @ApiResponse({ status: 404, description: 'Voucher tidak ditemukan' })
-  update(@Param('id') id: string, @Body() dto: CreateVoucherDto) {
+  update(
+    @Param('id') id: string,
+    @Body() dto: UpdateVoucherDto, // ← was CreateVoucherDto — all fields were required, blocking partial updates like { isActive }
+  ) {
     return this.voucherService.update(id, dto);
   }
 

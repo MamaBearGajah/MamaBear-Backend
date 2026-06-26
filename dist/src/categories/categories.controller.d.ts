@@ -16,26 +16,26 @@ export declare class CategoriesController {
     findOne(id: string): Promise<{}>;
     create(dto: CreateCategoryDto): Promise<{
         id: string;
+        name: string;
+        createdAt: Date;
+        updatedAt: Date;
         imageUrl: string | null;
         isActive: boolean;
         sortOrder: number;
-        createdAt: Date;
-        updatedAt: Date;
-        name: string;
-        slug: string;
         parentId: string | null;
+        slug: string;
         description: string | null;
     }>;
     update(id: string, dto: UpdateCategoryDto): Promise<{
         id: string;
+        name: string;
+        createdAt: Date;
+        updatedAt: Date;
         imageUrl: string | null;
         isActive: boolean;
         sortOrder: number;
-        createdAt: Date;
-        updatedAt: Date;
-        name: string;
-        slug: string;
         parentId: string | null;
+        slug: string;
         description: string | null;
     }>;
     reorder(items: {
@@ -47,14 +47,14 @@ export declare class CategoriesController {
     }>;
     remove(id: string): Promise<{
         id: string;
+        name: string;
+        createdAt: Date;
+        updatedAt: Date;
         imageUrl: string | null;
         isActive: boolean;
         sortOrder: number;
-        createdAt: Date;
-        updatedAt: Date;
-        name: string;
-        slug: string;
         parentId: string | null;
+        slug: string;
         description: string | null;
     }>;
 }

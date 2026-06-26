@@ -1,5 +1,14 @@
-import { CreateVoucherDto } from './create-voucher.dto';
-declare const UpdateVoucherDto_base: import("@nestjs/common").Type<Partial<CreateVoucherDto>>;
-export declare class UpdateVoucherDto extends UpdateVoucherDto_base {
+import { VoucherType, VoucherSource } from '../../../generated/prisma/enums';
+export declare class UpdateVoucherDto {
+    code?: string;
+    type?: VoucherType;
+    source?: VoucherSource;
+    value?: number;
+    minPurchase?: number;
+    maxDiscount?: number;
+    usageLimit?: number;
+    isActive?: boolean;
+    startDate?: string;
+    endDate?: string;
+    ownerId?: string;
 }
-export {};

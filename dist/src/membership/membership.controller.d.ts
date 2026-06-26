@@ -20,20 +20,20 @@ export declare class MembershipController {
         recentTransactions: {
             id: string;
             createdAt: Date;
-            description: string | null;
             userId: string;
-            expiredAt: Date | null;
+            description: string | null;
             type: import("../../generated/prisma/enums").PointTransactionType;
+            expiredAt: Date | null;
             points: number;
             referenceId: string | null;
         }[];
         activeVouchers: {
             id: string;
+            createdAt: Date;
+            updatedAt: Date;
             isActive: boolean;
             startDate: Date | null;
             endDate: Date | null;
-            createdAt: Date;
-            updatedAt: Date;
             value: import("@prisma/client-runtime-utils").Decimal;
             code: string;
             type: import("../../generated/prisma/enums").VoucherType;
@@ -58,10 +58,10 @@ export declare class MembershipController {
         data: {
             id: string;
             createdAt: Date;
-            description: string | null;
             userId: string;
-            expiredAt: Date | null;
+            description: string | null;
             type: import("../../generated/prisma/enums").PointTransactionType;
+            expiredAt: Date | null;
             points: number;
             referenceId: string | null;
         }[];
@@ -75,11 +75,11 @@ export declare class MembershipController {
     redeemPoints(userId: string, dto: RedeemPointsDto): Promise<{
         voucher: {
             id: string;
+            createdAt: Date;
+            updatedAt: Date;
             isActive: boolean;
             startDate: Date | null;
             endDate: Date | null;
-            createdAt: Date;
-            updatedAt: Date;
             value: import("@prisma/client-runtime-utils").Decimal;
             code: string;
             type: import("../../generated/prisma/enums").VoucherType;
@@ -119,9 +119,9 @@ export declare class MembershipController {
         data: ({
             user: {
                 id: string;
-                createdAt: Date;
                 name: string;
                 email: string;
+                createdAt: Date;
             };
         } & {
             createdAt: Date;
@@ -167,20 +167,20 @@ export declare class MembershipController {
         recentTransactions: {
             id: string;
             createdAt: Date;
-            description: string | null;
             userId: string;
-            expiredAt: Date | null;
+            description: string | null;
             type: import("../../generated/prisma/enums").PointTransactionType;
+            expiredAt: Date | null;
             points: number;
             referenceId: string | null;
         }[];
         activeVouchers: {
             id: string;
+            createdAt: Date;
+            updatedAt: Date;
             isActive: boolean;
             startDate: Date | null;
             endDate: Date | null;
-            createdAt: Date;
-            updatedAt: Date;
             value: import("@prisma/client-runtime-utils").Decimal;
             code: string;
             type: import("../../generated/prisma/enums").VoucherType;
@@ -205,10 +205,10 @@ export declare class MembershipController {
         data: {
             id: string;
             createdAt: Date;
-            description: string | null;
             userId: string;
-            expiredAt: Date | null;
+            description: string | null;
             type: import("../../generated/prisma/enums").PointTransactionType;
+            expiredAt: Date | null;
             points: number;
             referenceId: string | null;
         }[];
