@@ -88,31 +88,40 @@ let OrdersService = OrdersService_1 = class OrdersService {
         const shippingCost = selectedService.cost;
         const estimatedDelivery = parseEtdToDate(selectedService.etd);
         const subtotal = cart.items.reduce((sum, item) => {
-            return sum + Number(item.variant?.basePrice ?? item.price ?? 0) * item.quantity;
+            const price = Number(item.variant?.discountPrice ?? item.variant?.basePrice ?? item.price ?? 0);
+            return sum + price * item.quantity;
         }, 0);
         let discountAmount = 0;
+        let discountShipping = 0;
         const resolvedVoucherId = dto.voucherId ?? null;
+        const resolvedVoucherShippingId = dto.voucherShippingId ?? null;
         const orderNumber = await this.generateOrderNumber();
         const now = new Date();
         const paymentDeadline = new Date(now.getTime() + 2 * 60 * 60 * 1000);
         const cancelDeadline = new Date(now.getTime() + 30 * 60 * 1000);
         const order = await this.prisma.$transaction(async (tx) => {
             if (resolvedVoucherId) {
-                const applied = await this.voucherService.applyVoucher(tx, resolvedVoucherId, subtotal, userId);
+                const applied = await this.voucherService.applyVoucher(tx, resolvedVoucherId, subtotal, userId, 0);
                 discountAmount = applied.discountAmount;
             }
-            const total = Math.max(0, subtotal + shippingCost - discountAmount);
+            if (resolvedVoucherShippingId) {
+                const appliedShipping = await this.voucherService.applyVoucher(tx, resolvedVoucherShippingId, subtotal, userId, shippingCost);
+                discountShipping = appliedShipping.discountAmount;
+            }
+            const total = Math.max(0, subtotal - discountAmount + shippingCost - discountShipping);
             const newOrder = await tx.order.create({
                 data: {
                     orderNumber,
                     userId,
                     addressId: dto.addressId,
                     voucherId: resolvedVoucherId,
+                    voucherShippingId: resolvedVoucherShippingId,
                     courier: dto.courier,
                     service: dto.service,
                     notes: dto.notes ?? null,
                     subtotal: new client_1.Prisma.Decimal(subtotal),
                     discountAmount: new client_1.Prisma.Decimal(discountAmount),
+                    discountShipping: new client_1.Prisma.Decimal(discountShipping),
                     shippingCost: new client_1.Prisma.Decimal(shippingCost),
                     total: new client_1.Prisma.Decimal(total),
                     status: 'pending',
@@ -170,6 +179,7 @@ let OrdersService = OrdersService_1 = class OrdersService {
                     address: true,
                     payment: true,
                     voucher: { select: { code: true, type: true, value: true } },
+                    voucherShipping: { select: { code: true, type: true, value: true } },
                 },
             }),
             this.prisma.order.count({ where: { userId } }),
@@ -198,6 +208,7 @@ let OrdersService = OrdersService_1 = class OrdersService {
                     payment: { select: { id: true, status: true, paymentMethod: true } },
                     user: { select: { id: true, name: true, email: true, phone: true } },
                     voucher: { select: { code: true, type: true, value: true } },
+                    voucherShipping: { select: { code: true, type: true, value: true } },
                     _count: { select: { items: true } },
                 },
             }),
@@ -232,6 +243,7 @@ let OrdersService = OrdersService_1 = class OrdersService {
                 address: true,
                 payment: true,
                 voucher: { select: { code: true, type: true, value: true } },
+                voucherShipping: { select: { code: true, type: true, value: true } },
                 statusHistory: { orderBy: { createdAt: 'asc' } },
                 user: { select: { id: true, name: true, email: true } },
             },
@@ -264,6 +276,7 @@ let OrdersService = OrdersService_1 = class OrdersService {
                 address: true,
                 payment: true,
                 voucher: { select: { code: true, type: true, value: true } },
+                voucherShipping: { select: { code: true, type: true, value: true } },
                 statusHistory: { orderBy: { createdAt: 'asc' } },
                 user: { select: { id: true, name: true, email: true, phone: true } },
             },
@@ -432,6 +445,8 @@ let OrdersService = OrdersService_1 = class OrdersService {
                 { id: 'trackingNumber', title: 'TRACKING_NUMBER' },
                 { id: 'itemCount', title: 'ITEM_COUNT' },
                 { id: 'subtotal', title: 'SUBTOTAL' },
+                { id: 'discountAmount', title: 'DISCOUNT_PRODUCT' },
+                { id: 'discountShipping', title: 'DISCOUNT_SHIPPING' },
                 { id: 'shippingCost', title: 'SHIPPING_COST' },
                 { id: 'total', title: 'TOTAL' },
             ],
@@ -453,6 +468,8 @@ let OrdersService = OrdersService_1 = class OrdersService {
             trackingNumber: o.trackingNumber ?? '',
             itemCount: o._count.items,
             subtotal: Number(o.subtotal).toFixed(0),
+            discountAmount: Number(o.discountAmount).toFixed(0),
+            discountShipping: Number(o.discountShipping ?? 0).toFixed(0),
             shippingCost: Number(o.shippingCost).toFixed(0),
             total: Number(o.total).toFixed(0),
         }));

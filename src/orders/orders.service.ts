@@ -15,10 +15,6 @@ import { MembershipService } from '../membership/membership.service';
 import { VoucherService } from '../voucher/voucher.service';
 import { createObjectCsvStringifier } from 'csv-writer';
 
-/**
- * Parse ETD string dari RajaOngkir ("2-3 HARI", "1-2", "3") → tanggal estimasi.
- * Ambil angka terbesar sebagai batas atas estimasi.
- */
 function parseEtdToDate(etd: string | undefined, from: Date = new Date()): Date | null {
   if (!etd) return null;
   const match = etd.match(/\d+/g);
@@ -80,8 +76,6 @@ export class OrdersService {
       0,
     );
 
-    // ── Shipping cost ─────────────────────────────────────────────────────────
-    // shippingService.calculateCost() return flat array: [{ service, cost, etd }]
     const shippingOptions = await this.shippingService.calculateCost({
       originCityId: process.env.WAREHOUSE_CITY_ID!,
       destinationCityId: address.cityId,
@@ -89,11 +83,6 @@ export class OrdersService {
       courier: dto.courier,
     });
 
-    // FIX: shippingOptions sudah flat ([{ service, cost, etd }]), jadi tidak perlu
-    // di-flatMap lagi via `.cost` (itu sisa struktur lama yang bikin .find() selalu
-    // gagal karena dibandingkan terhadap angka, bukan objek).
-    // Perbandingan dibuat case-insensitive karena FE/BE bisa kirim casing berbeda
-    // (mis. "REG" dari RajaOngkir vs "reg" yang dikirim klien).
     const selectedService = shippingOptions.find(
       (c: any) => c.service?.toLowerCase() === dto.service?.toLowerCase(),
     );
@@ -104,50 +93,77 @@ export class OrdersService {
     }
 
     const shippingCost: number = selectedService.cost;
-
-    // ── Parse ETD dari RajaOngkir → estimatedDelivery ────────────────────────
     const estimatedDelivery = parseEtdToDate(selectedService.etd);
 
+    // FIX: pakai discountPrice jika ada, supaya konsisten dengan kalkulasi subtotal di frontend
     const subtotal = cart.items.reduce((sum, item) => {
-      return sum + Number(item.variant?.basePrice ?? item.price ?? 0) * item.quantity;
+      const price = Number(
+        item.variant?.discountPrice ?? item.variant?.basePrice ?? item.price ?? 0
+      );
+      return sum + price * item.quantity;
     }, 0);
 
-    // ── Voucher ─────────────────────────────────────────────────────────────
-    let discountAmount = 0;
-    const resolvedVoucherId = dto.voucherId ?? null;
+    // ── Voucher ───────────────────────────────────────────────────────────────
+    let discountAmount   = 0; // diskon dari voucher produk
+    let discountShipping = 0; // diskon dari voucher ongkir (NEW)
+
+    const resolvedVoucherId         = dto.voucherId ?? null;
+    const resolvedVoucherShippingId = dto.voucherShippingId ?? null; // NEW
+
     const orderNumber = await this.generateOrderNumber();
 
-    // ── Deadline timestamps ──────────────────────────────────────────────────
     const now = new Date();
     const paymentDeadline = new Date(now.getTime() + 2 * 60 * 60 * 1000);  // +2 jam
     const cancelDeadline  = new Date(now.getTime() + 30 * 60 * 1000);      // +30 menit
 
     const order = await this.prisma.$transaction(async (tx) => {
+      // 1. Apply voucher produk (potongan harga)
       if (resolvedVoucherId) {
-        const applied = await this.voucherService.applyVoucher(tx, resolvedVoucherId, subtotal, userId);
+        const applied = await this.voucherService.applyVoucher(
+          tx,
+          resolvedVoucherId,
+          subtotal,
+          userId,
+          0, // shippingCost tidak relevan untuk voucher produk
+        );
         discountAmount = applied.discountAmount;
       }
 
-      const total = Math.max(0, subtotal + shippingCost - discountAmount);
+      // 2. Apply voucher ongkir (NEW)
+      if (resolvedVoucherShippingId) {
+        const appliedShipping = await this.voucherService.applyVoucher(
+          tx,
+          resolvedVoucherShippingId,
+          subtotal,
+          userId,
+          shippingCost, // pass ongkir aktual supaya discountAmount = nilai ongkir
+        );
+        discountShipping = appliedShipping.discountAmount;
+      }
+
+      // Total = subtotal - diskon produk + ongkir - diskon ongkir
+      const total = Math.max(0, subtotal - discountAmount + shippingCost - discountShipping);
 
       const newOrder = await tx.order.create({
         data: {
           orderNumber,
           userId,
-          addressId: dto.addressId,
-          voucherId: resolvedVoucherId,
-          courier: dto.courier,
-          service: dto.service,
-          notes: dto.notes ?? null,
-          subtotal:          new Prisma.Decimal(subtotal),
-          discountAmount:    new Prisma.Decimal(discountAmount),
-          shippingCost:      new Prisma.Decimal(shippingCost),
-          total:             new Prisma.Decimal(total),
-          status:            'pending',
-          paymentStatus:     'pending',
+          addressId:          dto.addressId,
+          voucherId:          resolvedVoucherId,
+          voucherShippingId:  resolvedVoucherShippingId, // NEW
+          courier:            dto.courier,
+          service:            dto.service,
+          notes:              dto.notes ?? null,
+          subtotal:           new Prisma.Decimal(subtotal),
+          discountAmount:     new Prisma.Decimal(discountAmount),
+          discountShipping:   new Prisma.Decimal(discountShipping), // NEW
+          shippingCost:       new Prisma.Decimal(shippingCost),
+          total:              new Prisma.Decimal(total),
+          status:             'pending',
+          paymentStatus:      'pending',
           paymentDeadline,
           cancelDeadline,
-          estimatedDelivery, // ← dari ETD RajaOngkir
+          estimatedDelivery,
         },
       });
 
@@ -168,7 +184,6 @@ export class OrdersService {
         data: { orderId: newOrder.id, status: 'pending', note: 'Order created successfully' },
       });
 
-      // Kurangi stok varian
       for (const item of cart.items) {
         if (item.variantId) {
           await tx.productVariant.update({
@@ -178,7 +193,6 @@ export class OrdersService {
         }
       }
 
-      // Update soldCount produk
       const productSoldMap = cart.items.reduce<Record<string, number>>((acc, item) => {
         acc[item.productId] = (acc[item.productId] ?? 0) + item.quantity;
         return acc;
@@ -207,7 +221,8 @@ export class OrdersService {
           items: { include: { variant: { include: { product: true } } } },
           address: true,
           payment: true,
-          voucher: { select: { code: true, type: true, value: true } },
+          voucher:         { select: { code: true, type: true, value: true } },
+          voucherShipping: { select: { code: true, type: true, value: true } }, // NEW
         },
       }),
       this.prisma.order.count({ where: { userId } }),
@@ -239,7 +254,8 @@ export class OrdersService {
         include: {
           payment: { select: { id: true, status: true, paymentMethod: true } },
           user: { select: { id: true, name: true, email: true, phone: true } },
-          voucher: { select: { code: true, type: true, value: true } },
+          voucher:         { select: { code: true, type: true, value: true } },
+          voucherShipping: { select: { code: true, type: true, value: true } }, // NEW
           _count: { select: { items: true } },
         },
       }),
@@ -277,7 +293,8 @@ export class OrdersService {
         },
         address: true,
         payment: true,
-        voucher: { select: { code: true, type: true, value: true } },
+        voucher:         { select: { code: true, type: true, value: true } },
+        voucherShipping: { select: { code: true, type: true, value: true } }, // NEW
         statusHistory: { orderBy: { createdAt: 'asc' } },
         user: { select: { id: true, name: true, email: true } },
       },
@@ -314,7 +331,8 @@ export class OrdersService {
         },
         address: true,
         payment: true,
-        voucher: { select: { code: true, type: true, value: true } },
+        voucher:         { select: { code: true, type: true, value: true } },
+        voucherShipping: { select: { code: true, type: true, value: true } }, // NEW
         statusHistory: { orderBy: { createdAt: 'asc' } },
         user: { select: { id: true, name: true, email: true, phone: true } },
       },
@@ -348,14 +366,12 @@ export class OrdersService {
       data: { orderId, status, note: dto.note ?? null },
     });
 
-    // Proses membership poin saat delivered
     if (status === OrderStatus.delivered) {
       this.membershipService
         .processPurchase(order.userId, Number(order.total), orderId)
         .catch((err) => this.logger.error(`Membership processing failed for order ${orderId}`, err));
     }
 
-    // Email notif saat shipped
     if (status === OrderStatus.shipped && dto.trackingNumber) {
       this.mailService
         .sendShippingNotification({
@@ -395,7 +411,6 @@ export class OrdersService {
         data: { orderId, status: 'cancelled', note: 'Order cancelled by user' },
       });
 
-      // Kembalikan stok varian
       for (const item of order.items) {
         if (item.variantId) {
           await tx.productVariant.update({
@@ -405,7 +420,6 @@ export class OrdersService {
         }
       }
 
-      // Kurangi soldCount produk
       const productSoldMap = order.items.reduce<Record<string, number>>((acc, item) => {
         acc[item.productId] = (acc[item.productId] ?? 0) + item.quantity;
         return acc;
@@ -448,8 +462,7 @@ export class OrdersService {
     return order;
   }
 
-  // ─── Get Admin Orders (legacy helper — kept for backward compat) ──────────
-  // Gunakan findAllAdmin() untuk fitur lengkap (search, orderNumber, dll).
+  // ─── Get Admin Orders (legacy helper) ────────────────────────────────────
   async getAdminOrders(page = 1, limit = 10, status?: string, paymentStatus?: string) {
     const skip = (page - 1) * limit;
     const where: any = {};
@@ -475,7 +488,6 @@ export class OrdersService {
   }
 
   // ─── Update Tracking Number (legacy helper) ───────────────────────────────
-  // Gunakan updateStatus() dengan dto.trackingNumber untuk flow lengkap.
   async updateTrackingNumber(orderId: string, trackingNumber: string) {
     const order = await this.prisma.order.findUnique({ where: { id: orderId } });
     if (!order) throw new NotFoundException('Order tidak ditemukan');
@@ -500,46 +512,50 @@ export class OrdersService {
 
     const csvStringifier = createObjectCsvStringifier({
       header: [
-        { id: 'orderNumber',    title: 'ORDER_NUMBER' },
-        { id: 'createdAt',      title: 'DATE' },
-        { id: 'customerName',   title: 'CUSTOMER_NAME' },
-        { id: 'customerEmail',  title: 'CUSTOMER_EMAIL' },
-        { id: 'recipient',      title: 'RECIPIENT' },
-        { id: 'phone',          title: 'PHONE' },
-        { id: 'cityId',         title: 'CITY_ID' },
-        { id: 'provinceId',     title: 'PROVINCE_ID' },
-        { id: 'status',         title: 'STATUS' },
-        { id: 'paymentStatus',  title: 'PAYMENT_STATUS' },
-        { id: 'paymentProvider',title: 'PAYMENT_PROVIDER' },
-        { id: 'courier',        title: 'COURIER' },
-        { id: 'service',        title: 'SERVICE' },
-        { id: 'trackingNumber', title: 'TRACKING_NUMBER' },
-        { id: 'itemCount',      title: 'ITEM_COUNT' },
-        { id: 'subtotal',       title: 'SUBTOTAL' },
-        { id: 'shippingCost',   title: 'SHIPPING_COST' },
-        { id: 'total',          title: 'TOTAL' },
+        { id: 'orderNumber',     title: 'ORDER_NUMBER' },
+        { id: 'createdAt',       title: 'DATE' },
+        { id: 'customerName',    title: 'CUSTOMER_NAME' },
+        { id: 'customerEmail',   title: 'CUSTOMER_EMAIL' },
+        { id: 'recipient',       title: 'RECIPIENT' },
+        { id: 'phone',           title: 'PHONE' },
+        { id: 'cityId',          title: 'CITY_ID' },
+        { id: 'provinceId',      title: 'PROVINCE_ID' },
+        { id: 'status',          title: 'STATUS' },
+        { id: 'paymentStatus',   title: 'PAYMENT_STATUS' },
+        { id: 'paymentProvider', title: 'PAYMENT_PROVIDER' },
+        { id: 'courier',         title: 'COURIER' },
+        { id: 'service',         title: 'SERVICE' },
+        { id: 'trackingNumber',  title: 'TRACKING_NUMBER' },
+        { id: 'itemCount',       title: 'ITEM_COUNT' },
+        { id: 'subtotal',        title: 'SUBTOTAL' },
+        { id: 'discountAmount',  title: 'DISCOUNT_PRODUCT' },
+        { id: 'discountShipping',title: 'DISCOUNT_SHIPPING' },
+        { id: 'shippingCost',    title: 'SHIPPING_COST' },
+        { id: 'total',           title: 'TOTAL' },
       ],
     });
 
     const records = orders.map((o) => ({
-      orderNumber:     o.orderNumber,
-      createdAt:       o.createdAt.toISOString().slice(0, 19).replace('T', ' '),
-      customerName:    o.user.name,
-      customerEmail:   o.user.email,
-      recipient:       o.address.receiverName,
-      phone:           o.address.phone,
-      cityId:          o.address.cityId,
-      provinceId:      o.address.provinceId,
-      status:          o.status,
-      paymentStatus:   o.paymentStatus,
-      paymentProvider: o.payment?.provider ?? '',
-      courier:         o.courier,
-      service:         o.service,
-      trackingNumber:  o.trackingNumber ?? '',
-      itemCount:       o._count.items,
-      subtotal:        Number(o.subtotal).toFixed(0),
-      shippingCost:    Number(o.shippingCost).toFixed(0),
-      total:           Number(o.total).toFixed(0),
+      orderNumber:      o.orderNumber,
+      createdAt:        o.createdAt.toISOString().slice(0, 19).replace('T', ' '),
+      customerName:     o.user.name,
+      customerEmail:    o.user.email,
+      recipient:        o.address.receiverName,
+      phone:            o.address.phone,
+      cityId:           o.address.cityId,
+      provinceId:       o.address.provinceId,
+      status:           o.status,
+      paymentStatus:    o.paymentStatus,
+      paymentProvider:  o.payment?.provider ?? '',
+      courier:          o.courier,
+      service:          o.service,
+      trackingNumber:   o.trackingNumber ?? '',
+      itemCount:        o._count.items,
+      subtotal:         Number(o.subtotal).toFixed(0),
+      discountAmount:   Number(o.discountAmount).toFixed(0),
+      discountShipping: Number((o as any).discountShipping ?? 0).toFixed(0),
+      shippingCost:     Number(o.shippingCost).toFixed(0),
+      total:            Number(o.total).toFixed(0),
     }));
 
     return csvStringifier.getHeaderString() + csvStringifier.stringifyRecords(records);

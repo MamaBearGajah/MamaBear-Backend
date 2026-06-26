@@ -12,12 +12,14 @@ export type AggregateOrder = {
 export type OrderAvgAggregateOutputType = {
     subtotal: runtime.Decimal | null;
     discountAmount: runtime.Decimal | null;
+    discountShipping: runtime.Decimal | null;
     shippingCost: runtime.Decimal | null;
     total: runtime.Decimal | null;
 };
 export type OrderSumAggregateOutputType = {
     subtotal: runtime.Decimal | null;
     discountAmount: runtime.Decimal | null;
+    discountShipping: runtime.Decimal | null;
     shippingCost: runtime.Decimal | null;
     total: runtime.Decimal | null;
 };
@@ -27,11 +29,13 @@ export type OrderMinAggregateOutputType = {
     userId: string | null;
     addressId: string | null;
     voucherId: string | null;
+    voucherShippingId: string | null;
     bundleId: string | null;
     status: $Enums.OrderStatus | null;
     paymentStatus: $Enums.PaymentStatus | null;
     subtotal: runtime.Decimal | null;
     discountAmount: runtime.Decimal | null;
+    discountShipping: runtime.Decimal | null;
     shippingCost: runtime.Decimal | null;
     total: runtime.Decimal | null;
     courier: string | null;
@@ -54,11 +58,13 @@ export type OrderMaxAggregateOutputType = {
     userId: string | null;
     addressId: string | null;
     voucherId: string | null;
+    voucherShippingId: string | null;
     bundleId: string | null;
     status: $Enums.OrderStatus | null;
     paymentStatus: $Enums.PaymentStatus | null;
     subtotal: runtime.Decimal | null;
     discountAmount: runtime.Decimal | null;
+    discountShipping: runtime.Decimal | null;
     shippingCost: runtime.Decimal | null;
     total: runtime.Decimal | null;
     courier: string | null;
@@ -81,11 +87,13 @@ export type OrderCountAggregateOutputType = {
     userId: number;
     addressId: number;
     voucherId: number;
+    voucherShippingId: number;
     bundleId: number;
     status: number;
     paymentStatus: number;
     subtotal: number;
     discountAmount: number;
+    discountShipping: number;
     shippingCost: number;
     total: number;
     courier: number;
@@ -106,12 +114,14 @@ export type OrderCountAggregateOutputType = {
 export type OrderAvgAggregateInputType = {
     subtotal?: true;
     discountAmount?: true;
+    discountShipping?: true;
     shippingCost?: true;
     total?: true;
 };
 export type OrderSumAggregateInputType = {
     subtotal?: true;
     discountAmount?: true;
+    discountShipping?: true;
     shippingCost?: true;
     total?: true;
 };
@@ -121,11 +131,13 @@ export type OrderMinAggregateInputType = {
     userId?: true;
     addressId?: true;
     voucherId?: true;
+    voucherShippingId?: true;
     bundleId?: true;
     status?: true;
     paymentStatus?: true;
     subtotal?: true;
     discountAmount?: true;
+    discountShipping?: true;
     shippingCost?: true;
     total?: true;
     courier?: true;
@@ -148,11 +160,13 @@ export type OrderMaxAggregateInputType = {
     userId?: true;
     addressId?: true;
     voucherId?: true;
+    voucherShippingId?: true;
     bundleId?: true;
     status?: true;
     paymentStatus?: true;
     subtotal?: true;
     discountAmount?: true;
+    discountShipping?: true;
     shippingCost?: true;
     total?: true;
     courier?: true;
@@ -175,11 +189,13 @@ export type OrderCountAggregateInputType = {
     userId?: true;
     addressId?: true;
     voucherId?: true;
+    voucherShippingId?: true;
     bundleId?: true;
     status?: true;
     paymentStatus?: true;
     subtotal?: true;
     discountAmount?: true;
+    discountShipping?: true;
     shippingCost?: true;
     total?: true;
     courier?: true;
@@ -231,11 +247,13 @@ export type OrderGroupByOutputType = {
     userId: string;
     addressId: string;
     voucherId: string | null;
+    voucherShippingId: string | null;
     bundleId: string | null;
     status: $Enums.OrderStatus;
     paymentStatus: $Enums.PaymentStatus;
     subtotal: runtime.Decimal;
     discountAmount: runtime.Decimal;
+    discountShipping: runtime.Decimal;
     shippingCost: runtime.Decimal;
     total: runtime.Decimal;
     courier: string;
@@ -269,11 +287,13 @@ export type OrderWhereInput = {
     userId?: Prisma.StringFilter<"Order"> | string;
     addressId?: Prisma.StringFilter<"Order"> | string;
     voucherId?: Prisma.StringNullableFilter<"Order"> | string | null;
+    voucherShippingId?: Prisma.StringNullableFilter<"Order"> | string | null;
     bundleId?: Prisma.StringNullableFilter<"Order"> | string | null;
     status?: Prisma.EnumOrderStatusFilter<"Order"> | $Enums.OrderStatus;
     paymentStatus?: Prisma.EnumPaymentStatusFilter<"Order"> | $Enums.PaymentStatus;
     subtotal?: Prisma.DecimalFilter<"Order"> | runtime.Decimal | runtime.DecimalJsLike | number | string;
     discountAmount?: Prisma.DecimalFilter<"Order"> | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: Prisma.DecimalFilter<"Order"> | runtime.Decimal | runtime.DecimalJsLike | number | string;
     shippingCost?: Prisma.DecimalFilter<"Order"> | runtime.Decimal | runtime.DecimalJsLike | number | string;
     total?: Prisma.DecimalFilter<"Order"> | runtime.Decimal | runtime.DecimalJsLike | number | string;
     courier?: Prisma.StringFilter<"Order"> | string;
@@ -292,6 +312,7 @@ export type OrderWhereInput = {
     user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>;
     address?: Prisma.XOR<Prisma.AddressScalarRelationFilter, Prisma.AddressWhereInput>;
     voucher?: Prisma.XOR<Prisma.VoucherNullableScalarRelationFilter, Prisma.VoucherWhereInput> | null;
+    voucherShipping?: Prisma.XOR<Prisma.VoucherNullableScalarRelationFilter, Prisma.VoucherWhereInput> | null;
     bundle?: Prisma.XOR<Prisma.BundleNullableScalarRelationFilter, Prisma.BundleWhereInput> | null;
     items?: Prisma.OrderItemListRelationFilter;
     payment?: Prisma.XOR<Prisma.PaymentNullableScalarRelationFilter, Prisma.PaymentWhereInput> | null;
@@ -304,11 +325,13 @@ export type OrderOrderByWithRelationInput = {
     userId?: Prisma.SortOrder;
     addressId?: Prisma.SortOrder;
     voucherId?: Prisma.SortOrderInput | Prisma.SortOrder;
+    voucherShippingId?: Prisma.SortOrderInput | Prisma.SortOrder;
     bundleId?: Prisma.SortOrderInput | Prisma.SortOrder;
     status?: Prisma.SortOrder;
     paymentStatus?: Prisma.SortOrder;
     subtotal?: Prisma.SortOrder;
     discountAmount?: Prisma.SortOrder;
+    discountShipping?: Prisma.SortOrder;
     shippingCost?: Prisma.SortOrder;
     total?: Prisma.SortOrder;
     courier?: Prisma.SortOrder;
@@ -327,6 +350,7 @@ export type OrderOrderByWithRelationInput = {
     user?: Prisma.UserOrderByWithRelationInput;
     address?: Prisma.AddressOrderByWithRelationInput;
     voucher?: Prisma.VoucherOrderByWithRelationInput;
+    voucherShipping?: Prisma.VoucherOrderByWithRelationInput;
     bundle?: Prisma.BundleOrderByWithRelationInput;
     items?: Prisma.OrderItemOrderByRelationAggregateInput;
     payment?: Prisma.PaymentOrderByWithRelationInput;
@@ -342,11 +366,13 @@ export type OrderWhereUniqueInput = Prisma.AtLeast<{
     userId?: Prisma.StringFilter<"Order"> | string;
     addressId?: Prisma.StringFilter<"Order"> | string;
     voucherId?: Prisma.StringNullableFilter<"Order"> | string | null;
+    voucherShippingId?: Prisma.StringNullableFilter<"Order"> | string | null;
     bundleId?: Prisma.StringNullableFilter<"Order"> | string | null;
     status?: Prisma.EnumOrderStatusFilter<"Order"> | $Enums.OrderStatus;
     paymentStatus?: Prisma.EnumPaymentStatusFilter<"Order"> | $Enums.PaymentStatus;
     subtotal?: Prisma.DecimalFilter<"Order"> | runtime.Decimal | runtime.DecimalJsLike | number | string;
     discountAmount?: Prisma.DecimalFilter<"Order"> | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: Prisma.DecimalFilter<"Order"> | runtime.Decimal | runtime.DecimalJsLike | number | string;
     shippingCost?: Prisma.DecimalFilter<"Order"> | runtime.Decimal | runtime.DecimalJsLike | number | string;
     total?: Prisma.DecimalFilter<"Order"> | runtime.Decimal | runtime.DecimalJsLike | number | string;
     courier?: Prisma.StringFilter<"Order"> | string;
@@ -365,6 +391,7 @@ export type OrderWhereUniqueInput = Prisma.AtLeast<{
     user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>;
     address?: Prisma.XOR<Prisma.AddressScalarRelationFilter, Prisma.AddressWhereInput>;
     voucher?: Prisma.XOR<Prisma.VoucherNullableScalarRelationFilter, Prisma.VoucherWhereInput> | null;
+    voucherShipping?: Prisma.XOR<Prisma.VoucherNullableScalarRelationFilter, Prisma.VoucherWhereInput> | null;
     bundle?: Prisma.XOR<Prisma.BundleNullableScalarRelationFilter, Prisma.BundleWhereInput> | null;
     items?: Prisma.OrderItemListRelationFilter;
     payment?: Prisma.XOR<Prisma.PaymentNullableScalarRelationFilter, Prisma.PaymentWhereInput> | null;
@@ -377,11 +404,13 @@ export type OrderOrderByWithAggregationInput = {
     userId?: Prisma.SortOrder;
     addressId?: Prisma.SortOrder;
     voucherId?: Prisma.SortOrderInput | Prisma.SortOrder;
+    voucherShippingId?: Prisma.SortOrderInput | Prisma.SortOrder;
     bundleId?: Prisma.SortOrderInput | Prisma.SortOrder;
     status?: Prisma.SortOrder;
     paymentStatus?: Prisma.SortOrder;
     subtotal?: Prisma.SortOrder;
     discountAmount?: Prisma.SortOrder;
+    discountShipping?: Prisma.SortOrder;
     shippingCost?: Prisma.SortOrder;
     total?: Prisma.SortOrder;
     courier?: Prisma.SortOrder;
@@ -412,11 +441,13 @@ export type OrderScalarWhereWithAggregatesInput = {
     userId?: Prisma.StringWithAggregatesFilter<"Order"> | string;
     addressId?: Prisma.StringWithAggregatesFilter<"Order"> | string;
     voucherId?: Prisma.StringNullableWithAggregatesFilter<"Order"> | string | null;
+    voucherShippingId?: Prisma.StringNullableWithAggregatesFilter<"Order"> | string | null;
     bundleId?: Prisma.StringNullableWithAggregatesFilter<"Order"> | string | null;
     status?: Prisma.EnumOrderStatusWithAggregatesFilter<"Order"> | $Enums.OrderStatus;
     paymentStatus?: Prisma.EnumPaymentStatusWithAggregatesFilter<"Order"> | $Enums.PaymentStatus;
     subtotal?: Prisma.DecimalWithAggregatesFilter<"Order"> | runtime.Decimal | runtime.DecimalJsLike | number | string;
     discountAmount?: Prisma.DecimalWithAggregatesFilter<"Order"> | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: Prisma.DecimalWithAggregatesFilter<"Order"> | runtime.Decimal | runtime.DecimalJsLike | number | string;
     shippingCost?: Prisma.DecimalWithAggregatesFilter<"Order"> | runtime.Decimal | runtime.DecimalJsLike | number | string;
     total?: Prisma.DecimalWithAggregatesFilter<"Order"> | runtime.Decimal | runtime.DecimalJsLike | number | string;
     courier?: Prisma.StringWithAggregatesFilter<"Order"> | string;
@@ -440,6 +471,7 @@ export type OrderCreateInput = {
     paymentStatus?: $Enums.PaymentStatus;
     subtotal: runtime.Decimal | runtime.DecimalJsLike | number | string;
     discountAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: runtime.Decimal | runtime.DecimalJsLike | number | string;
     shippingCost: runtime.Decimal | runtime.DecimalJsLike | number | string;
     total: runtime.Decimal | runtime.DecimalJsLike | number | string;
     courier: string;
@@ -458,6 +490,7 @@ export type OrderCreateInput = {
     user: Prisma.UserCreateNestedOneWithoutOrdersInput;
     address: Prisma.AddressCreateNestedOneWithoutOrdersInput;
     voucher?: Prisma.VoucherCreateNestedOneWithoutOrdersInput;
+    voucherShipping?: Prisma.VoucherCreateNestedOneWithoutShippingOrdersInput;
     bundle?: Prisma.BundleCreateNestedOneWithoutOrderInput;
     items?: Prisma.OrderItemCreateNestedManyWithoutOrderInput;
     payment?: Prisma.PaymentCreateNestedOneWithoutOrderInput;
@@ -470,11 +503,13 @@ export type OrderUncheckedCreateInput = {
     userId: string;
     addressId: string;
     voucherId?: string | null;
+    voucherShippingId?: string | null;
     bundleId?: string | null;
     status?: $Enums.OrderStatus;
     paymentStatus?: $Enums.PaymentStatus;
     subtotal: runtime.Decimal | runtime.DecimalJsLike | number | string;
     discountAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: runtime.Decimal | runtime.DecimalJsLike | number | string;
     shippingCost: runtime.Decimal | runtime.DecimalJsLike | number | string;
     total: runtime.Decimal | runtime.DecimalJsLike | number | string;
     courier: string;
@@ -502,6 +537,7 @@ export type OrderUpdateInput = {
     paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus;
     subtotal?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     discountAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     shippingCost?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     total?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     courier?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -520,6 +556,7 @@ export type OrderUpdateInput = {
     user?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput;
     address?: Prisma.AddressUpdateOneRequiredWithoutOrdersNestedInput;
     voucher?: Prisma.VoucherUpdateOneWithoutOrdersNestedInput;
+    voucherShipping?: Prisma.VoucherUpdateOneWithoutShippingOrdersNestedInput;
     bundle?: Prisma.BundleUpdateOneWithoutOrderNestedInput;
     items?: Prisma.OrderItemUpdateManyWithoutOrderNestedInput;
     payment?: Prisma.PaymentUpdateOneWithoutOrderNestedInput;
@@ -532,11 +569,13 @@ export type OrderUncheckedUpdateInput = {
     userId?: Prisma.StringFieldUpdateOperationsInput | string;
     addressId?: Prisma.StringFieldUpdateOperationsInput | string;
     voucherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    voucherShippingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     bundleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus;
     paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus;
     subtotal?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     discountAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     shippingCost?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     total?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     courier?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -563,11 +602,13 @@ export type OrderCreateManyInput = {
     userId: string;
     addressId: string;
     voucherId?: string | null;
+    voucherShippingId?: string | null;
     bundleId?: string | null;
     status?: $Enums.OrderStatus;
     paymentStatus?: $Enums.PaymentStatus;
     subtotal: runtime.Decimal | runtime.DecimalJsLike | number | string;
     discountAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: runtime.Decimal | runtime.DecimalJsLike | number | string;
     shippingCost: runtime.Decimal | runtime.DecimalJsLike | number | string;
     total: runtime.Decimal | runtime.DecimalJsLike | number | string;
     courier: string;
@@ -591,6 +632,7 @@ export type OrderUpdateManyMutationInput = {
     paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus;
     subtotal?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     discountAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     shippingCost?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     total?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     courier?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -613,11 +655,13 @@ export type OrderUncheckedUpdateManyInput = {
     userId?: Prisma.StringFieldUpdateOperationsInput | string;
     addressId?: Prisma.StringFieldUpdateOperationsInput | string;
     voucherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    voucherShippingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     bundleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus;
     paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus;
     subtotal?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     discountAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     shippingCost?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     total?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     courier?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -652,11 +696,13 @@ export type OrderCountOrderByAggregateInput = {
     userId?: Prisma.SortOrder;
     addressId?: Prisma.SortOrder;
     voucherId?: Prisma.SortOrder;
+    voucherShippingId?: Prisma.SortOrder;
     bundleId?: Prisma.SortOrder;
     status?: Prisma.SortOrder;
     paymentStatus?: Prisma.SortOrder;
     subtotal?: Prisma.SortOrder;
     discountAmount?: Prisma.SortOrder;
+    discountShipping?: Prisma.SortOrder;
     shippingCost?: Prisma.SortOrder;
     total?: Prisma.SortOrder;
     courier?: Prisma.SortOrder;
@@ -676,6 +722,7 @@ export type OrderCountOrderByAggregateInput = {
 export type OrderAvgOrderByAggregateInput = {
     subtotal?: Prisma.SortOrder;
     discountAmount?: Prisma.SortOrder;
+    discountShipping?: Prisma.SortOrder;
     shippingCost?: Prisma.SortOrder;
     total?: Prisma.SortOrder;
 };
@@ -685,11 +732,13 @@ export type OrderMaxOrderByAggregateInput = {
     userId?: Prisma.SortOrder;
     addressId?: Prisma.SortOrder;
     voucherId?: Prisma.SortOrder;
+    voucherShippingId?: Prisma.SortOrder;
     bundleId?: Prisma.SortOrder;
     status?: Prisma.SortOrder;
     paymentStatus?: Prisma.SortOrder;
     subtotal?: Prisma.SortOrder;
     discountAmount?: Prisma.SortOrder;
+    discountShipping?: Prisma.SortOrder;
     shippingCost?: Prisma.SortOrder;
     total?: Prisma.SortOrder;
     courier?: Prisma.SortOrder;
@@ -712,11 +761,13 @@ export type OrderMinOrderByAggregateInput = {
     userId?: Prisma.SortOrder;
     addressId?: Prisma.SortOrder;
     voucherId?: Prisma.SortOrder;
+    voucherShippingId?: Prisma.SortOrder;
     bundleId?: Prisma.SortOrder;
     status?: Prisma.SortOrder;
     paymentStatus?: Prisma.SortOrder;
     subtotal?: Prisma.SortOrder;
     discountAmount?: Prisma.SortOrder;
+    discountShipping?: Prisma.SortOrder;
     shippingCost?: Prisma.SortOrder;
     total?: Prisma.SortOrder;
     courier?: Prisma.SortOrder;
@@ -736,6 +787,7 @@ export type OrderMinOrderByAggregateInput = {
 export type OrderSumOrderByAggregateInput = {
     subtotal?: Prisma.SortOrder;
     discountAmount?: Prisma.SortOrder;
+    discountShipping?: Prisma.SortOrder;
     shippingCost?: Prisma.SortOrder;
     total?: Prisma.SortOrder;
 };
@@ -871,10 +923,22 @@ export type OrderCreateNestedManyWithoutVoucherInput = {
     createMany?: Prisma.OrderCreateManyVoucherInputEnvelope;
     connect?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[];
 };
+export type OrderCreateNestedManyWithoutVoucherShippingInput = {
+    create?: Prisma.XOR<Prisma.OrderCreateWithoutVoucherShippingInput, Prisma.OrderUncheckedCreateWithoutVoucherShippingInput> | Prisma.OrderCreateWithoutVoucherShippingInput[] | Prisma.OrderUncheckedCreateWithoutVoucherShippingInput[];
+    connectOrCreate?: Prisma.OrderCreateOrConnectWithoutVoucherShippingInput | Prisma.OrderCreateOrConnectWithoutVoucherShippingInput[];
+    createMany?: Prisma.OrderCreateManyVoucherShippingInputEnvelope;
+    connect?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[];
+};
 export type OrderUncheckedCreateNestedManyWithoutVoucherInput = {
     create?: Prisma.XOR<Prisma.OrderCreateWithoutVoucherInput, Prisma.OrderUncheckedCreateWithoutVoucherInput> | Prisma.OrderCreateWithoutVoucherInput[] | Prisma.OrderUncheckedCreateWithoutVoucherInput[];
     connectOrCreate?: Prisma.OrderCreateOrConnectWithoutVoucherInput | Prisma.OrderCreateOrConnectWithoutVoucherInput[];
     createMany?: Prisma.OrderCreateManyVoucherInputEnvelope;
+    connect?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[];
+};
+export type OrderUncheckedCreateNestedManyWithoutVoucherShippingInput = {
+    create?: Prisma.XOR<Prisma.OrderCreateWithoutVoucherShippingInput, Prisma.OrderUncheckedCreateWithoutVoucherShippingInput> | Prisma.OrderCreateWithoutVoucherShippingInput[] | Prisma.OrderUncheckedCreateWithoutVoucherShippingInput[];
+    connectOrCreate?: Prisma.OrderCreateOrConnectWithoutVoucherShippingInput | Prisma.OrderCreateOrConnectWithoutVoucherShippingInput[];
+    createMany?: Prisma.OrderCreateManyVoucherShippingInputEnvelope;
     connect?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[];
 };
 export type OrderUpdateManyWithoutVoucherNestedInput = {
@@ -890,6 +954,19 @@ export type OrderUpdateManyWithoutVoucherNestedInput = {
     updateMany?: Prisma.OrderUpdateManyWithWhereWithoutVoucherInput | Prisma.OrderUpdateManyWithWhereWithoutVoucherInput[];
     deleteMany?: Prisma.OrderScalarWhereInput | Prisma.OrderScalarWhereInput[];
 };
+export type OrderUpdateManyWithoutVoucherShippingNestedInput = {
+    create?: Prisma.XOR<Prisma.OrderCreateWithoutVoucherShippingInput, Prisma.OrderUncheckedCreateWithoutVoucherShippingInput> | Prisma.OrderCreateWithoutVoucherShippingInput[] | Prisma.OrderUncheckedCreateWithoutVoucherShippingInput[];
+    connectOrCreate?: Prisma.OrderCreateOrConnectWithoutVoucherShippingInput | Prisma.OrderCreateOrConnectWithoutVoucherShippingInput[];
+    upsert?: Prisma.OrderUpsertWithWhereUniqueWithoutVoucherShippingInput | Prisma.OrderUpsertWithWhereUniqueWithoutVoucherShippingInput[];
+    createMany?: Prisma.OrderCreateManyVoucherShippingInputEnvelope;
+    set?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[];
+    disconnect?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[];
+    delete?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[];
+    connect?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[];
+    update?: Prisma.OrderUpdateWithWhereUniqueWithoutVoucherShippingInput | Prisma.OrderUpdateWithWhereUniqueWithoutVoucherShippingInput[];
+    updateMany?: Prisma.OrderUpdateManyWithWhereWithoutVoucherShippingInput | Prisma.OrderUpdateManyWithWhereWithoutVoucherShippingInput[];
+    deleteMany?: Prisma.OrderScalarWhereInput | Prisma.OrderScalarWhereInput[];
+};
 export type OrderUncheckedUpdateManyWithoutVoucherNestedInput = {
     create?: Prisma.XOR<Prisma.OrderCreateWithoutVoucherInput, Prisma.OrderUncheckedCreateWithoutVoucherInput> | Prisma.OrderCreateWithoutVoucherInput[] | Prisma.OrderUncheckedCreateWithoutVoucherInput[];
     connectOrCreate?: Prisma.OrderCreateOrConnectWithoutVoucherInput | Prisma.OrderCreateOrConnectWithoutVoucherInput[];
@@ -901,6 +978,19 @@ export type OrderUncheckedUpdateManyWithoutVoucherNestedInput = {
     connect?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[];
     update?: Prisma.OrderUpdateWithWhereUniqueWithoutVoucherInput | Prisma.OrderUpdateWithWhereUniqueWithoutVoucherInput[];
     updateMany?: Prisma.OrderUpdateManyWithWhereWithoutVoucherInput | Prisma.OrderUpdateManyWithWhereWithoutVoucherInput[];
+    deleteMany?: Prisma.OrderScalarWhereInput | Prisma.OrderScalarWhereInput[];
+};
+export type OrderUncheckedUpdateManyWithoutVoucherShippingNestedInput = {
+    create?: Prisma.XOR<Prisma.OrderCreateWithoutVoucherShippingInput, Prisma.OrderUncheckedCreateWithoutVoucherShippingInput> | Prisma.OrderCreateWithoutVoucherShippingInput[] | Prisma.OrderUncheckedCreateWithoutVoucherShippingInput[];
+    connectOrCreate?: Prisma.OrderCreateOrConnectWithoutVoucherShippingInput | Prisma.OrderCreateOrConnectWithoutVoucherShippingInput[];
+    upsert?: Prisma.OrderUpsertWithWhereUniqueWithoutVoucherShippingInput | Prisma.OrderUpsertWithWhereUniqueWithoutVoucherShippingInput[];
+    createMany?: Prisma.OrderCreateManyVoucherShippingInputEnvelope;
+    set?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[];
+    disconnect?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[];
+    delete?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[];
+    connect?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[];
+    update?: Prisma.OrderUpdateWithWhereUniqueWithoutVoucherShippingInput | Prisma.OrderUpdateWithWhereUniqueWithoutVoucherShippingInput[];
+    updateMany?: Prisma.OrderUpdateManyWithWhereWithoutVoucherShippingInput | Prisma.OrderUpdateManyWithWhereWithoutVoucherShippingInput[];
     deleteMany?: Prisma.OrderScalarWhereInput | Prisma.OrderScalarWhereInput[];
 };
 export type EnumOrderStatusFieldUpdateOperationsInput = {
@@ -952,6 +1042,7 @@ export type OrderCreateWithoutUserInput = {
     paymentStatus?: $Enums.PaymentStatus;
     subtotal: runtime.Decimal | runtime.DecimalJsLike | number | string;
     discountAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: runtime.Decimal | runtime.DecimalJsLike | number | string;
     shippingCost: runtime.Decimal | runtime.DecimalJsLike | number | string;
     total: runtime.Decimal | runtime.DecimalJsLike | number | string;
     courier: string;
@@ -969,6 +1060,7 @@ export type OrderCreateWithoutUserInput = {
     updatedAt?: Date | string;
     address: Prisma.AddressCreateNestedOneWithoutOrdersInput;
     voucher?: Prisma.VoucherCreateNestedOneWithoutOrdersInput;
+    voucherShipping?: Prisma.VoucherCreateNestedOneWithoutShippingOrdersInput;
     bundle?: Prisma.BundleCreateNestedOneWithoutOrderInput;
     items?: Prisma.OrderItemCreateNestedManyWithoutOrderInput;
     payment?: Prisma.PaymentCreateNestedOneWithoutOrderInput;
@@ -980,11 +1072,13 @@ export type OrderUncheckedCreateWithoutUserInput = {
     orderNumber: string;
     addressId: string;
     voucherId?: string | null;
+    voucherShippingId?: string | null;
     bundleId?: string | null;
     status?: $Enums.OrderStatus;
     paymentStatus?: $Enums.PaymentStatus;
     subtotal: runtime.Decimal | runtime.DecimalJsLike | number | string;
     discountAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: runtime.Decimal | runtime.DecimalJsLike | number | string;
     shippingCost: runtime.Decimal | runtime.DecimalJsLike | number | string;
     total: runtime.Decimal | runtime.DecimalJsLike | number | string;
     courier: string;
@@ -1035,11 +1129,13 @@ export type OrderScalarWhereInput = {
     userId?: Prisma.StringFilter<"Order"> | string;
     addressId?: Prisma.StringFilter<"Order"> | string;
     voucherId?: Prisma.StringNullableFilter<"Order"> | string | null;
+    voucherShippingId?: Prisma.StringNullableFilter<"Order"> | string | null;
     bundleId?: Prisma.StringNullableFilter<"Order"> | string | null;
     status?: Prisma.EnumOrderStatusFilter<"Order"> | $Enums.OrderStatus;
     paymentStatus?: Prisma.EnumPaymentStatusFilter<"Order"> | $Enums.PaymentStatus;
     subtotal?: Prisma.DecimalFilter<"Order"> | runtime.Decimal | runtime.DecimalJsLike | number | string;
     discountAmount?: Prisma.DecimalFilter<"Order"> | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: Prisma.DecimalFilter<"Order"> | runtime.Decimal | runtime.DecimalJsLike | number | string;
     shippingCost?: Prisma.DecimalFilter<"Order"> | runtime.Decimal | runtime.DecimalJsLike | number | string;
     total?: Prisma.DecimalFilter<"Order"> | runtime.Decimal | runtime.DecimalJsLike | number | string;
     courier?: Prisma.StringFilter<"Order"> | string;
@@ -1063,6 +1159,7 @@ export type OrderCreateWithoutAddressInput = {
     paymentStatus?: $Enums.PaymentStatus;
     subtotal: runtime.Decimal | runtime.DecimalJsLike | number | string;
     discountAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: runtime.Decimal | runtime.DecimalJsLike | number | string;
     shippingCost: runtime.Decimal | runtime.DecimalJsLike | number | string;
     total: runtime.Decimal | runtime.DecimalJsLike | number | string;
     courier: string;
@@ -1080,6 +1177,7 @@ export type OrderCreateWithoutAddressInput = {
     updatedAt?: Date | string;
     user: Prisma.UserCreateNestedOneWithoutOrdersInput;
     voucher?: Prisma.VoucherCreateNestedOneWithoutOrdersInput;
+    voucherShipping?: Prisma.VoucherCreateNestedOneWithoutShippingOrdersInput;
     bundle?: Prisma.BundleCreateNestedOneWithoutOrderInput;
     items?: Prisma.OrderItemCreateNestedManyWithoutOrderInput;
     payment?: Prisma.PaymentCreateNestedOneWithoutOrderInput;
@@ -1091,11 +1189,13 @@ export type OrderUncheckedCreateWithoutAddressInput = {
     orderNumber: string;
     userId: string;
     voucherId?: string | null;
+    voucherShippingId?: string | null;
     bundleId?: string | null;
     status?: $Enums.OrderStatus;
     paymentStatus?: $Enums.PaymentStatus;
     subtotal: runtime.Decimal | runtime.DecimalJsLike | number | string;
     discountAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: runtime.Decimal | runtime.DecimalJsLike | number | string;
     shippingCost: runtime.Decimal | runtime.DecimalJsLike | number | string;
     total: runtime.Decimal | runtime.DecimalJsLike | number | string;
     courier: string;
@@ -1144,6 +1244,7 @@ export type OrderCreateWithoutBundleInput = {
     paymentStatus?: $Enums.PaymentStatus;
     subtotal: runtime.Decimal | runtime.DecimalJsLike | number | string;
     discountAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: runtime.Decimal | runtime.DecimalJsLike | number | string;
     shippingCost: runtime.Decimal | runtime.DecimalJsLike | number | string;
     total: runtime.Decimal | runtime.DecimalJsLike | number | string;
     courier: string;
@@ -1162,6 +1263,7 @@ export type OrderCreateWithoutBundleInput = {
     user: Prisma.UserCreateNestedOneWithoutOrdersInput;
     address: Prisma.AddressCreateNestedOneWithoutOrdersInput;
     voucher?: Prisma.VoucherCreateNestedOneWithoutOrdersInput;
+    voucherShipping?: Prisma.VoucherCreateNestedOneWithoutShippingOrdersInput;
     items?: Prisma.OrderItemCreateNestedManyWithoutOrderInput;
     payment?: Prisma.PaymentCreateNestedOneWithoutOrderInput;
     reviews?: Prisma.ProductReviewCreateNestedManyWithoutOrderInput;
@@ -1173,10 +1275,12 @@ export type OrderUncheckedCreateWithoutBundleInput = {
     userId: string;
     addressId: string;
     voucherId?: string | null;
+    voucherShippingId?: string | null;
     status?: $Enums.OrderStatus;
     paymentStatus?: $Enums.PaymentStatus;
     subtotal: runtime.Decimal | runtime.DecimalJsLike | number | string;
     discountAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: runtime.Decimal | runtime.DecimalJsLike | number | string;
     shippingCost: runtime.Decimal | runtime.DecimalJsLike | number | string;
     total: runtime.Decimal | runtime.DecimalJsLike | number | string;
     courier: string;
@@ -1225,6 +1329,7 @@ export type OrderCreateWithoutReviewsInput = {
     paymentStatus?: $Enums.PaymentStatus;
     subtotal: runtime.Decimal | runtime.DecimalJsLike | number | string;
     discountAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: runtime.Decimal | runtime.DecimalJsLike | number | string;
     shippingCost: runtime.Decimal | runtime.DecimalJsLike | number | string;
     total: runtime.Decimal | runtime.DecimalJsLike | number | string;
     courier: string;
@@ -1243,6 +1348,7 @@ export type OrderCreateWithoutReviewsInput = {
     user: Prisma.UserCreateNestedOneWithoutOrdersInput;
     address: Prisma.AddressCreateNestedOneWithoutOrdersInput;
     voucher?: Prisma.VoucherCreateNestedOneWithoutOrdersInput;
+    voucherShipping?: Prisma.VoucherCreateNestedOneWithoutShippingOrdersInput;
     bundle?: Prisma.BundleCreateNestedOneWithoutOrderInput;
     items?: Prisma.OrderItemCreateNestedManyWithoutOrderInput;
     payment?: Prisma.PaymentCreateNestedOneWithoutOrderInput;
@@ -1254,11 +1360,13 @@ export type OrderUncheckedCreateWithoutReviewsInput = {
     userId: string;
     addressId: string;
     voucherId?: string | null;
+    voucherShippingId?: string | null;
     bundleId?: string | null;
     status?: $Enums.OrderStatus;
     paymentStatus?: $Enums.PaymentStatus;
     subtotal: runtime.Decimal | runtime.DecimalJsLike | number | string;
     discountAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: runtime.Decimal | runtime.DecimalJsLike | number | string;
     shippingCost: runtime.Decimal | runtime.DecimalJsLike | number | string;
     total: runtime.Decimal | runtime.DecimalJsLike | number | string;
     courier: string;
@@ -1298,6 +1406,7 @@ export type OrderUpdateWithoutReviewsInput = {
     paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus;
     subtotal?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     discountAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     shippingCost?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     total?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     courier?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1316,6 +1425,7 @@ export type OrderUpdateWithoutReviewsInput = {
     user?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput;
     address?: Prisma.AddressUpdateOneRequiredWithoutOrdersNestedInput;
     voucher?: Prisma.VoucherUpdateOneWithoutOrdersNestedInput;
+    voucherShipping?: Prisma.VoucherUpdateOneWithoutShippingOrdersNestedInput;
     bundle?: Prisma.BundleUpdateOneWithoutOrderNestedInput;
     items?: Prisma.OrderItemUpdateManyWithoutOrderNestedInput;
     payment?: Prisma.PaymentUpdateOneWithoutOrderNestedInput;
@@ -1327,11 +1437,13 @@ export type OrderUncheckedUpdateWithoutReviewsInput = {
     userId?: Prisma.StringFieldUpdateOperationsInput | string;
     addressId?: Prisma.StringFieldUpdateOperationsInput | string;
     voucherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    voucherShippingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     bundleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus;
     paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus;
     subtotal?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     discountAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     shippingCost?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     total?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     courier?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1358,6 +1470,7 @@ export type OrderCreateWithoutVoucherInput = {
     paymentStatus?: $Enums.PaymentStatus;
     subtotal: runtime.Decimal | runtime.DecimalJsLike | number | string;
     discountAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: runtime.Decimal | runtime.DecimalJsLike | number | string;
     shippingCost: runtime.Decimal | runtime.DecimalJsLike | number | string;
     total: runtime.Decimal | runtime.DecimalJsLike | number | string;
     courier: string;
@@ -1375,6 +1488,7 @@ export type OrderCreateWithoutVoucherInput = {
     updatedAt?: Date | string;
     user: Prisma.UserCreateNestedOneWithoutOrdersInput;
     address: Prisma.AddressCreateNestedOneWithoutOrdersInput;
+    voucherShipping?: Prisma.VoucherCreateNestedOneWithoutShippingOrdersInput;
     bundle?: Prisma.BundleCreateNestedOneWithoutOrderInput;
     items?: Prisma.OrderItemCreateNestedManyWithoutOrderInput;
     payment?: Prisma.PaymentCreateNestedOneWithoutOrderInput;
@@ -1386,11 +1500,13 @@ export type OrderUncheckedCreateWithoutVoucherInput = {
     orderNumber: string;
     userId: string;
     addressId: string;
+    voucherShippingId?: string | null;
     bundleId?: string | null;
     status?: $Enums.OrderStatus;
     paymentStatus?: $Enums.PaymentStatus;
     subtotal: runtime.Decimal | runtime.DecimalJsLike | number | string;
     discountAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: runtime.Decimal | runtime.DecimalJsLike | number | string;
     shippingCost: runtime.Decimal | runtime.DecimalJsLike | number | string;
     total: runtime.Decimal | runtime.DecimalJsLike | number | string;
     courier: string;
@@ -1419,26 +1535,14 @@ export type OrderCreateManyVoucherInputEnvelope = {
     data: Prisma.OrderCreateManyVoucherInput | Prisma.OrderCreateManyVoucherInput[];
     skipDuplicates?: boolean;
 };
-export type OrderUpsertWithWhereUniqueWithoutVoucherInput = {
-    where: Prisma.OrderWhereUniqueInput;
-    update: Prisma.XOR<Prisma.OrderUpdateWithoutVoucherInput, Prisma.OrderUncheckedUpdateWithoutVoucherInput>;
-    create: Prisma.XOR<Prisma.OrderCreateWithoutVoucherInput, Prisma.OrderUncheckedCreateWithoutVoucherInput>;
-};
-export type OrderUpdateWithWhereUniqueWithoutVoucherInput = {
-    where: Prisma.OrderWhereUniqueInput;
-    data: Prisma.XOR<Prisma.OrderUpdateWithoutVoucherInput, Prisma.OrderUncheckedUpdateWithoutVoucherInput>;
-};
-export type OrderUpdateManyWithWhereWithoutVoucherInput = {
-    where: Prisma.OrderScalarWhereInput;
-    data: Prisma.XOR<Prisma.OrderUpdateManyMutationInput, Prisma.OrderUncheckedUpdateManyWithoutVoucherInput>;
-};
-export type OrderCreateWithoutItemsInput = {
+export type OrderCreateWithoutVoucherShippingInput = {
     id?: string;
     orderNumber: string;
     status?: $Enums.OrderStatus;
     paymentStatus?: $Enums.PaymentStatus;
     subtotal: runtime.Decimal | runtime.DecimalJsLike | number | string;
     discountAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: runtime.Decimal | runtime.DecimalJsLike | number | string;
     shippingCost: runtime.Decimal | runtime.DecimalJsLike | number | string;
     total: runtime.Decimal | runtime.DecimalJsLike | number | string;
     courier: string;
@@ -1458,11 +1562,12 @@ export type OrderCreateWithoutItemsInput = {
     address: Prisma.AddressCreateNestedOneWithoutOrdersInput;
     voucher?: Prisma.VoucherCreateNestedOneWithoutOrdersInput;
     bundle?: Prisma.BundleCreateNestedOneWithoutOrderInput;
+    items?: Prisma.OrderItemCreateNestedManyWithoutOrderInput;
     payment?: Prisma.PaymentCreateNestedOneWithoutOrderInput;
     reviews?: Prisma.ProductReviewCreateNestedManyWithoutOrderInput;
     statusHistory?: Prisma.OrderStatusHistoryCreateNestedManyWithoutOrderInput;
 };
-export type OrderUncheckedCreateWithoutItemsInput = {
+export type OrderUncheckedCreateWithoutVoucherShippingInput = {
     id?: string;
     orderNumber: string;
     userId: string;
@@ -1473,6 +1578,106 @@ export type OrderUncheckedCreateWithoutItemsInput = {
     paymentStatus?: $Enums.PaymentStatus;
     subtotal: runtime.Decimal | runtime.DecimalJsLike | number | string;
     discountAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    shippingCost: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    total: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    courier: string;
+    service: string;
+    shippingProvider?: string | null;
+    trackingNumber?: string | null;
+    estimatedDelivery?: Date | string | null;
+    deliveredAt?: Date | string | null;
+    cancelledAt?: Date | string | null;
+    cancelReason?: string | null;
+    notes?: string | null;
+    paymentDeadline?: Date | string | null;
+    cancelDeadline?: Date | string | null;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    items?: Prisma.OrderItemUncheckedCreateNestedManyWithoutOrderInput;
+    payment?: Prisma.PaymentUncheckedCreateNestedOneWithoutOrderInput;
+    reviews?: Prisma.ProductReviewUncheckedCreateNestedManyWithoutOrderInput;
+    statusHistory?: Prisma.OrderStatusHistoryUncheckedCreateNestedManyWithoutOrderInput;
+};
+export type OrderCreateOrConnectWithoutVoucherShippingInput = {
+    where: Prisma.OrderWhereUniqueInput;
+    create: Prisma.XOR<Prisma.OrderCreateWithoutVoucherShippingInput, Prisma.OrderUncheckedCreateWithoutVoucherShippingInput>;
+};
+export type OrderCreateManyVoucherShippingInputEnvelope = {
+    data: Prisma.OrderCreateManyVoucherShippingInput | Prisma.OrderCreateManyVoucherShippingInput[];
+    skipDuplicates?: boolean;
+};
+export type OrderUpsertWithWhereUniqueWithoutVoucherInput = {
+    where: Prisma.OrderWhereUniqueInput;
+    update: Prisma.XOR<Prisma.OrderUpdateWithoutVoucherInput, Prisma.OrderUncheckedUpdateWithoutVoucherInput>;
+    create: Prisma.XOR<Prisma.OrderCreateWithoutVoucherInput, Prisma.OrderUncheckedCreateWithoutVoucherInput>;
+};
+export type OrderUpdateWithWhereUniqueWithoutVoucherInput = {
+    where: Prisma.OrderWhereUniqueInput;
+    data: Prisma.XOR<Prisma.OrderUpdateWithoutVoucherInput, Prisma.OrderUncheckedUpdateWithoutVoucherInput>;
+};
+export type OrderUpdateManyWithWhereWithoutVoucherInput = {
+    where: Prisma.OrderScalarWhereInput;
+    data: Prisma.XOR<Prisma.OrderUpdateManyMutationInput, Prisma.OrderUncheckedUpdateManyWithoutVoucherInput>;
+};
+export type OrderUpsertWithWhereUniqueWithoutVoucherShippingInput = {
+    where: Prisma.OrderWhereUniqueInput;
+    update: Prisma.XOR<Prisma.OrderUpdateWithoutVoucherShippingInput, Prisma.OrderUncheckedUpdateWithoutVoucherShippingInput>;
+    create: Prisma.XOR<Prisma.OrderCreateWithoutVoucherShippingInput, Prisma.OrderUncheckedCreateWithoutVoucherShippingInput>;
+};
+export type OrderUpdateWithWhereUniqueWithoutVoucherShippingInput = {
+    where: Prisma.OrderWhereUniqueInput;
+    data: Prisma.XOR<Prisma.OrderUpdateWithoutVoucherShippingInput, Prisma.OrderUncheckedUpdateWithoutVoucherShippingInput>;
+};
+export type OrderUpdateManyWithWhereWithoutVoucherShippingInput = {
+    where: Prisma.OrderScalarWhereInput;
+    data: Prisma.XOR<Prisma.OrderUpdateManyMutationInput, Prisma.OrderUncheckedUpdateManyWithoutVoucherShippingInput>;
+};
+export type OrderCreateWithoutItemsInput = {
+    id?: string;
+    orderNumber: string;
+    status?: $Enums.OrderStatus;
+    paymentStatus?: $Enums.PaymentStatus;
+    subtotal: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    shippingCost: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    total: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    courier: string;
+    service: string;
+    shippingProvider?: string | null;
+    trackingNumber?: string | null;
+    estimatedDelivery?: Date | string | null;
+    deliveredAt?: Date | string | null;
+    cancelledAt?: Date | string | null;
+    cancelReason?: string | null;
+    notes?: string | null;
+    paymentDeadline?: Date | string | null;
+    cancelDeadline?: Date | string | null;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    user: Prisma.UserCreateNestedOneWithoutOrdersInput;
+    address: Prisma.AddressCreateNestedOneWithoutOrdersInput;
+    voucher?: Prisma.VoucherCreateNestedOneWithoutOrdersInput;
+    voucherShipping?: Prisma.VoucherCreateNestedOneWithoutShippingOrdersInput;
+    bundle?: Prisma.BundleCreateNestedOneWithoutOrderInput;
+    payment?: Prisma.PaymentCreateNestedOneWithoutOrderInput;
+    reviews?: Prisma.ProductReviewCreateNestedManyWithoutOrderInput;
+    statusHistory?: Prisma.OrderStatusHistoryCreateNestedManyWithoutOrderInput;
+};
+export type OrderUncheckedCreateWithoutItemsInput = {
+    id?: string;
+    orderNumber: string;
+    userId: string;
+    addressId: string;
+    voucherId?: string | null;
+    voucherShippingId?: string | null;
+    bundleId?: string | null;
+    status?: $Enums.OrderStatus;
+    paymentStatus?: $Enums.PaymentStatus;
+    subtotal: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: runtime.Decimal | runtime.DecimalJsLike | number | string;
     shippingCost: runtime.Decimal | runtime.DecimalJsLike | number | string;
     total: runtime.Decimal | runtime.DecimalJsLike | number | string;
     courier: string;
@@ -1512,6 +1717,7 @@ export type OrderUpdateWithoutItemsInput = {
     paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus;
     subtotal?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     discountAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     shippingCost?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     total?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     courier?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1530,6 +1736,7 @@ export type OrderUpdateWithoutItemsInput = {
     user?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput;
     address?: Prisma.AddressUpdateOneRequiredWithoutOrdersNestedInput;
     voucher?: Prisma.VoucherUpdateOneWithoutOrdersNestedInput;
+    voucherShipping?: Prisma.VoucherUpdateOneWithoutShippingOrdersNestedInput;
     bundle?: Prisma.BundleUpdateOneWithoutOrderNestedInput;
     payment?: Prisma.PaymentUpdateOneWithoutOrderNestedInput;
     reviews?: Prisma.ProductReviewUpdateManyWithoutOrderNestedInput;
@@ -1541,11 +1748,13 @@ export type OrderUncheckedUpdateWithoutItemsInput = {
     userId?: Prisma.StringFieldUpdateOperationsInput | string;
     addressId?: Prisma.StringFieldUpdateOperationsInput | string;
     voucherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    voucherShippingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     bundleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus;
     paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus;
     subtotal?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     discountAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     shippingCost?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     total?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     courier?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1572,6 +1781,7 @@ export type OrderCreateWithoutStatusHistoryInput = {
     paymentStatus?: $Enums.PaymentStatus;
     subtotal: runtime.Decimal | runtime.DecimalJsLike | number | string;
     discountAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: runtime.Decimal | runtime.DecimalJsLike | number | string;
     shippingCost: runtime.Decimal | runtime.DecimalJsLike | number | string;
     total: runtime.Decimal | runtime.DecimalJsLike | number | string;
     courier: string;
@@ -1590,6 +1800,7 @@ export type OrderCreateWithoutStatusHistoryInput = {
     user: Prisma.UserCreateNestedOneWithoutOrdersInput;
     address: Prisma.AddressCreateNestedOneWithoutOrdersInput;
     voucher?: Prisma.VoucherCreateNestedOneWithoutOrdersInput;
+    voucherShipping?: Prisma.VoucherCreateNestedOneWithoutShippingOrdersInput;
     bundle?: Prisma.BundleCreateNestedOneWithoutOrderInput;
     items?: Prisma.OrderItemCreateNestedManyWithoutOrderInput;
     payment?: Prisma.PaymentCreateNestedOneWithoutOrderInput;
@@ -1601,11 +1812,13 @@ export type OrderUncheckedCreateWithoutStatusHistoryInput = {
     userId: string;
     addressId: string;
     voucherId?: string | null;
+    voucherShippingId?: string | null;
     bundleId?: string | null;
     status?: $Enums.OrderStatus;
     paymentStatus?: $Enums.PaymentStatus;
     subtotal: runtime.Decimal | runtime.DecimalJsLike | number | string;
     discountAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: runtime.Decimal | runtime.DecimalJsLike | number | string;
     shippingCost: runtime.Decimal | runtime.DecimalJsLike | number | string;
     total: runtime.Decimal | runtime.DecimalJsLike | number | string;
     courier: string;
@@ -1645,6 +1858,7 @@ export type OrderUpdateWithoutStatusHistoryInput = {
     paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus;
     subtotal?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     discountAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     shippingCost?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     total?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     courier?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1663,6 +1877,7 @@ export type OrderUpdateWithoutStatusHistoryInput = {
     user?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput;
     address?: Prisma.AddressUpdateOneRequiredWithoutOrdersNestedInput;
     voucher?: Prisma.VoucherUpdateOneWithoutOrdersNestedInput;
+    voucherShipping?: Prisma.VoucherUpdateOneWithoutShippingOrdersNestedInput;
     bundle?: Prisma.BundleUpdateOneWithoutOrderNestedInput;
     items?: Prisma.OrderItemUpdateManyWithoutOrderNestedInput;
     payment?: Prisma.PaymentUpdateOneWithoutOrderNestedInput;
@@ -1674,11 +1889,13 @@ export type OrderUncheckedUpdateWithoutStatusHistoryInput = {
     userId?: Prisma.StringFieldUpdateOperationsInput | string;
     addressId?: Prisma.StringFieldUpdateOperationsInput | string;
     voucherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    voucherShippingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     bundleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus;
     paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus;
     subtotal?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     discountAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     shippingCost?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     total?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     courier?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1705,6 +1922,7 @@ export type OrderCreateWithoutPaymentInput = {
     paymentStatus?: $Enums.PaymentStatus;
     subtotal: runtime.Decimal | runtime.DecimalJsLike | number | string;
     discountAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: runtime.Decimal | runtime.DecimalJsLike | number | string;
     shippingCost: runtime.Decimal | runtime.DecimalJsLike | number | string;
     total: runtime.Decimal | runtime.DecimalJsLike | number | string;
     courier: string;
@@ -1723,6 +1941,7 @@ export type OrderCreateWithoutPaymentInput = {
     user: Prisma.UserCreateNestedOneWithoutOrdersInput;
     address: Prisma.AddressCreateNestedOneWithoutOrdersInput;
     voucher?: Prisma.VoucherCreateNestedOneWithoutOrdersInput;
+    voucherShipping?: Prisma.VoucherCreateNestedOneWithoutShippingOrdersInput;
     bundle?: Prisma.BundleCreateNestedOneWithoutOrderInput;
     items?: Prisma.OrderItemCreateNestedManyWithoutOrderInput;
     reviews?: Prisma.ProductReviewCreateNestedManyWithoutOrderInput;
@@ -1734,11 +1953,13 @@ export type OrderUncheckedCreateWithoutPaymentInput = {
     userId: string;
     addressId: string;
     voucherId?: string | null;
+    voucherShippingId?: string | null;
     bundleId?: string | null;
     status?: $Enums.OrderStatus;
     paymentStatus?: $Enums.PaymentStatus;
     subtotal: runtime.Decimal | runtime.DecimalJsLike | number | string;
     discountAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: runtime.Decimal | runtime.DecimalJsLike | number | string;
     shippingCost: runtime.Decimal | runtime.DecimalJsLike | number | string;
     total: runtime.Decimal | runtime.DecimalJsLike | number | string;
     courier: string;
@@ -1778,6 +1999,7 @@ export type OrderUpdateWithoutPaymentInput = {
     paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus;
     subtotal?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     discountAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     shippingCost?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     total?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     courier?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1796,6 +2018,7 @@ export type OrderUpdateWithoutPaymentInput = {
     user?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput;
     address?: Prisma.AddressUpdateOneRequiredWithoutOrdersNestedInput;
     voucher?: Prisma.VoucherUpdateOneWithoutOrdersNestedInput;
+    voucherShipping?: Prisma.VoucherUpdateOneWithoutShippingOrdersNestedInput;
     bundle?: Prisma.BundleUpdateOneWithoutOrderNestedInput;
     items?: Prisma.OrderItemUpdateManyWithoutOrderNestedInput;
     reviews?: Prisma.ProductReviewUpdateManyWithoutOrderNestedInput;
@@ -1807,11 +2030,13 @@ export type OrderUncheckedUpdateWithoutPaymentInput = {
     userId?: Prisma.StringFieldUpdateOperationsInput | string;
     addressId?: Prisma.StringFieldUpdateOperationsInput | string;
     voucherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    voucherShippingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     bundleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus;
     paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus;
     subtotal?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     discountAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     shippingCost?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     total?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     courier?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1836,11 +2061,13 @@ export type OrderCreateManyUserInput = {
     orderNumber: string;
     addressId: string;
     voucherId?: string | null;
+    voucherShippingId?: string | null;
     bundleId?: string | null;
     status?: $Enums.OrderStatus;
     paymentStatus?: $Enums.PaymentStatus;
     subtotal: runtime.Decimal | runtime.DecimalJsLike | number | string;
     discountAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: runtime.Decimal | runtime.DecimalJsLike | number | string;
     shippingCost: runtime.Decimal | runtime.DecimalJsLike | number | string;
     total: runtime.Decimal | runtime.DecimalJsLike | number | string;
     courier: string;
@@ -1864,6 +2091,7 @@ export type OrderUpdateWithoutUserInput = {
     paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus;
     subtotal?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     discountAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     shippingCost?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     total?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     courier?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1881,6 +2109,7 @@ export type OrderUpdateWithoutUserInput = {
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     address?: Prisma.AddressUpdateOneRequiredWithoutOrdersNestedInput;
     voucher?: Prisma.VoucherUpdateOneWithoutOrdersNestedInput;
+    voucherShipping?: Prisma.VoucherUpdateOneWithoutShippingOrdersNestedInput;
     bundle?: Prisma.BundleUpdateOneWithoutOrderNestedInput;
     items?: Prisma.OrderItemUpdateManyWithoutOrderNestedInput;
     payment?: Prisma.PaymentUpdateOneWithoutOrderNestedInput;
@@ -1892,11 +2121,13 @@ export type OrderUncheckedUpdateWithoutUserInput = {
     orderNumber?: Prisma.StringFieldUpdateOperationsInput | string;
     addressId?: Prisma.StringFieldUpdateOperationsInput | string;
     voucherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    voucherShippingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     bundleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus;
     paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus;
     subtotal?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     discountAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     shippingCost?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     total?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     courier?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1922,11 +2153,13 @@ export type OrderUncheckedUpdateManyWithoutUserInput = {
     orderNumber?: Prisma.StringFieldUpdateOperationsInput | string;
     addressId?: Prisma.StringFieldUpdateOperationsInput | string;
     voucherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    voucherShippingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     bundleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus;
     paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus;
     subtotal?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     discountAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     shippingCost?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     total?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     courier?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1948,11 +2181,13 @@ export type OrderCreateManyAddressInput = {
     orderNumber: string;
     userId: string;
     voucherId?: string | null;
+    voucherShippingId?: string | null;
     bundleId?: string | null;
     status?: $Enums.OrderStatus;
     paymentStatus?: $Enums.PaymentStatus;
     subtotal: runtime.Decimal | runtime.DecimalJsLike | number | string;
     discountAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: runtime.Decimal | runtime.DecimalJsLike | number | string;
     shippingCost: runtime.Decimal | runtime.DecimalJsLike | number | string;
     total: runtime.Decimal | runtime.DecimalJsLike | number | string;
     courier: string;
@@ -1976,6 +2211,7 @@ export type OrderUpdateWithoutAddressInput = {
     paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus;
     subtotal?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     discountAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     shippingCost?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     total?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     courier?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1993,6 +2229,7 @@ export type OrderUpdateWithoutAddressInput = {
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     user?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput;
     voucher?: Prisma.VoucherUpdateOneWithoutOrdersNestedInput;
+    voucherShipping?: Prisma.VoucherUpdateOneWithoutShippingOrdersNestedInput;
     bundle?: Prisma.BundleUpdateOneWithoutOrderNestedInput;
     items?: Prisma.OrderItemUpdateManyWithoutOrderNestedInput;
     payment?: Prisma.PaymentUpdateOneWithoutOrderNestedInput;
@@ -2004,11 +2241,13 @@ export type OrderUncheckedUpdateWithoutAddressInput = {
     orderNumber?: Prisma.StringFieldUpdateOperationsInput | string;
     userId?: Prisma.StringFieldUpdateOperationsInput | string;
     voucherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    voucherShippingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     bundleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus;
     paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus;
     subtotal?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     discountAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     shippingCost?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     total?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     courier?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -2034,11 +2273,13 @@ export type OrderUncheckedUpdateManyWithoutAddressInput = {
     orderNumber?: Prisma.StringFieldUpdateOperationsInput | string;
     userId?: Prisma.StringFieldUpdateOperationsInput | string;
     voucherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    voucherShippingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     bundleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus;
     paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus;
     subtotal?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     discountAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     shippingCost?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     total?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     courier?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -2061,10 +2302,12 @@ export type OrderCreateManyBundleInput = {
     userId: string;
     addressId: string;
     voucherId?: string | null;
+    voucherShippingId?: string | null;
     status?: $Enums.OrderStatus;
     paymentStatus?: $Enums.PaymentStatus;
     subtotal: runtime.Decimal | runtime.DecimalJsLike | number | string;
     discountAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: runtime.Decimal | runtime.DecimalJsLike | number | string;
     shippingCost: runtime.Decimal | runtime.DecimalJsLike | number | string;
     total: runtime.Decimal | runtime.DecimalJsLike | number | string;
     courier: string;
@@ -2088,6 +2331,7 @@ export type OrderUpdateWithoutBundleInput = {
     paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus;
     subtotal?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     discountAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     shippingCost?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     total?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     courier?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -2106,6 +2350,7 @@ export type OrderUpdateWithoutBundleInput = {
     user?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput;
     address?: Prisma.AddressUpdateOneRequiredWithoutOrdersNestedInput;
     voucher?: Prisma.VoucherUpdateOneWithoutOrdersNestedInput;
+    voucherShipping?: Prisma.VoucherUpdateOneWithoutShippingOrdersNestedInput;
     items?: Prisma.OrderItemUpdateManyWithoutOrderNestedInput;
     payment?: Prisma.PaymentUpdateOneWithoutOrderNestedInput;
     reviews?: Prisma.ProductReviewUpdateManyWithoutOrderNestedInput;
@@ -2117,10 +2362,12 @@ export type OrderUncheckedUpdateWithoutBundleInput = {
     userId?: Prisma.StringFieldUpdateOperationsInput | string;
     addressId?: Prisma.StringFieldUpdateOperationsInput | string;
     voucherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    voucherShippingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus;
     paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus;
     subtotal?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     discountAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     shippingCost?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     total?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     courier?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -2147,10 +2394,12 @@ export type OrderUncheckedUpdateManyWithoutBundleInput = {
     userId?: Prisma.StringFieldUpdateOperationsInput | string;
     addressId?: Prisma.StringFieldUpdateOperationsInput | string;
     voucherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    voucherShippingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus;
     paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus;
     subtotal?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     discountAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     shippingCost?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     total?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     courier?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -2172,11 +2421,41 @@ export type OrderCreateManyVoucherInput = {
     orderNumber: string;
     userId: string;
     addressId: string;
+    voucherShippingId?: string | null;
     bundleId?: string | null;
     status?: $Enums.OrderStatus;
     paymentStatus?: $Enums.PaymentStatus;
     subtotal: runtime.Decimal | runtime.DecimalJsLike | number | string;
     discountAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    shippingCost: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    total: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    courier: string;
+    service: string;
+    shippingProvider?: string | null;
+    trackingNumber?: string | null;
+    estimatedDelivery?: Date | string | null;
+    deliveredAt?: Date | string | null;
+    cancelledAt?: Date | string | null;
+    cancelReason?: string | null;
+    notes?: string | null;
+    paymentDeadline?: Date | string | null;
+    cancelDeadline?: Date | string | null;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+};
+export type OrderCreateManyVoucherShippingInput = {
+    id?: string;
+    orderNumber: string;
+    userId: string;
+    addressId: string;
+    voucherId?: string | null;
+    bundleId?: string | null;
+    status?: $Enums.OrderStatus;
+    paymentStatus?: $Enums.PaymentStatus;
+    subtotal: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: runtime.Decimal | runtime.DecimalJsLike | number | string;
     shippingCost: runtime.Decimal | runtime.DecimalJsLike | number | string;
     total: runtime.Decimal | runtime.DecimalJsLike | number | string;
     courier: string;
@@ -2200,6 +2479,7 @@ export type OrderUpdateWithoutVoucherInput = {
     paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus;
     subtotal?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     discountAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     shippingCost?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     total?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     courier?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -2217,6 +2497,7 @@ export type OrderUpdateWithoutVoucherInput = {
     updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     user?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput;
     address?: Prisma.AddressUpdateOneRequiredWithoutOrdersNestedInput;
+    voucherShipping?: Prisma.VoucherUpdateOneWithoutShippingOrdersNestedInput;
     bundle?: Prisma.BundleUpdateOneWithoutOrderNestedInput;
     items?: Prisma.OrderItemUpdateManyWithoutOrderNestedInput;
     payment?: Prisma.PaymentUpdateOneWithoutOrderNestedInput;
@@ -2228,11 +2509,13 @@ export type OrderUncheckedUpdateWithoutVoucherInput = {
     orderNumber?: Prisma.StringFieldUpdateOperationsInput | string;
     userId?: Prisma.StringFieldUpdateOperationsInput | string;
     addressId?: Prisma.StringFieldUpdateOperationsInput | string;
+    voucherShippingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     bundleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus;
     paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus;
     subtotal?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     discountAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     shippingCost?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     total?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     courier?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -2258,11 +2541,105 @@ export type OrderUncheckedUpdateManyWithoutVoucherInput = {
     orderNumber?: Prisma.StringFieldUpdateOperationsInput | string;
     userId?: Prisma.StringFieldUpdateOperationsInput | string;
     addressId?: Prisma.StringFieldUpdateOperationsInput | string;
+    voucherShippingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     bundleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus;
     paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus;
     subtotal?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     discountAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    shippingCost?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    total?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    courier?: Prisma.StringFieldUpdateOperationsInput | string;
+    service?: Prisma.StringFieldUpdateOperationsInput | string;
+    shippingProvider?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    trackingNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    estimatedDelivery?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    cancelReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    paymentDeadline?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    cancelDeadline?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+};
+export type OrderUpdateWithoutVoucherShippingInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    orderNumber?: Prisma.StringFieldUpdateOperationsInput | string;
+    status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus;
+    paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus;
+    subtotal?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    shippingCost?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    total?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    courier?: Prisma.StringFieldUpdateOperationsInput | string;
+    service?: Prisma.StringFieldUpdateOperationsInput | string;
+    shippingProvider?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    trackingNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    estimatedDelivery?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    cancelReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    paymentDeadline?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    cancelDeadline?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    user?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput;
+    address?: Prisma.AddressUpdateOneRequiredWithoutOrdersNestedInput;
+    voucher?: Prisma.VoucherUpdateOneWithoutOrdersNestedInput;
+    bundle?: Prisma.BundleUpdateOneWithoutOrderNestedInput;
+    items?: Prisma.OrderItemUpdateManyWithoutOrderNestedInput;
+    payment?: Prisma.PaymentUpdateOneWithoutOrderNestedInput;
+    reviews?: Prisma.ProductReviewUpdateManyWithoutOrderNestedInput;
+    statusHistory?: Prisma.OrderStatusHistoryUpdateManyWithoutOrderNestedInput;
+};
+export type OrderUncheckedUpdateWithoutVoucherShippingInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    orderNumber?: Prisma.StringFieldUpdateOperationsInput | string;
+    userId?: Prisma.StringFieldUpdateOperationsInput | string;
+    addressId?: Prisma.StringFieldUpdateOperationsInput | string;
+    voucherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    bundleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus;
+    paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus;
+    subtotal?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    shippingCost?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    total?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    courier?: Prisma.StringFieldUpdateOperationsInput | string;
+    service?: Prisma.StringFieldUpdateOperationsInput | string;
+    shippingProvider?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    trackingNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    estimatedDelivery?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    cancelReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    paymentDeadline?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    cancelDeadline?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    items?: Prisma.OrderItemUncheckedUpdateManyWithoutOrderNestedInput;
+    payment?: Prisma.PaymentUncheckedUpdateOneWithoutOrderNestedInput;
+    reviews?: Prisma.ProductReviewUncheckedUpdateManyWithoutOrderNestedInput;
+    statusHistory?: Prisma.OrderStatusHistoryUncheckedUpdateManyWithoutOrderNestedInput;
+};
+export type OrderUncheckedUpdateManyWithoutVoucherShippingInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    orderNumber?: Prisma.StringFieldUpdateOperationsInput | string;
+    userId?: Prisma.StringFieldUpdateOperationsInput | string;
+    addressId?: Prisma.StringFieldUpdateOperationsInput | string;
+    voucherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    bundleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus;
+    paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus;
+    subtotal?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    discountShipping?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     shippingCost?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     total?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     courier?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -2307,11 +2684,13 @@ export type OrderSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
     userId?: boolean;
     addressId?: boolean;
     voucherId?: boolean;
+    voucherShippingId?: boolean;
     bundleId?: boolean;
     status?: boolean;
     paymentStatus?: boolean;
     subtotal?: boolean;
     discountAmount?: boolean;
+    discountShipping?: boolean;
     shippingCost?: boolean;
     total?: boolean;
     courier?: boolean;
@@ -2330,6 +2709,7 @@ export type OrderSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
     user?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
     address?: boolean | Prisma.AddressDefaultArgs<ExtArgs>;
     voucher?: boolean | Prisma.Order$voucherArgs<ExtArgs>;
+    voucherShipping?: boolean | Prisma.Order$voucherShippingArgs<ExtArgs>;
     bundle?: boolean | Prisma.Order$bundleArgs<ExtArgs>;
     items?: boolean | Prisma.Order$itemsArgs<ExtArgs>;
     payment?: boolean | Prisma.Order$paymentArgs<ExtArgs>;
@@ -2343,11 +2723,13 @@ export type OrderSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
     userId?: boolean;
     addressId?: boolean;
     voucherId?: boolean;
+    voucherShippingId?: boolean;
     bundleId?: boolean;
     status?: boolean;
     paymentStatus?: boolean;
     subtotal?: boolean;
     discountAmount?: boolean;
+    discountShipping?: boolean;
     shippingCost?: boolean;
     total?: boolean;
     courier?: boolean;
@@ -2366,6 +2748,7 @@ export type OrderSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
     user?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
     address?: boolean | Prisma.AddressDefaultArgs<ExtArgs>;
     voucher?: boolean | Prisma.Order$voucherArgs<ExtArgs>;
+    voucherShipping?: boolean | Prisma.Order$voucherShippingArgs<ExtArgs>;
     bundle?: boolean | Prisma.Order$bundleArgs<ExtArgs>;
 }, ExtArgs["result"]["order"]>;
 export type OrderSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -2374,11 +2757,13 @@ export type OrderSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
     userId?: boolean;
     addressId?: boolean;
     voucherId?: boolean;
+    voucherShippingId?: boolean;
     bundleId?: boolean;
     status?: boolean;
     paymentStatus?: boolean;
     subtotal?: boolean;
     discountAmount?: boolean;
+    discountShipping?: boolean;
     shippingCost?: boolean;
     total?: boolean;
     courier?: boolean;
@@ -2397,6 +2782,7 @@ export type OrderSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
     user?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
     address?: boolean | Prisma.AddressDefaultArgs<ExtArgs>;
     voucher?: boolean | Prisma.Order$voucherArgs<ExtArgs>;
+    voucherShipping?: boolean | Prisma.Order$voucherShippingArgs<ExtArgs>;
     bundle?: boolean | Prisma.Order$bundleArgs<ExtArgs>;
 }, ExtArgs["result"]["order"]>;
 export type OrderSelectScalar = {
@@ -2405,11 +2791,13 @@ export type OrderSelectScalar = {
     userId?: boolean;
     addressId?: boolean;
     voucherId?: boolean;
+    voucherShippingId?: boolean;
     bundleId?: boolean;
     status?: boolean;
     paymentStatus?: boolean;
     subtotal?: boolean;
     discountAmount?: boolean;
+    discountShipping?: boolean;
     shippingCost?: boolean;
     total?: boolean;
     courier?: boolean;
@@ -2426,11 +2814,12 @@ export type OrderSelectScalar = {
     createdAt?: boolean;
     updatedAt?: boolean;
 };
-export type OrderOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "orderNumber" | "userId" | "addressId" | "voucherId" | "bundleId" | "status" | "paymentStatus" | "subtotal" | "discountAmount" | "shippingCost" | "total" | "courier" | "service" | "shippingProvider" | "trackingNumber" | "estimatedDelivery" | "deliveredAt" | "cancelledAt" | "cancelReason" | "notes" | "paymentDeadline" | "cancelDeadline" | "createdAt" | "updatedAt", ExtArgs["result"]["order"]>;
+export type OrderOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "orderNumber" | "userId" | "addressId" | "voucherId" | "voucherShippingId" | "bundleId" | "status" | "paymentStatus" | "subtotal" | "discountAmount" | "discountShipping" | "shippingCost" | "total" | "courier" | "service" | "shippingProvider" | "trackingNumber" | "estimatedDelivery" | "deliveredAt" | "cancelledAt" | "cancelReason" | "notes" | "paymentDeadline" | "cancelDeadline" | "createdAt" | "updatedAt", ExtArgs["result"]["order"]>;
 export type OrderInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     user?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
     address?: boolean | Prisma.AddressDefaultArgs<ExtArgs>;
     voucher?: boolean | Prisma.Order$voucherArgs<ExtArgs>;
+    voucherShipping?: boolean | Prisma.Order$voucherShippingArgs<ExtArgs>;
     bundle?: boolean | Prisma.Order$bundleArgs<ExtArgs>;
     items?: boolean | Prisma.Order$itemsArgs<ExtArgs>;
     payment?: boolean | Prisma.Order$paymentArgs<ExtArgs>;
@@ -2442,12 +2831,14 @@ export type OrderIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
     user?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
     address?: boolean | Prisma.AddressDefaultArgs<ExtArgs>;
     voucher?: boolean | Prisma.Order$voucherArgs<ExtArgs>;
+    voucherShipping?: boolean | Prisma.Order$voucherShippingArgs<ExtArgs>;
     bundle?: boolean | Prisma.Order$bundleArgs<ExtArgs>;
 };
 export type OrderIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     user?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
     address?: boolean | Prisma.AddressDefaultArgs<ExtArgs>;
     voucher?: boolean | Prisma.Order$voucherArgs<ExtArgs>;
+    voucherShipping?: boolean | Prisma.Order$voucherShippingArgs<ExtArgs>;
     bundle?: boolean | Prisma.Order$bundleArgs<ExtArgs>;
 };
 export type $OrderPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2456,6 +2847,7 @@ export type $OrderPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
         user: Prisma.$UserPayload<ExtArgs>;
         address: Prisma.$AddressPayload<ExtArgs>;
         voucher: Prisma.$VoucherPayload<ExtArgs> | null;
+        voucherShipping: Prisma.$VoucherPayload<ExtArgs> | null;
         bundle: Prisma.$BundlePayload<ExtArgs> | null;
         items: Prisma.$OrderItemPayload<ExtArgs>[];
         payment: Prisma.$PaymentPayload<ExtArgs> | null;
@@ -2468,11 +2860,13 @@ export type $OrderPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
         userId: string;
         addressId: string;
         voucherId: string | null;
+        voucherShippingId: string | null;
         bundleId: string | null;
         status: $Enums.OrderStatus;
         paymentStatus: $Enums.PaymentStatus;
         subtotal: runtime.Decimal;
         discountAmount: runtime.Decimal;
+        discountShipping: runtime.Decimal;
         shippingCost: runtime.Decimal;
         total: runtime.Decimal;
         courier: string;
@@ -2543,6 +2937,7 @@ export interface Prisma__OrderClient<T, Null = never, ExtArgs extends runtime.Ty
     user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>;
     address<T extends Prisma.AddressDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.AddressDefaultArgs<ExtArgs>>): Prisma.Prisma__AddressClient<runtime.Types.Result.GetResult<Prisma.$AddressPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>;
     voucher<T extends Prisma.Order$voucherArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Order$voucherArgs<ExtArgs>>): Prisma.Prisma__VoucherClient<runtime.Types.Result.GetResult<Prisma.$VoucherPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>;
+    voucherShipping<T extends Prisma.Order$voucherShippingArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Order$voucherShippingArgs<ExtArgs>>): Prisma.Prisma__VoucherClient<runtime.Types.Result.GetResult<Prisma.$VoucherPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>;
     bundle<T extends Prisma.Order$bundleArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Order$bundleArgs<ExtArgs>>): Prisma.Prisma__BundleClient<runtime.Types.Result.GetResult<Prisma.$BundlePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>;
     items<T extends Prisma.Order$itemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Order$itemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrderItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     payment<T extends Prisma.Order$paymentArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Order$paymentArgs<ExtArgs>>): Prisma.Prisma__PaymentClient<runtime.Types.Result.GetResult<Prisma.$PaymentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>;
@@ -2558,11 +2953,13 @@ export interface OrderFieldRefs {
     readonly userId: Prisma.FieldRef<"Order", 'String'>;
     readonly addressId: Prisma.FieldRef<"Order", 'String'>;
     readonly voucherId: Prisma.FieldRef<"Order", 'String'>;
+    readonly voucherShippingId: Prisma.FieldRef<"Order", 'String'>;
     readonly bundleId: Prisma.FieldRef<"Order", 'String'>;
     readonly status: Prisma.FieldRef<"Order", 'OrderStatus'>;
     readonly paymentStatus: Prisma.FieldRef<"Order", 'PaymentStatus'>;
     readonly subtotal: Prisma.FieldRef<"Order", 'Decimal'>;
     readonly discountAmount: Prisma.FieldRef<"Order", 'Decimal'>;
+    readonly discountShipping: Prisma.FieldRef<"Order", 'Decimal'>;
     readonly shippingCost: Prisma.FieldRef<"Order", 'Decimal'>;
     readonly total: Prisma.FieldRef<"Order", 'Decimal'>;
     readonly courier: Prisma.FieldRef<"Order", 'String'>;
@@ -2680,6 +3077,12 @@ export type OrderDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Interna
     limit?: number;
 };
 export type Order$voucherArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    select?: Prisma.VoucherSelect<ExtArgs> | null;
+    omit?: Prisma.VoucherOmit<ExtArgs> | null;
+    include?: Prisma.VoucherInclude<ExtArgs> | null;
+    where?: Prisma.VoucherWhereInput;
+};
+export type Order$voucherShippingArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     select?: Prisma.VoucherSelect<ExtArgs> | null;
     omit?: Prisma.VoucherOmit<ExtArgs> | null;
     include?: Prisma.VoucherInclude<ExtArgs> | null;
