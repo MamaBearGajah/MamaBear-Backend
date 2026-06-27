@@ -63,9 +63,11 @@ export declare class AdminService {
             orderNumber: string;
             addressId: string;
             voucherId: string | null;
+            voucherShippingId: string | null;
             paymentStatus: import("../../generated/prisma/enums").PaymentStatus;
             subtotal: import("@prisma/client-runtime-utils").Decimal;
             discountAmount: import("@prisma/client-runtime-utils").Decimal;
+            discountShipping: import("@prisma/client-runtime-utils").Decimal;
             shippingCost: import("@prisma/client-runtime-utils").Decimal;
             total: import("@prisma/client-runtime-utils").Decimal;
             courier: string;

@@ -15,6 +15,9 @@ export interface ApplyVoucherResult {
   usedCount: number;
 }
 
+// Multiplier minimum purchase otomatis = 2x nilai voucher
+const AUTO_MIN_PURCHASE_MULTIPLIER = 2;
+
 @Injectable()
 export class VoucherService {
   constructor(private readonly prisma: PrismaService) {}
@@ -27,13 +30,22 @@ export class VoucherService {
     const exists = await this.prisma.voucher.findUnique({ where: { code } });
     if (exists) throw new BadRequestException(`Kode voucher "${code}" sudah digunakan`);
 
+    // Auto-set minPurchase = 2x nilai voucher jika tidak diisi manual
+    // Berlaku untuk fixed dan percentage; free_shipping tidak perlu
+    const autoMinPurchase =
+      dto.minPurchase !== undefined
+        ? dto.minPurchase
+        : dto.type !== 'free_shipping'
+          ? dto.value * AUTO_MIN_PURCHASE_MULTIPLIER
+          : 0;
+
     return this.prisma.voucher.create({
       data: {
         code,
         type: dto.type,
         source: dto.source ?? 'manual',
         value: dto.value,
-        minPurchase: dto.minPurchase ?? 0,
+        minPurchase: autoMinPurchase,
         maxDiscount: dto.maxDiscount,
         usageLimit: dto.usageLimit,
         isActive: dto.isActive ?? true,
@@ -109,10 +121,6 @@ export class VoucherService {
 
   // ─── User: Validate Voucher ───────────────────────────────────────────────
 
-  /**
-   * Validasi voucher sebelum checkout. Tidak mengubah state DB.
-   * Mengembalikan { valid: true, discountAmount, finalShippingCost } jika valid.
-   */
   async validate(
     code: string,
     subtotal: number,
@@ -126,13 +134,7 @@ export class VoucherService {
       shippingCost,
     );
 
-    return {
-      valid: true,
-      voucher,
-      discountAmount,
-      finalShippingCost,
-      usedCount,
-    };
+    return { valid: true, voucher, discountAmount, finalShippingCost, usedCount };
   }
 
   async apply(code: string, subtotal: number, userId?: string) {
@@ -143,13 +145,7 @@ export class VoucherService {
       0,
     );
 
-    return {
-      valid: true,
-      voucher,
-      discountAmount,
-      finalShippingCost,
-      usedCount,
-    };
+    return { valid: true, voucher, discountAmount, finalShippingCost, usedCount };
   }
 
   async validateById(
@@ -165,32 +161,22 @@ export class VoucherService {
       shippingCost,
     );
 
-    return {
-      valid: true,
-      voucher,
-      discountAmount,
-      finalShippingCost,
-      usedCount,
-    };
+    return { valid: true, voucher, discountAmount, finalShippingCost, usedCount };
   }
 
-  // ─── Internal: Apply Voucher (dipanggil saat order dibuat) ────YYYYY───────────
+  // ─── Internal: Apply Voucher (dipanggil saat order dibuat) ───────────────
 
-  /**
-   * Dipanggil dari OrdersService di dalam transaksi.
-   * Increment usedCount dan kembalikan nilai diskon.
-   */
   async applyVoucher(
     tx: any,
     voucherId: string,
     subtotal: number,
     userId?: string,
+    shippingCost = 0,
   ): Promise<{ discountAmount: number; finalShippingCost: number; usedCount: number }> {
     const voucher = await tx.voucher.findUnique({ where: { id: voucherId } });
     const validVoucher = this.assertVoucherCanBeApplied(voucher, subtotal, userId);
-    const result = this.buildApplyVoucherResult(validVoucher, subtotal, 0);
+    const result = this.buildApplyVoucherResult(validVoucher, subtotal, shippingCost);
 
-    // Increment usedCount
     const updatedVoucher = await tx.voucher.update({
       where: { id: voucherId },
       data: { usedCount: { increment: 1 } },
@@ -205,7 +191,7 @@ export class VoucherService {
 
   // ─── Private: Kalkulasi Diskon ────────────────────────────────────────────
 
-  private calculateDiscount(voucher: Voucher, subtotal: number): number {
+  private calculateDiscount(voucher: Voucher, subtotal: number, shippingCost = 0): number {
     let discountAmount = 0;
 
     const value = Number(voucher.value);
@@ -217,11 +203,11 @@ export class VoucherService {
         break;
 
       case VoucherType.fixed:
-        discountAmount = Math.min(value, subtotal); // tidak melebihi subtotal
+        discountAmount = value;
         break;
 
       case VoucherType.free_shipping:
-        discountAmount = 0;
+        discountAmount = shippingCost;
         break;
     }
 
@@ -233,10 +219,14 @@ export class VoucherService {
     subtotal: number,
     shippingCost: number,
   ): ApplyVoucherResult {
+    const discountAmount = this.calculateDiscount(voucher, subtotal, shippingCost);
     return {
       voucher,
-      discountAmount: this.calculateDiscount(voucher, subtotal),
-      finalShippingCost: shippingCost,
+      discountAmount,
+      finalShippingCost:
+        voucher.type === VoucherType.free_shipping
+          ? Math.max(0, shippingCost - discountAmount)
+          : shippingCost,
       usedCount: voucher.usedCount,
     };
   }
@@ -269,10 +259,30 @@ export class VoucherService {
     if (voucher.ownerId && voucher.ownerId !== userId)
       throw new BadRequestException('Voucher ini tidak untuk akun Anda');
 
+    // Voucher fixed: nilai voucher tidak boleh >= subtotal
+    if (voucher.type === VoucherType.fixed) {
+      const value = Number(voucher.value);
+      if (value >= subtotal) {
+        throw new BadRequestException(
+          `Nilai voucher (Rp ${value.toLocaleString('id-ID')}) melebihi atau sama dengan total belanja Anda (Rp ${subtotal.toLocaleString('id-ID')}). Tambahkan produk lagi untuk menggunakan voucher ini.`,
+        );
+      }
+    }
+
+    // Voucher percentage: diskon tidak boleh menghabiskan seluruh subtotal
+    if (voucher.type === VoucherType.percentage) {
+      const value = Number(voucher.value);
+      const maxDiscount = voucher.maxDiscount ? Number(voucher.maxDiscount) : Infinity;
+      const discountAmount = Math.min((subtotal * value) / 100, maxDiscount);
+      if (discountAmount >= subtotal) {
+        throw new BadRequestException(
+          `Diskon voucher ini menghabiskan seluruh total belanja Anda. Tambahkan produk lagi untuk menggunakan voucher ini.`,
+        );
+      }
+    }
+
     return voucher;
   }
-
-  // ─── Helpers ──────────────────────────────────────────────────────────────
 
   private async findById(id: string) {
     const voucher = await this.prisma.voucher.findUnique({ where: { id } });

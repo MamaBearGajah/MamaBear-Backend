@@ -2845,11 +2845,13 @@ export declare const OrderScalarFieldEnum: {
     readonly userId: "userId";
     readonly addressId: "addressId";
     readonly voucherId: "voucherId";
+    readonly voucherShippingId: "voucherShippingId";
     readonly bundleId: "bundleId";
     readonly status: "status";
     readonly paymentStatus: "paymentStatus";
     readonly subtotal: "subtotal";
     readonly discountAmount: "discountAmount";
+    readonly discountShipping: "discountShipping";
     readonly shippingCost: "shippingCost";
     readonly total: "total";
     readonly courier: "courier";

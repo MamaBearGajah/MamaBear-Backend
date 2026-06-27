@@ -3,5 +3,6 @@ export declare class CreateOrderDto {
     courier: string;
     service: string;
     voucherId?: string;
+    voucherShippingId?: string;
     notes?: string;
 }

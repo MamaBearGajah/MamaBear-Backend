@@ -179,7 +179,7 @@ export declare class VoucherService {
         finalShippingCost: number;
         usedCount: number;
     }>;
-    applyVoucher(tx: any, voucherId: string, subtotal: number, userId?: string): Promise<{
+    applyVoucher(tx: any, voucherId: string, subtotal: number, userId?: string, shippingCost?: number): Promise<{
         discountAmount: number;
         finalShippingCost: number;
         usedCount: number;
