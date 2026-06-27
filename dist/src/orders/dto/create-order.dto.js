@@ -17,6 +17,7 @@ class CreateOrderDto {
     courier;
     service;
     voucherId;
+    voucherShippingId;
     notes;
 }
 exports.CreateOrderDto = CreateOrderDto;
@@ -27,7 +28,7 @@ __decorate([
     __metadata("design:type", String)
 ], CreateOrderDto.prototype, "addressId", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 'jne', description: 'Kode kurir (jne, jnt, sicepat, dll)' }),
+    (0, swagger_1.ApiProperty)({ example: 'jne', description: 'Kode kurir (jne, jnt, pos, dll)' }),
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
@@ -39,11 +40,17 @@ __decorate([
     __metadata("design:type", String)
 ], CreateOrderDto.prototype, "service", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({ example: 'uuid-voucher', description: 'ID voucher (opsional)' }),
+    (0, swagger_1.ApiPropertyOptional)({ example: 'uuid-voucher', description: 'ID voucher potongan harga produk' }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateOrderDto.prototype, "voucherId", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ example: 'uuid-voucher-ongkir', description: 'ID voucher gratis ongkir' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateOrderDto.prototype, "voucherShippingId", void 0);
 __decorate([
     (0, swagger_1.ApiPropertyOptional)({ example: 'Tolong dibungkus kado ya', description: 'Catatan order' }),
     (0, class_validator_1.IsOptional)(),

@@ -8,16 +8,21 @@ export declare class AdminOrdersController {
     constructor(ordersService: OrdersService);
     findAll(page: number, limit: number, status?: OrderStatus, q?: string): Promise<{
         data: ({
+            _count: {
+                items: number;
+            };
             user: {
                 id: string;
                 name: string;
                 email: string;
                 phone: string | null;
             };
-            _count: {
-                items: number;
-            };
             voucher: {
+                value: import("@prisma/client-runtime-utils").Decimal;
+                code: string;
+                type: import("../../../generated/prisma/enums").VoucherType;
+            } | null;
+            voucherShipping: {
                 value: import("@prisma/client-runtime-utils").Decimal;
                 code: string;
                 type: import("../../../generated/prisma/enums").VoucherType;
@@ -38,9 +43,11 @@ export declare class AdminOrdersController {
             orderNumber: string;
             addressId: string;
             voucherId: string | null;
+            voucherShippingId: string | null;
             paymentStatus: import("../../../generated/prisma/enums").PaymentStatus;
             subtotal: import("@prisma/client-runtime-utils").Decimal;
             discountAmount: import("@prisma/client-runtime-utils").Decimal;
+            discountShipping: import("@prisma/client-runtime-utils").Decimal;
             shippingCost: import("@prisma/client-runtime-utils").Decimal;
             total: import("@prisma/client-runtime-utils").Decimal;
             courier: string;
@@ -112,9 +119,11 @@ export declare class AdminOrdersController {
         orderNumber: string;
         addressId: string;
         voucherId: string | null;
+        voucherShippingId: string | null;
         paymentStatus: import("../../../generated/prisma/enums").PaymentStatus;
         subtotal: import("@prisma/client-runtime-utils").Decimal;
         discountAmount: import("@prisma/client-runtime-utils").Decimal;
+        discountShipping: import("@prisma/client-runtime-utils").Decimal;
         shippingCost: import("@prisma/client-runtime-utils").Decimal;
         total: import("@prisma/client-runtime-utils").Decimal;
         courier: string;
@@ -139,9 +148,11 @@ export declare class AdminOrdersController {
         orderNumber: string;
         addressId: string;
         voucherId: string | null;
+        voucherShippingId: string | null;
         paymentStatus: import("../../../generated/prisma/enums").PaymentStatus;
         subtotal: import("@prisma/client-runtime-utils").Decimal;
         discountAmount: import("@prisma/client-runtime-utils").Decimal;
+        discountShipping: import("@prisma/client-runtime-utils").Decimal;
         shippingCost: import("@prisma/client-runtime-utils").Decimal;
         total: import("@prisma/client-runtime-utils").Decimal;
         courier: string;

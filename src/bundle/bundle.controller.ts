@@ -67,6 +67,3 @@ export class BundleController {
     return this.bundleService.remove(id);
   }
 }
-
-// ─── Module ──────────────────────────────────────────────────────────────────
-// Simpan sebagai src/bundle/bundle.module.ts

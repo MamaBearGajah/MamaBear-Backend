@@ -12,6 +12,8 @@ const faq_1 = require("./faq");
 const blog_1 = require("./blog");
 const banner_1 = require("./banner");
 const promotion_1 = require("./promotion");
+const bundle_1 = require("./bundle");
+const membership_users_1 = require("./membership-users");
 const adapter = new adapter_pg_1.PrismaPg({ connectionString: process.env.DATABASE_URL });
 exports.prisma = new client_1.PrismaClient({ adapter });
 async function main() {
@@ -25,6 +27,8 @@ async function main() {
     await (0, blog_1.seedBlog)(exports.prisma);
     await (0, banner_1.seedBanner)(exports.prisma);
     await (0, promotion_1.seedPromotion)(exports.prisma);
+    await (0, bundle_1.seedBundle)(exports.prisma);
+    await (0, membership_users_1.seedMembershipUsers)(exports.prisma);
     console.log("\n🎉 Seeding complete!");
 }
 main()

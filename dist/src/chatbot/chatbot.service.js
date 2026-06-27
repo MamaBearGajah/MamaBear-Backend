@@ -52,7 +52,7 @@ let ChatbotService = class ChatbotService {
         if (keywords.length === 0) {
             const topFaqs = await this.faqService.findTopFaqs();
             return {
-                reply: 'Halo! Ada yang bisa saya bantu? Silakan tanyakan seputar produk, pengiriman, atau pembayaran Mamabear.',
+                answer: 'Halo! Ada yang bisa saya bantu? Silakan tanyakan seputar produk, pengiriman, atau pembayaran Mamabear.',
                 suggestedFaqIds: topFaqs.map((f) => f.id),
             };
         }
@@ -65,13 +65,13 @@ let ChatbotService = class ChatbotService {
             const topMatch = scored[0].faq;
             const suggestedFaqs = scored.slice(0, 3).map(({ faq }) => faq);
             return {
-                reply: topMatch.answer,
+                answer: topMatch.answer,
                 suggestedFaqIds: suggestedFaqs.map((f) => f.id),
             };
         }
         const topFaqs = await this.faqService.findTopFaqs();
         return {
-            reply: DEFAULT_MESSAGE,
+            answer: DEFAULT_MESSAGE,
             suggestedFaqIds: topFaqs.map((f) => f.id),
         };
     }

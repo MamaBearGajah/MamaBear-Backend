@@ -87,6 +87,14 @@ let BundleService = class BundleService {
     }
     async update(id, dto) {
         await this.findOne(id);
+        if (dto.slug) {
+            const slugConflict = await this.prisma.bundle.findFirst({
+                where: { slug: dto.slug, NOT: { id } },
+            });
+            if (slugConflict) {
+                throw new common_1.BadRequestException(`Slug "${dto.slug}" sudah digunakan`);
+            }
+        }
         return this.prisma.$transaction(async (tx) => {
             if (dto.items) {
                 await tx.bundleItem.deleteMany({ where: { bundleId: id } });

@@ -13,6 +13,7 @@ exports.VoucherService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
 const client_1 = require("../../generated/prisma/client");
+const AUTO_MIN_PURCHASE_MULTIPLIER = 2;
 let VoucherService = class VoucherService {
     prisma;
     constructor(prisma) {
@@ -23,13 +24,18 @@ let VoucherService = class VoucherService {
         const exists = await this.prisma.voucher.findUnique({ where: { code } });
         if (exists)
             throw new common_1.BadRequestException(`Kode voucher "${code}" sudah digunakan`);
+        const autoMinPurchase = dto.minPurchase !== undefined
+            ? dto.minPurchase
+            : dto.type !== 'free_shipping'
+                ? dto.value * AUTO_MIN_PURCHASE_MULTIPLIER
+                : 0;
         return this.prisma.voucher.create({
             data: {
                 code,
                 type: dto.type,
                 source: dto.source ?? 'manual',
                 value: dto.value,
-                minPurchase: dto.minPurchase ?? 0,
+                minPurchase: autoMinPurchase,
                 maxDiscount: dto.maxDiscount,
                 usageLimit: dto.usageLimit,
                 isActive: dto.isActive ?? true,
@@ -90,7 +96,71 @@ let VoucherService = class VoucherService {
         });
     }
     async validate(code, subtotal, shippingCost, userId) {
-        const voucher = await this.prisma.voucher.findUnique({ where: { code: code.toUpperCase() } });
+        const voucher = await this.findValidVoucherByCode(code, subtotal, userId);
+        const { discountAmount, finalShippingCost, usedCount } = this.buildApplyVoucherResult(voucher, subtotal, shippingCost);
+        return { valid: true, voucher, discountAmount, finalShippingCost, usedCount };
+    }
+    async apply(code, subtotal, userId) {
+        const voucher = await this.findValidVoucherByCode(code, subtotal, userId);
+        const { discountAmount, finalShippingCost, usedCount } = this.buildApplyVoucherResult(voucher, subtotal, 0);
+        return { valid: true, voucher, discountAmount, finalShippingCost, usedCount };
+    }
+    async validateById(voucherId, subtotal, shippingCost, userId) {
+        const voucher = await this.findValidVoucherById(voucherId, subtotal, userId);
+        const { discountAmount, finalShippingCost, usedCount } = this.buildApplyVoucherResult(voucher, subtotal, shippingCost);
+        return { valid: true, voucher, discountAmount, finalShippingCost, usedCount };
+    }
+    async applyVoucher(tx, voucherId, subtotal, userId, shippingCost = 0) {
+        const voucher = await tx.voucher.findUnique({ where: { id: voucherId } });
+        const validVoucher = this.assertVoucherCanBeApplied(voucher, subtotal, userId);
+        const result = this.buildApplyVoucherResult(validVoucher, subtotal, shippingCost);
+        const updatedVoucher = await tx.voucher.update({
+            where: { id: voucherId },
+            data: { usedCount: { increment: 1 } },
+        });
+        return {
+            discountAmount: result.discountAmount,
+            finalShippingCost: result.finalShippingCost,
+            usedCount: updatedVoucher.usedCount,
+        };
+    }
+    calculateDiscount(voucher, subtotal, shippingCost = 0) {
+        let discountAmount = 0;
+        const value = Number(voucher.value);
+        const maxDiscount = voucher.maxDiscount ? Number(voucher.maxDiscount) : Infinity;
+        switch (voucher.type) {
+            case client_1.VoucherType.percentage:
+                discountAmount = Math.min((subtotal * value) / 100, maxDiscount);
+                break;
+            case client_1.VoucherType.fixed:
+                discountAmount = value;
+                break;
+            case client_1.VoucherType.free_shipping:
+                discountAmount = shippingCost;
+                break;
+        }
+        return Math.floor(discountAmount);
+    }
+    buildApplyVoucherResult(voucher, subtotal, shippingCost) {
+        const discountAmount = this.calculateDiscount(voucher, subtotal, shippingCost);
+        return {
+            voucher,
+            discountAmount,
+            finalShippingCost: voucher.type === client_1.VoucherType.free_shipping
+                ? Math.max(0, shippingCost - discountAmount)
+                : shippingCost,
+            usedCount: voucher.usedCount,
+        };
+    }
+    async findValidVoucherByCode(code, subtotal, userId) {
+        const voucher = await this.prisma.voucher.findUnique({ where: { code: code.toUpperCase().trim() } });
+        return this.assertVoucherCanBeApplied(voucher, subtotal, userId);
+    }
+    async findValidVoucherById(voucherId, subtotal, userId) {
+        const voucher = await this.prisma.voucher.findUnique({ where: { id: voucherId } });
+        return this.assertVoucherCanBeApplied(voucher, subtotal, userId);
+    }
+    assertVoucherCanBeApplied(voucher, subtotal, userId) {
         if (!voucher)
             throw new common_1.NotFoundException('Voucher tidak ditemukan');
         if (!voucher.isActive)
@@ -106,48 +176,21 @@ let VoucherService = class VoucherService {
             throw new common_1.BadRequestException(`Minimum pembelian Rp ${Number(voucher.minPurchase).toLocaleString('id-ID')} untuk pakai voucher ini`);
         if (voucher.ownerId && voucher.ownerId !== userId)
             throw new common_1.BadRequestException('Voucher ini tidak untuk akun Anda');
-        const { discountAmount, finalShippingCost } = this.calculateDiscount(voucher, subtotal, shippingCost);
-        return {
-            valid: true,
-            voucher,
-            discountAmount,
-            finalShippingCost,
-        };
-    }
-    async applyVoucher(tx, voucherId, subtotal, shippingCost) {
-        const voucher = await tx.voucher.findUnique({ where: { id: voucherId } });
-        if (!voucher)
-            throw new common_1.NotFoundException('Voucher tidak ditemukan');
-        if (!voucher.isActive)
-            throw new common_1.BadRequestException('Voucher tidak aktif');
-        if (voucher.usageLimit !== null && voucher.usedCount >= voucher.usageLimit)
-            throw new common_1.BadRequestException('Voucher sudah habis');
-        const result = this.calculateDiscount(voucher, subtotal, shippingCost);
-        await tx.voucher.update({
-            where: { id: voucherId },
-            data: { usedCount: { increment: 1 } },
-        });
-        return result;
-    }
-    calculateDiscount(voucher, subtotal, shippingCost) {
-        let discountAmount = 0;
-        let finalShippingCost = shippingCost;
-        const value = Number(voucher.value);
-        const maxDiscount = voucher.maxDiscount ? Number(voucher.maxDiscount) : Infinity;
-        switch (voucher.type) {
-            case client_1.VoucherType.percentage:
-                discountAmount = Math.min((subtotal * value) / 100, maxDiscount);
-                break;
-            case client_1.VoucherType.fixed:
-                discountAmount = Math.min(value, subtotal);
-                break;
-            case client_1.VoucherType.free_shipping:
-                const shippingDiscount = Math.min(value, shippingCost);
-                finalShippingCost = shippingCost - shippingDiscount;
-                discountAmount = shippingDiscount;
-                break;
+        if (voucher.type === client_1.VoucherType.fixed) {
+            const value = Number(voucher.value);
+            if (value >= subtotal) {
+                throw new common_1.BadRequestException(`Nilai voucher (Rp ${value.toLocaleString('id-ID')}) melebihi atau sama dengan total belanja Anda (Rp ${subtotal.toLocaleString('id-ID')}). Tambahkan produk lagi untuk menggunakan voucher ini.`);
+            }
         }
-        return { discountAmount: Math.floor(discountAmount), finalShippingCost };
+        if (voucher.type === client_1.VoucherType.percentage) {
+            const value = Number(voucher.value);
+            const maxDiscount = voucher.maxDiscount ? Number(voucher.maxDiscount) : Infinity;
+            const discountAmount = Math.min((subtotal * value) / 100, maxDiscount);
+            if (discountAmount >= subtotal) {
+                throw new common_1.BadRequestException(`Diskon voucher ini menghabiskan seluruh total belanja Anda. Tambahkan produk lagi untuk menggunakan voucher ini.`);
+            }
+        }
+        return voucher;
     }
     async findById(id) {
         const voucher = await this.prisma.voucher.findUnique({ where: { id } });

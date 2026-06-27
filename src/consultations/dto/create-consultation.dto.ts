@@ -1,30 +1,42 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 
 export class CreateConsultationDto {
-  @ApiProperty({ example: 'Jane Doe', minLength: 2, maxLength: 100 })
+  @ApiProperty({
+    example: 'Rifky Kurniawan',
+  })
   @IsString()
   @IsNotEmpty()
-  @MinLength(2)
   @MaxLength(100)
   name!: string;
 
-  @ApiProperty({ example: 'jane@mail.com' })
+  @ApiProperty({
+    example: 'rifky@gmail.com',
+  })
   @IsEmail()
   @IsNotEmpty()
   email!: string;
 
-  @ApiPropertyOptional({ example: '08123456789', minLength: 8, maxLength: 20 })
-  @IsString()
+  @ApiPropertyOptional({
+    example: '081234567890',
+  })
   @IsOptional()
-  @MinLength(8)
-  @MaxLength(20)
+  @IsString()
+  @MaxLength(30)
   phone?: string;
 
-  @ApiProperty({ example: 'Saya ingin bertanya tentang produk...', minLength: 10, maxLength: 2000 })
+  @ApiProperty({
+    example:
+      'Saya ingin konsultasi mengenai produk herbal untuk daya tahan tubuh.',
+  })
   @IsString()
   @IsNotEmpty()
-  @MinLength(10)
-  @MaxLength(2000)
+  @MaxLength(5000)
   message!: string;
 }

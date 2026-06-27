@@ -9,12 +9,12 @@ export declare class AdminCustomersService {
             name: string;
             email: string;
             createdAt: Date;
-            orders: {
-                total: import("@prisma/client-runtime-utils").Decimal;
-            }[];
             _count: {
                 orders: number;
             };
+            orders: {
+                total: import("@prisma/client-runtime-utils").Decimal;
+            }[];
         }[];
         meta: {
             totalItems: number;
@@ -30,6 +30,9 @@ export declare class AdminCustomersService {
         phone: string | null;
         isVerified: boolean;
         createdAt: Date;
+        _count: {
+            orders: number;
+        };
         addresses: {
             id: string;
             phone: string;
@@ -52,8 +55,5 @@ export declare class AdminCustomersService {
                 items: number;
             };
         }[];
-        _count: {
-            orders: number;
-        };
     }>;
 }

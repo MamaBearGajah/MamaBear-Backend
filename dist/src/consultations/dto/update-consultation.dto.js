@@ -11,21 +11,29 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UpdateConsultationDto = void 0;
 const swagger_1 = require("@nestjs/swagger");
+const enums_1 = require("../../../generated/prisma/enums");
 const class_validator_1 = require("class-validator");
-var ConsultationStatus;
-(function (ConsultationStatus) {
-    ConsultationStatus["new"] = "new";
-    ConsultationStatus["in_progress"] = "in_progress";
-    ConsultationStatus["closed"] = "closed";
-})(ConsultationStatus || (ConsultationStatus = {}));
 class UpdateConsultationDto {
     status;
+    response;
 }
 exports.UpdateConsultationDto = UpdateConsultationDto;
 __decorate([
-    (0, swagger_1.ApiProperty)({ enum: ConsultationStatus, example: ConsultationStatus.in_progress }),
-    (0, class_validator_1.IsEnum)(ConsultationStatus),
-    (0, class_validator_1.IsNotEmpty)(),
+    (0, swagger_1.ApiProperty)({
+        enum: enums_1.ConsultationStatus,
+        example: enums_1.ConsultationStatus.in_progress,
+    }),
+    (0, class_validator_1.IsEnum)(enums_1.ConsultationStatus),
     __metadata("design:type", String)
 ], UpdateConsultationDto.prototype, "status", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        required: false,
+        example: 'Terima kasih telah menghubungi kami. Tim kami akan segera menghubungi Anda.',
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MaxLength)(5000),
+    __metadata("design:type", String)
+], UpdateConsultationDto.prototype, "response", void 0);
 //# sourceMappingURL=update-consultation.dto.js.map

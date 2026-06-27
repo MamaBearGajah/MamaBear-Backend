@@ -4,7 +4,7 @@ export declare class ChatbotController {
     private readonly chatbotService;
     constructor(chatbotService: ChatbotService);
     query(dto: ChatbotQueryDto): Promise<{
-        reply: string;
+        answer: string;
         suggestedFaqIds: string[];
     }>;
 }
