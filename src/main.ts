@@ -15,20 +15,17 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api');
 
-  // Gzip compression — harus dipasang sebelum route handler lain
   app.use(compression());
-
   app.use(cookieParser());
+
+  const allowedOrigins = [
+    'http://localhost:3001',
+    ...(process.env.FRONTEND_URL?.split(',').map(s => s.trim()) ?? []),
+  ].filter(Boolean);
 
   app.enableCors({
     origin: (origin, callback) => {
-      const allowed = [
-        'http://localhost:3001',
-        process.env.FRONTEND_URL,
-      ].filter(Boolean);
-
-      // Allow requests with no origin (server-to-server, Postman, curl)
-      if (!origin || allowed.includes(origin)) {
+      if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
         callback(new Error(`CORS blocked: ${origin}`));
@@ -46,7 +43,6 @@ async function bootstrap() {
   );
 
   app.useGlobalFilters(new AllExceptionFilter());
-
   app.useGlobalInterceptors(new LoggingInterceptor(), new TransformInterceptor());
 
   const config = new DocumentBuilder()
@@ -64,8 +60,9 @@ async function bootstrap() {
   console.log(`=======================================================`);
   console.log(`🚀 Backend running on: http://localhost:${port}`);
   console.log(`📘 Swagger Docs: http://localhost:${port}/api/docs`);
-  console.log(`🌐 Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:3001'}`);
+  console.log(`🌐 Allowed Origins: ${allowedOrigins.join(', ')}`);
   console.log(`=======================================================`);
 }
+
 process.env.TZ = 'Asia/Jakarta';
 bootstrap();
