@@ -21,17 +21,17 @@ const jwt_auth_guard_1 = require("./guards/jwt-auth.guard");
 const decorators_1 = require("./decorators");
 const config_1 = require("@nestjs/config");
 const enums_1 = require("../../generated/prisma/enums");
-const ACCESS_COOKIE_OPTIONS = (isProduction) => ({
+const ACCESS_COOKIE_OPTIONS = () => ({
     httpOnly: true,
-    secure: isProduction,
-    sameSite: (isProduction ? 'strict' : 'lax'),
+    secure: true,
+    sameSite: 'none',
     maxAge: 15 * 60 * 1000,
     path: '/',
 });
-const REFRESH_COOKIE_OPTIONS = (isProduction) => ({
+const REFRESH_COOKIE_OPTIONS = () => ({
     httpOnly: true,
-    secure: isProduction,
-    sameSite: (isProduction ? 'strict' : 'lax'),
+    secure: true,
+    sameSite: 'none',
     maxAge: 7 * 24 * 60 * 60 * 1000,
     path: '/api/auth',
 });
@@ -60,9 +60,8 @@ let AuthController = class AuthController {
     }
     async login(dto, res) {
         const result = await this.authService.login(dto);
-        const isProduction = this.config.get('NODE_ENV') === 'production';
-        res.cookie('accessToken', result.tokens.accessToken, ACCESS_COOKIE_OPTIONS(isProduction));
-        res.cookie('refreshToken', result.tokens.refreshToken, REFRESH_COOKIE_OPTIONS(isProduction));
+        res.cookie('accessToken', result.tokens.accessToken, ACCESS_COOKIE_OPTIONS());
+        res.cookie('refreshToken', result.tokens.refreshToken, REFRESH_COOKIE_OPTIONS());
         return {
             success: true,
             data: {
@@ -73,14 +72,21 @@ let AuthController = class AuthController {
     }
     async refreshToken(userId, email, role, res) {
         const tokens = await this.authService.refreshToken(userId, email, role);
-        const isProduction = this.config.get('NODE_ENV') === 'production';
-        res.cookie('accessToken', tokens.accessToken, ACCESS_COOKIE_OPTIONS(isProduction));
-        res.cookie('refreshToken', tokens.refreshToken, REFRESH_COOKIE_OPTIONS(isProduction));
+        res.cookie('accessToken', tokens.accessToken, ACCESS_COOKIE_OPTIONS());
+        res.cookie('refreshToken', tokens.refreshToken, REFRESH_COOKIE_OPTIONS());
         return { success: true, message: 'Token berhasil diperbarui' };
     }
     async logout(userId, res) {
-        res.clearCookie('accessToken', { path: '/' });
-        res.clearCookie('refreshToken', { path: '/api/auth' });
+        res.clearCookie('accessToken', {
+            path: '/',
+            secure: true,
+            sameSite: 'none',
+        });
+        res.clearCookie('refreshToken', {
+            path: '/api/auth',
+            secure: true,
+            sameSite: 'none',
+        });
         return this.authService.logout(userId);
     }
     forgotPassword(dto) {

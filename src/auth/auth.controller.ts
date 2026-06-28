@@ -29,25 +29,23 @@ import { JwtAuthGuard, JwtRefreshGuard } from './guards/jwt-auth.guard';
 import { GetUser, Public } from './decorators';
 import { ConfigService } from '@nestjs/config';
 import { Role } from '../../generated/prisma/enums';
+
 // ─────────────────────────────────────────────
 // Cookie option helpers
 // ─────────────────────────────────────────────
-const ACCESS_COOKIE_OPTIONS = (isProduction: boolean) => ({
+const ACCESS_COOKIE_OPTIONS = () => ({
   httpOnly: true,
-  secure: isProduction,
-  sameSite: (isProduction ? 'strict' : 'lax') as 'strict' | 'lax',
-  maxAge: 15 * 60 * 1000,           // 15 menit
-  // maxAge: 10 * 1000, // 10 detik (untuk testing)
+  secure: true,
+  sameSite: 'none' as const,
+  maxAge: 15 * 60 * 1000, // 15 menit
   path: '/',
 });
 
-const REFRESH_COOKIE_OPTIONS = (isProduction: boolean) => ({
+const REFRESH_COOKIE_OPTIONS = () => ({
   httpOnly: true,
-  secure: isProduction,
-  sameSite: (isProduction ? 'strict' : 'lax') as 'strict' | 'lax',
+  secure: true,
+  sameSite: 'none' as const,
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 hari
-  // FIX: path harus sama persis dengan path saat clearCookie di logout
-  // Pastikan prefix /api sesuai dengan global prefix app di main.ts
   path: '/api/auth',
 });
 
@@ -97,7 +95,6 @@ export class AuthController {
   @Public()
   @Post('resend-verification')
   @ApiOperation({ summary: 'Kirim ulang email verifikasi' })
-  // FIX: Hapus 404 — service sekarang tidak throw NotFoundException untuk email tidak terdaftar
   @ApiResponse({ status: 200, description: 'Email verifikasi dikirim jika email terdaftar dan belum terverifikasi' })
   @ApiResponse({ status: 400, description: 'Email sudah terverifikasi' })
   resendVerification(@Body() dto: ResendVerificationDto) {
@@ -111,18 +108,14 @@ export class AuthController {
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Login — token disimpan di HTTP-only cookie' })
-  // FIX: Hapus 404 — service tidak lagi throw NotFoundException untuk login
   @ApiResponse({ status: 200, description: 'Login berhasil' })
   @ApiResponse({ status: 401, description: 'Email/password salah / akun di-ban / akun dihapus' })
   @ApiResponse({ status: 403, description: 'Akun belum diverifikasi' })
   async login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: Response) {
     const result = await this.authService.login(dto);
 
-    // FIX: Pakai ConfigService konsisten, jangan campur dengan process.env langsung
-    const isProduction = this.config.get('NODE_ENV') === 'production';
-
-    res.cookie('accessToken', result.tokens.accessToken, ACCESS_COOKIE_OPTIONS(isProduction));
-    res.cookie('refreshToken', result.tokens.refreshToken, REFRESH_COOKIE_OPTIONS(isProduction));
+    res.cookie('accessToken', result.tokens.accessToken, ACCESS_COOKIE_OPTIONS());
+    res.cookie('refreshToken', result.tokens.refreshToken, REFRESH_COOKIE_OPTIONS());
 
     return {
       success: true,
@@ -145,18 +138,13 @@ export class AuthController {
   async refreshToken(
     @GetUser('id') userId: string,
     @GetUser('email') email: string,
-    // FIX: Terima sebagai Role langsung — JWT strategy seharusnya sudah set tipe yang benar
-    // Kalau strategy-mu return role sebagai string, tambahkan Role enum mapping di strategy
     @GetUser('role') role: Role,
     @Res({ passthrough: true }) res: Response,
   ) {
     const tokens = await this.authService.refreshToken(userId, email, role);
 
-    // FIX: Konsisten pakai ConfigService
-    const isProduction = this.config.get('NODE_ENV') === 'production';
-
-    res.cookie('accessToken', tokens.accessToken, ACCESS_COOKIE_OPTIONS(isProduction));
-    res.cookie('refreshToken', tokens.refreshToken, REFRESH_COOKIE_OPTIONS(isProduction));
+    res.cookie('accessToken', tokens.accessToken, ACCESS_COOKIE_OPTIONS());
+    res.cookie('refreshToken', tokens.refreshToken, REFRESH_COOKIE_OPTIONS());
 
     return { success: true, message: 'Token berhasil diperbarui' };
   }
@@ -175,8 +163,16 @@ export class AuthController {
     @GetUser('id') userId: string,
     @Res({ passthrough: true }) res: Response,
   ) {
-    res.clearCookie('accessToken', { path: '/' });
-    res.clearCookie('refreshToken', { path: '/api/auth' });
+    res.clearCookie('accessToken', {
+      path: '/',
+      secure: true,
+      sameSite: 'none',
+    });
+    res.clearCookie('refreshToken', {
+      path: '/api/auth',
+      secure: true,
+      sameSite: 'none',
+    });
     return this.authService.logout(userId);
   }
 
