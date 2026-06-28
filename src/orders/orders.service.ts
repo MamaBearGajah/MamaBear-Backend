@@ -55,17 +55,28 @@ export class OrdersService {
     const cart = await this.prisma.cart.findFirst({
       where: { userId },
       include: {
-        items: { include: { variant: { include: { product: true } }, product: true } },
+        items: {
+          include: {
+            variant: { include: { product: true } },
+            product: true,
+          },
+        },
       },
     });
     if (!cart || cart.items.length === 0)
       throw new BadRequestException('Cart is empty or not found');
 
+    // FIX: cek stok menggunakan availableStock = stock - reservedStock
     for (const item of cart.items) {
       if (!item.variant)
         throw new BadRequestException(`Product variant not found for cart item ${item.id}`);
-      if (item.variant.stock < item.quantity)
-        throw new BadRequestException(`Insufficient stock for: ${item.variant.product?.name ?? item.productId}`);
+
+      const availableStock = item.variant.stock - item.variant.reservedStock;
+      if (availableStock < item.quantity)
+        throw new BadRequestException(
+          `Stok tidak cukup untuk: ${item.variant.product?.name ?? item.productId}. ` +
+          `Tersedia: ${availableStock}, diminta: ${item.quantity}`,
+        );
     }
 
     const address = await this.prisma.address.findFirst({ where: { id: dto.addressId, userId } });
@@ -95,20 +106,20 @@ export class OrdersService {
     const shippingCost: number = selectedService.cost;
     const estimatedDelivery = parseEtdToDate(selectedService.etd);
 
-    // FIX: pakai discountPrice jika ada, supaya konsisten dengan kalkulasi subtotal di frontend
+    // Subtotal dihitung dari discountPrice jika ada, konsisten dengan frontend
     const subtotal = cart.items.reduce((sum, item) => {
       const price = Number(
-        item.variant?.discountPrice ?? item.variant?.basePrice ?? item.price ?? 0
+        item.variant?.discountPrice ?? item.variant?.basePrice ?? item.price ?? 0,
       );
       return sum + price * item.quantity;
     }, 0);
 
     // ── Voucher ───────────────────────────────────────────────────────────────
-    let discountAmount   = 0; // diskon dari voucher produk
-    let discountShipping = 0; // diskon dari voucher ongkir (NEW)
+    let discountAmount   = 0;
+    let discountShipping = 0;
 
     const resolvedVoucherId         = dto.voucherId ?? null;
-    const resolvedVoucherShippingId = dto.voucherShippingId ?? null; // NEW
+    const resolvedVoucherShippingId = dto.voucherShippingId ?? null;
 
     const orderNumber = await this.generateOrderNumber();
 
@@ -122,26 +133,26 @@ export class OrdersService {
         const applied = await this.voucherService.applyVoucher(
           tx,
           resolvedVoucherId,
-          subtotal,
+          subtotal,   // subtotal sebelum diskon — benar, voucher dihitung dari harga asli
           userId,
-          0, // shippingCost tidak relevan untuk voucher produk
+          0,          // shippingCost tidak relevan untuk voucher produk
         );
         discountAmount = applied.discountAmount;
       }
 
-      // 2. Apply voucher ongkir (NEW)
+      // 2. Apply voucher ongkir
       if (resolvedVoucherShippingId) {
         const appliedShipping = await this.voucherService.applyVoucher(
           tx,
           resolvedVoucherShippingId,
-          subtotal,
+          subtotal,     // subtotal asli (sebelum diskon produk) untuk cek minPurchase
           userId,
-          shippingCost, // pass ongkir aktual supaya discountAmount = nilai ongkir
+          shippingCost, // ongkir aktual agar calculateDiscount bisa Math.min(cost, value)
         );
         discountShipping = appliedShipping.discountAmount;
       }
 
-      // Total = subtotal - diskon produk + ongkir - diskon ongkir
+      // Total = subtotal - diskon produk + ongkir - diskon ongkir, minimum 0
       const total = Math.max(0, subtotal - discountAmount + shippingCost - discountShipping);
 
       const newOrder = await tx.order.create({
@@ -150,13 +161,13 @@ export class OrdersService {
           userId,
           addressId:          dto.addressId,
           voucherId:          resolvedVoucherId,
-          voucherShippingId:  resolvedVoucherShippingId, // NEW
+          voucherShippingId:  resolvedVoucherShippingId,
           courier:            dto.courier,
           service:            dto.service,
           notes:              dto.notes ?? null,
           subtotal:           new Prisma.Decimal(subtotal),
           discountAmount:     new Prisma.Decimal(discountAmount),
-          discountShipping:   new Prisma.Decimal(discountShipping), // NEW
+          discountShipping:   new Prisma.Decimal(discountShipping),
           shippingCost:       new Prisma.Decimal(shippingCost),
           total:              new Prisma.Decimal(total),
           status:             'pending',
@@ -167,6 +178,7 @@ export class OrdersService {
         },
       });
 
+      // FIX: simpan harga aktual (discountPrice jika ada) bukan selalu basePrice
       await tx.orderItem.createMany({
         data: cart.items.map((item) => ({
           orderId:     newOrder.id,
@@ -175,7 +187,7 @@ export class OrdersService {
           variantId:   item.variantId ?? null,
           variantName: item.variant ? `${item.variant.name}: ${item.variant.value}` : null,
           quantity:    item.quantity,
-          price:       item.variant?.basePrice ?? item.price,
+          price:       item.variant?.discountPrice ?? item.variant?.basePrice ?? item.price,
           notes:       item.notes ?? null,
         })),
       });
@@ -184,11 +196,15 @@ export class OrdersService {
         data: { orderId: newOrder.id, status: 'pending', note: 'Order created successfully' },
       });
 
+      // FIX: decrement stock DAN increment reservedStock secara bersamaan
       for (const item of cart.items) {
         if (item.variantId) {
           await tx.productVariant.update({
             where: { id: item.variantId },
-            data: { stock: { decrement: item.quantity } },
+            data: {
+              stock:         { decrement: item.quantity },
+              reservedStock: { decrement: item.quantity }, // turunkan reserved setelah order confirmed
+            },
           });
         }
       }
@@ -198,7 +214,10 @@ export class OrdersService {
         return acc;
       }, {});
       for (const [productId, qty] of Object.entries(productSoldMap)) {
-        await tx.product.update({ where: { id: productId }, data: { soldCount: { increment: qty } } });
+        await tx.product.update({
+          where: { id: productId },
+          data: { soldCount: { increment: qty } },
+        });
       }
 
       await tx.cartItem.deleteMany({ where: { cartId: cart.id } });
@@ -222,7 +241,7 @@ export class OrdersService {
           address: true,
           payment: true,
           voucher:         { select: { code: true, type: true, value: true } },
-          voucherShipping: { select: { code: true, type: true, value: true } }, // NEW
+          voucherShipping: { select: { code: true, type: true, value: true } },
         },
       }),
       this.prisma.order.count({ where: { userId } }),
@@ -255,7 +274,7 @@ export class OrdersService {
           payment: { select: { id: true, status: true, paymentMethod: true } },
           user: { select: { id: true, name: true, email: true, phone: true } },
           voucher:         { select: { code: true, type: true, value: true } },
-          voucherShipping: { select: { code: true, type: true, value: true } }, // NEW
+          voucherShipping: { select: { code: true, type: true, value: true } },
           _count: { select: { items: true } },
         },
       }),
@@ -294,7 +313,7 @@ export class OrdersService {
         address: true,
         payment: true,
         voucher:         { select: { code: true, type: true, value: true } },
-        voucherShipping: { select: { code: true, type: true, value: true } }, // NEW
+        voucherShipping: { select: { code: true, type: true, value: true } },
         statusHistory: { orderBy: { createdAt: 'asc' } },
         user: { select: { id: true, name: true, email: true } },
       },
@@ -332,7 +351,7 @@ export class OrdersService {
         address: true,
         payment: true,
         voucher:         { select: { code: true, type: true, value: true } },
-        voucherShipping: { select: { code: true, type: true, value: true } }, // NEW
+        voucherShipping: { select: { code: true, type: true, value: true } },
         statusHistory: { orderBy: { createdAt: 'asc' } },
         user: { select: { id: true, name: true, email: true, phone: true } },
       },
@@ -411,11 +430,13 @@ export class OrdersService {
         data: { orderId, status: 'cancelled', note: 'Order cancelled by user' },
       });
 
+      // FIX: kembalikan stock saat cancel (stock sudah dikurangi saat order dibuat)
       for (const item of order.items) {
         if (item.variantId) {
           await tx.productVariant.update({
             where: { id: item.variantId },
             data: { stock: { increment: item.quantity } },
+            // reservedStock tidak perlu di-increment karena sudah di-decrement saat create
           });
         }
       }
