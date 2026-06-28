@@ -18,13 +18,13 @@ async function bootstrap() {
     app.setGlobalPrefix('api');
     app.use((0, compression_1.default)());
     app.use((0, cookie_parser_1.default)());
+    const allowedOrigins = [
+        'http://localhost:3001',
+        ...(process.env.FRONTEND_URL?.split(',').map(s => s.trim()) ?? []),
+    ].filter(Boolean);
     app.enableCors({
         origin: (origin, callback) => {
-            const allowed = [
-                'http://localhost:3001',
-                process.env.FRONTEND_URL,
-            ].filter(Boolean);
-            if (!origin || allowed.includes(origin)) {
+            if (!origin || allowedOrigins.includes(origin)) {
                 callback(null, true);
             }
             else {
@@ -53,7 +53,7 @@ async function bootstrap() {
     console.log(`=======================================================`);
     console.log(`🚀 Backend running on: http://localhost:${port}`);
     console.log(`📘 Swagger Docs: http://localhost:${port}/api/docs`);
-    console.log(`🌐 Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:3001'}`);
+    console.log(`🌐 Allowed Origins: ${allowedOrigins.join(', ')}`);
     console.log(`=======================================================`);
 }
 process.env.TZ = 'Asia/Jakarta';
