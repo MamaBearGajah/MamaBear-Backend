@@ -203,11 +203,14 @@ export class VoucherService {
         break;
 
       case VoucherType.fixed:
-        discountAmount = value;
+        // Diskon tidak boleh melebihi subtotal (total tidak boleh negatif)
+        discountAmount = Math.min(value, subtotal);
         break;
 
       case VoucherType.free_shipping:
-        discountAmount = shippingCost;
+        // Potongan ongkir sebesar value voucher, tidak melebihi ongkir aktual
+        // (silver=5.000, gold=10.000, platinum=15.000 — bukan free shipping penuh)
+        discountAmount = Math.min(shippingCost, value);
         break;
     }
 
@@ -259,15 +262,14 @@ export class VoucherService {
     if (voucher.ownerId && voucher.ownerId !== userId)
       throw new BadRequestException('Voucher ini tidak untuk akun Anda');
 
-    // Voucher fixed: nilai voucher tidak boleh >= subtotal
-    if (voucher.type === VoucherType.fixed) {
-      const value = Number(voucher.value);
-      if (value >= subtotal) {
-        throw new BadRequestException(
-          `Nilai voucher (Rp ${value.toLocaleString('id-ID')}) melebihi atau sama dengan total belanja Anda (Rp ${subtotal.toLocaleString('id-ID')}). Tambahkan produk lagi untuk menggunakan voucher ini.`,
-        );
-      }
-    }
+    // FIX: Hapus validasi "value >= subtotal" yang terlalu ketat.
+    // Voucher fixed boleh digunakan selama subtotal >= minPurchase (sudah dicek di atas).
+    // Jika nilai voucher melebihi subtotal, calculateDiscount() sudah membatasi
+    // discountAmount = Math.min(value, subtotal) sehingga total tidak akan negatif.
+    //
+    // Validasi ini sebelumnya memblokir voucher Rp 200.000 pada subtotal Rp 240.000
+    // karena minPurchase otomatis di-set 2x nilai (= Rp 400.000), yang tidak sesuai
+    // dengan ekspektasi user. Validasi yang benar cukup dari minPurchase saja.
 
     // Voucher percentage: diskon tidak boleh menghabiskan seluruh subtotal
     if (voucher.type === VoucherType.percentage) {

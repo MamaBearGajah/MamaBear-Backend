@@ -38,8 +38,6 @@ export async function seedMembership(prisma: PrismaClient, customers: { id: stri
   const customerIds = customers.map((c) => c.id);
 
   // ── Cleanup (idempotent re-seed) ──────────────────────────────────────────
-  // Hapus semua data membership + point transactions + voucher personal
-  // milik customers seed ini. Voucher publik di-handle terpisah via upsert.
   await prisma.pointTransaction.deleteMany({ where: { userId: { in: customerIds } } });
   await prisma.voucher.deleteMany({
     where: {
@@ -82,7 +80,6 @@ export async function seedMembership(prisma: PrismaClient, customers: { id: stri
     const lastOrder   = userOrders[userOrders.length - 1];
 
     // ── Create Membership ────────────────────────────────────────────────────
-    // Pakai create (bukan upsert) karena sudah deleteMany di atas
     await prisma.membership.create({
       data: {
         userId,
@@ -98,7 +95,6 @@ export async function seedMembership(prisma: PrismaClient, customers: { id: stri
       const pts = calculatePoints(Number(order.total));
       if (pts <= 0) continue;
 
-      // Tanggal transaksi = 1 hari setelah order delivered
       const txDate = new Date(order.createdAt.getTime() + 24 * 60 * 60 * 1000);
 
       await prisma.pointTransaction.create({
@@ -117,8 +113,11 @@ export async function seedMembership(prisma: PrismaClient, customers: { id: stri
     if (tier !== "bronze") {
       const shippingValue = TIER_SHIPPING_BENEFIT[tier]!;
       const voucherCode   = await generateVoucherCode(prisma, `SHIP-${tier.toUpperCase()}`);
-      const endDate       = new Date();
-      endDate.setDate(endDate.getDate() + 90);
+      // FIX: endDate 1 tahun (bukan 90 hari) dan usageLimit null (unlimited).
+      // Voucher ongkir adalah benefit berkelanjutan selama masih member aktif,
+      // bukan reward sekali pakai.
+      const endDate = new Date();
+      endDate.setFullYear(endDate.getFullYear() + 1);
 
       await prisma.voucher.create({
         data: {
@@ -126,7 +125,7 @@ export async function seedMembership(prisma: PrismaClient, customers: { id: stri
           type:       "free_shipping",
           source:     "tier_benefit",
           value:      shippingValue,
-          usageLimit: 1,
+          usageLimit: null,  // unlimited — bisa dipakai tiap order selama masih member
           isActive:   true,
           endDate,
           ownerId:    userId,
@@ -202,7 +201,6 @@ export async function seedMembership(prisma: PrismaClient, customers: { id: stri
   }
 
   // ── Contoh redeem point untuk customer[0] ─────────────────────────────────
-  // Simulasikan customer pertama redeem 200 point → voucher Rp 20.000
   const firstCustomerId = customers[0]?.id;
   if (firstCustomerId) {
     const membership  = await prisma.membership.findUnique({ where: { userId: firstCustomerId } });

@@ -94,14 +94,14 @@ async function seedMembership(prisma, customers) {
             const shippingValue = TIER_SHIPPING_BENEFIT[tier];
             const voucherCode = await generateVoucherCode(prisma, `SHIP-${tier.toUpperCase()}`);
             const endDate = new Date();
-            endDate.setDate(endDate.getDate() + 90);
+            endDate.setFullYear(endDate.getFullYear() + 1);
             await prisma.voucher.create({
                 data: {
                     code: voucherCode,
                     type: "free_shipping",
                     source: "tier_benefit",
                     value: shippingValue,
-                    usageLimit: 1,
+                    usageLimit: null,
                     isActive: true,
                     endDate,
                     ownerId: userId,

@@ -35,7 +35,8 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 const Sentry = __importStar(require("@sentry/nestjs"));
 Sentry.init({
-    dsn: process.env.SENTRY_DSN,
-    tracesSampleRate: 1.0,
+    dsn: process.env.SENTRY_DSN ?? 'https://1e75ba45324a0f7b3ab90c74fcf3ad85@o4511637640052736.ingest.de.sentry.io/4511637679833168',
+    environment: process.env.NODE_ENV ?? 'development',
+    tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.2 : 1.0,
 });
 //# sourceMappingURL=instrument.js.map

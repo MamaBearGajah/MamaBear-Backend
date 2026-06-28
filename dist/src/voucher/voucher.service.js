@@ -133,10 +133,10 @@ let VoucherService = class VoucherService {
                 discountAmount = Math.min((subtotal * value) / 100, maxDiscount);
                 break;
             case client_1.VoucherType.fixed:
-                discountAmount = value;
+                discountAmount = Math.min(value, subtotal);
                 break;
             case client_1.VoucherType.free_shipping:
-                discountAmount = shippingCost;
+                discountAmount = Math.min(shippingCost, value);
                 break;
         }
         return Math.floor(discountAmount);
@@ -176,12 +176,6 @@ let VoucherService = class VoucherService {
             throw new common_1.BadRequestException(`Minimum pembelian Rp ${Number(voucher.minPurchase).toLocaleString('id-ID')} untuk pakai voucher ini`);
         if (voucher.ownerId && voucher.ownerId !== userId)
             throw new common_1.BadRequestException('Voucher ini tidak untuk akun Anda');
-        if (voucher.type === client_1.VoucherType.fixed) {
-            const value = Number(voucher.value);
-            if (value >= subtotal) {
-                throw new common_1.BadRequestException(`Nilai voucher (Rp ${value.toLocaleString('id-ID')}) melebihi atau sama dengan total belanja Anda (Rp ${subtotal.toLocaleString('id-ID')}). Tambahkan produk lagi untuk menggunakan voucher ini.`);
-            }
-        }
         if (voucher.type === client_1.VoucherType.percentage) {
             const value = Number(voucher.value);
             const maxDiscount = voucher.maxDiscount ? Number(voucher.maxDiscount) : Infinity;

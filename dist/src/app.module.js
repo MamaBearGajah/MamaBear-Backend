@@ -11,6 +11,8 @@ const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
 const throttler_1 = require("@nestjs/throttler");
 const core_1 = require("@nestjs/core");
+const setup_1 = require("@sentry/nestjs/setup");
+const setup_2 = require("@sentry/nestjs/setup");
 const app_controller_1 = require("./app.controller");
 const app_service_1 = require("./app.service");
 const prisma_module_1 = require("./prisma/prisma.module");
@@ -50,6 +52,7 @@ exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
         imports: [
+            setup_1.SentryModule.forRoot(),
             config_1.ConfigModule.forRoot({ isGlobal: true }),
             throttler_1.ThrottlerModule.forRoot([{ ttl: 60000, limit: 60 }]),
             cache_module_1.RedisCacheModule,
@@ -84,6 +87,10 @@ exports.AppModule = AppModule = __decorate([
         controllers: [app_controller_1.AppController],
         providers: [
             app_service_1.AppService,
+            {
+                provide: core_1.APP_FILTER,
+                useClass: setup_2.SentryGlobalFilter,
+            },
             { provide: core_1.APP_GUARD, useClass: throttler_guard_1.CustomThrottlerGuard },
             { provide: core_1.APP_GUARD, useClass: jwt_auth_guard_1.JwtAuthGuard },
             { provide: core_1.APP_GUARD, useClass: roles_guard_1.RolesGuard },

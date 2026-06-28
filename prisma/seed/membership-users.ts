@@ -67,7 +67,7 @@ const MEMBERSHIP_USERS = [
       { subtotal: 480_000, shippingCost: 12_000, discountAmount: 0,  daysAgo: 14 },
     ],
     tier: "silver" as const,
-    bonusPoints: 50, // bonus dari daily login / event
+    bonusPoints: 50,
   },
   {
     // Gold: totalSpent >= 5.000.000 & < 10.000.000
@@ -138,7 +138,6 @@ export async function seedMembershipUsers(prisma: PrismaClient) {
 
   const hashedPassword = await bcrypt.hash("Member@123", 10);
 
-  // Lookup produk untuk order items (ambil produk pertama yang aktif)
   const products = await prisma.product.findMany({
     where: { status: "active" },
     select: { id: true, name: true, basePrice: true, discountPrice: true },
@@ -178,7 +177,6 @@ export async function seedMembershipUsers(prisma: PrismaClient) {
     await prisma.voucher.deleteMany({
       where: { ownerId: user.id, source: { in: ["tier_benefit", "point_redeem"] } },
     });
-    // Hapus order lama milik user ini (cascade ke OrderItem, Payment, StatusHistory)
     const oldOrders = await prisma.order.findMany({
       where: { userId: user.id },
       select: { id: true },
@@ -238,7 +236,6 @@ export async function seedMembershipUsers(prisma: PrismaClient) {
         },
       });
 
-      // Payment record
       await prisma.payment.create({
         data: {
           orderId:       order.id,
@@ -304,8 +301,11 @@ export async function seedMembershipUsers(prisma: PrismaClient) {
     // ── 8. Tier benefit voucher (ongkir) ────────────────────────────────────
     const shippingValue = TIER_SHIPPING_BENEFIT[userData.tier];
     const voucherCode   = await generateVoucherCode(prisma, `SHIP-${userData.tier.toUpperCase()}`);
-    const endDate       = new Date();
-    endDate.setDate(endDate.getDate() + 90);
+    // FIX: endDate 1 tahun (bukan 90 hari) dan usageLimit null (unlimited).
+    // Voucher ongkir adalah benefit berkelanjutan selama masih member aktif,
+    // bukan reward sekali pakai.
+    const endDate = new Date();
+    endDate.setFullYear(endDate.getFullYear() + 1);
 
     await prisma.voucher.create({
       data: {
@@ -313,7 +313,7 @@ export async function seedMembershipUsers(prisma: PrismaClient) {
         type:       "free_shipping",
         source:     "tier_benefit",
         value:      shippingValue,
-        usageLimit: 1,
+        usageLimit: null,  // unlimited — bisa dipakai tiap order selama masih gold/silver/platinum
         isActive:   true,
         endDate,
         ownerId:    user.id,
