@@ -60,7 +60,12 @@ let OrdersService = OrdersService_1 = class OrdersService {
         const cart = await this.prisma.cart.findFirst({
             where: { userId },
             include: {
-                items: { include: { variant: { include: { product: true } }, product: true } },
+                items: {
+                    include: {
+                        variant: { include: { product: true } },
+                        product: true,
+                    },
+                },
             },
         });
         if (!cart || cart.items.length === 0)
@@ -68,8 +73,10 @@ let OrdersService = OrdersService_1 = class OrdersService {
         for (const item of cart.items) {
             if (!item.variant)
                 throw new common_1.BadRequestException(`Product variant not found for cart item ${item.id}`);
-            if (item.variant.stock < item.quantity)
-                throw new common_1.BadRequestException(`Insufficient stock for: ${item.variant.product?.name ?? item.productId}`);
+            const availableStock = item.variant.stock - item.variant.reservedStock;
+            if (availableStock < item.quantity)
+                throw new common_1.BadRequestException(`Stok tidak cukup untuk: ${item.variant.product?.name ?? item.productId}. ` +
+                    `Tersedia: ${availableStock}, diminta: ${item.quantity}`);
         }
         const address = await this.prisma.address.findFirst({ where: { id: dto.addressId, userId } });
         if (!address)
@@ -139,7 +146,7 @@ let OrdersService = OrdersService_1 = class OrdersService {
                     variantId: item.variantId ?? null,
                     variantName: item.variant ? `${item.variant.name}: ${item.variant.value}` : null,
                     quantity: item.quantity,
-                    price: item.variant?.basePrice ?? item.price,
+                    price: item.variant?.discountPrice ?? item.variant?.basePrice ?? item.price,
                     notes: item.notes ?? null,
                 })),
             });
@@ -150,7 +157,10 @@ let OrdersService = OrdersService_1 = class OrdersService {
                 if (item.variantId) {
                     await tx.productVariant.update({
                         where: { id: item.variantId },
-                        data: { stock: { decrement: item.quantity } },
+                        data: {
+                            stock: { decrement: item.quantity },
+                            reservedStock: { decrement: item.quantity },
+                        },
                     });
                 }
             }
@@ -159,7 +169,10 @@ let OrdersService = OrdersService_1 = class OrdersService {
                 return acc;
             }, {});
             for (const [productId, qty] of Object.entries(productSoldMap)) {
-                await tx.product.update({ where: { id: productId }, data: { soldCount: { increment: qty } } });
+                await tx.product.update({
+                    where: { id: productId },
+                    data: { soldCount: { increment: qty } },
+                });
             }
             await tx.cartItem.deleteMany({ where: { cartId: cart.id } });
             return newOrder;

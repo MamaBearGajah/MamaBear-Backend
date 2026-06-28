@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
+import { SentryModule } from '@sentry/nestjs/setup';
+import { SentryGlobalFilter } from '@sentry/nestjs/setup';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
@@ -34,10 +36,12 @@ import { BundleModule } from './bundle/bundle.module';
 import { WishlistModule } from './wishlist/wishlist.module';
 import { ReportsModule } from './reports/reports.module';
 import { PromotionModule } from './promotion/promotion.module';
-import { SiteSettingsModule } from './site-settings/site-settings.module'; // ← BARU
+import { SiteSettingsModule } from './site-settings/site-settings.module';
 
 @Module({
   imports: [
+    // SentryModule.forRoot() harus di-import PERTAMA
+    SentryModule.forRoot(),
     ConfigModule.forRoot({ isGlobal: true }),
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 60 }]),
     RedisCacheModule,
@@ -67,11 +71,17 @@ import { SiteSettingsModule } from './site-settings/site-settings.module'; // �
     WishlistModule,
     ReportsModule,
     PromotionModule,
-    SiteSettingsModule, // ← BARU
+    SiteSettingsModule,
   ],
   controllers: [AppController],
   providers: [
     AppService,
+    // SentryGlobalFilter harus PERTAMA sebelum guard lain
+    // agar semua unhandled exception tertangkap Sentry
+    {
+      provide: APP_FILTER,
+      useClass: SentryGlobalFilter,
+    },
     { provide: APP_GUARD, useClass: CustomThrottlerGuard },
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
